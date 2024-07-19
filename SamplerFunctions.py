@@ -2,6 +2,7 @@ import logging
 import cv2
 import pandas as pd
 import numpy as np
+from multiprocessing import Manager
 import time
 import random
 import torch
@@ -27,8 +28,8 @@ def sample_video(
         """
         logging.info(f"Sampling {video_path}")
         start_time = time.time()
-        begin_frame = row["begin frame"]
-        end_frame = row["end frame"]
+        begin_frame = row[2]
+        end_frame = row[3]
         width, height, total_frames = getVideoInfo(video_path)
         available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
         num_samples = min(available_samples, num_samples)
@@ -174,25 +175,27 @@ def getVideoInfo(video_path: str):
 
 
 if __name__ == "__main__":
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
-    tar_writer = wds.TarWriter("dataset.tar", encoder=False)
-    sample_video(
-        "2024-07-03 17:20:20.604941.mp4",
-        500,
-        tar_writer,
-        multiprocessing.Lock(),
-        pd.Series(
-            {
-                "file": "2024-07-03 17:20:20.604941.mp4",
-                "class": 1,
-                "begin frame": 0,
-                "end frame": 1000,
-            }
-        ),
-        1,
-        1, 
-        True,
-        1 
-    )
-    tar_writer.close()
+    with Manager() as manager:
+        lock = manager.Lock()
+        format = "%(asctime)s: %(message)s"
+        logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
+        tar_writer = wds.TarWriter("dataset.tar", encoder=False)
+        sample_video(
+            "2024-07-03 17:20:20.604941.mp4",
+            500,
+            "dataset.tar",
+            lock,
+            pd.Series(
+                {
+                    "file": "2024-07-03 17:20:20.604941.mp4",
+                    "class": 1,
+                    "begin frame": 0,
+                    "end frame": 1000,
+                }
+            ),
+            1,
+            1, 
+            True,
+            1 
+        )
+        tar_writer.close()
