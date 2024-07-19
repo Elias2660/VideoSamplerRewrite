@@ -10,7 +10,7 @@ import io
 
 
 def write_to_dataset(
-    tar_writer: wds.TarWriter,
+    name,
     row: pd.Series,
     samples,
     lock,
@@ -73,6 +73,7 @@ def write_to_dataset(
                         sample[f"{i}.png"] = buffers[i].getbuffer()
                         
             with lock:
+                tar_writer = wds.TarWriter(name, encoder=False)
                 tar_writer.write(sample)
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
