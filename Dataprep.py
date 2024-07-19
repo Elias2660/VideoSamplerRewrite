@@ -25,7 +25,7 @@ def create_writers(
     max_workers,
     frames_per_sample,
     normalize,
-    out_channels
+    out_channels,
 ):
     sample_start = time.time()
     """
@@ -57,7 +57,7 @@ def create_writers(
                     frames_per_sample,
                     frames_per_sample,
                     normalize,
-                    out_channels
+                    out_channels,
                 )
                 for index, row in dataset.iterrows()
             ]
@@ -74,11 +74,7 @@ def create_writers(
         raise e
 
 
-if __name__ == "__main__":
-    freeze_support()
-    """
-    Run three 
-    """
+def main():
     try:
 
         start = time.time()
@@ -114,16 +110,10 @@ if __name__ == "__main__":
             default=1,
         )
         parser.add_argument(
-            "--normalize",
-            type = bool,
-            help = "Normalize the images",
-            default = True
+            "--normalize", type=bool, help="Normalize the images", default=True
         )
         parser.add_argument(
-            "--out-channels",
-            type = int,
-            help = "The number of output channels",
-            default = 1
+            "--out-channels", type=int, help="The number of output channels", default=1
         )
         args = parser.parse_args()
         dataset_path = args.dataset_path
@@ -162,3 +152,11 @@ if __name__ == "__main__":
     except Exception as e:
         logging.error(f"An error occured in main function: {e}")
         raise e
+
+
+if __name__ == "__main__":
+    freeze_support()
+    """
+    Run three 
+    """
+    main()

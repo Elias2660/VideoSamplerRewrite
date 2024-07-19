@@ -7,7 +7,6 @@ import random
 import torch
 import webdataset as wds
 import multiprocessing
-from torchvision import transforms
 from WriteToDataset import write_to_dataset
 
 
