@@ -7,9 +7,12 @@ import time
 import random
 import torch
 import webdataset as wds
-import multiprocessing
 from WriteToDataset import write_to_dataset
 
+import os
+os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
+
+cv2.setNumThreads(400)
 
 def sample_video(
     video_path: str,
