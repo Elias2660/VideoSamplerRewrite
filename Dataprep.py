@@ -9,7 +9,10 @@ from SamplerFunctions import sample_video
 import argparse
 import subprocess
 from multiprocessing import Manager, freeze_support, Lock
-import concurrent
+import concurrent # for multitprocessing and other stuff
+
+from SamplerFunctions import sample_video
+
 import re
 import os
 
@@ -18,7 +21,7 @@ format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 
-def writeSample(dataset_path, dataset_name, dataset):
+def create_writers(dataset_path, dataset_name, dataset):
     sample_start = time.time()
     """
     get all the samples from sample video and writem them to a tar file using webdataset
@@ -30,65 +33,16 @@ def writeSample(dataset_path, dataset_name, dataset):
     datawriter = wds.TarWriter(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")), encoder=False)
     write_list = Manager().list()
     tar_lock = Lock()
+    
+    
+    # run the sampling call here!!!
+    
+    
     sample_end = time.time()
+    
+    
     logging.info(f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds")
     
-    
-    datawriter.close()
-    # `    frame, video_path, frame_num = frame_data
-    #                 base_name = os.path.basename(video_path).replace(' ', '_').replace('.', '_')
-    #                 video_time = os.path.basename(video_path).split('.')[0]
-    #                 # TODO FIXME Convert the time from the video to the current frame time.
-    #                 # TODO Assuming 3fps bee videos
-    #                 time_sec = time.mktime(time.strptime(video_time, "%Y-%m-%d %H:%M:%S"))
-    #                 time_struct = time.localtime(time_sec + int(frame_num[0]) // 3)
-    #                 curtime = time.strftime("%Y-%m-%d %H:%M:%S", time_struct)
-    #                 metadata = f"{video_path},{frame_num[0]},{curtime}"
-    #                 height, width = frame.size(2), frame.size(3)
-    #                 # Now crop to args.width by args.height.
-    #                 #ybegin = (height - args.height)//2
-    #                 #xbegin = (width - args.width)//2
-    #                 #cropped = frame[:,:,ybegin:ybegin+args.height,xbegin:xbegin+args.width]
-    #                 # If you would like to debug (and you would like to!) check your images.
-    #                 if 1 == args.frames_per_sample:
-    #                     if 3 == args.out_channels:
-    #                         img = transforms.ToPILImage()(frame[0]/255.0).convert('RGB')
-    #                     else:
-    #                         img = transforms.ToPILImage()(frame[0]/255.0).convert('L')
-    #                     # Now save the image as a png into a buffer in memory
-    #                     buf = io.BytesIO()
-    #                     img.save(fp=buf, format="png")
-
-    #                     sample = {
-    #                         "__key__": '_'.join((base_name, '_'.join(frame_num))),
-    #                         "0.png": buf.getbuffer(),
-    #                         "cls": row[class_col].encode('utf-8'),
-    #                         "metadata.txt": metadata.encode('utf-8')
-    #                     }
-    #                 else:
-    #                     # Save multiple pngs
-    #                     buffers = []
-
-    #                     for i in range(args.frames_per_sample):
-    #                         if 3 == args.out_channels:
-    #                             img = transforms.ToPILImage()(frame[i]/255.0).convert('RGB')
-    #                         else:
-    #                             img = transforms.ToPILImage()(frame[i]/255.0).convert('L')
-    #                         # Now save the image as a png into a buffer in memory
-    #                         buffers.append(io.BytesIO())
-    #                         img.save(fp=buffers[-1], format="png")
-
-    #                     sample = {
-    #                         "__key__": '_'.join((base_name, '_'.join(frame_num))),
-    #                         "cls": row[class_col].encode('utf-8'),
-    #                         "metadata.txt": metadata.encode('utf-8')
-    #                     }
-    #                     for i in range(args.frames_per_sample):
-    #                         sample[f"{i}.png"] = buffers[i].getbuffer()
-
-    #                 datawriter.write(sample)
-
-    # datawriter.close()`
 
 if __name__ == "__main__":
     freeze_support()

@@ -4,18 +4,27 @@ import pandas as pd
 import numpy as np
 import time
 import random
+import os
 import torch
+import io
+import webdataset as wds
+from torchvision import transforms
+from WriteToDataset import write_to_dataset
 
 
 def sample_video(
     video_path,
     num_samples,
+    dataset_writer,
+    lock,
+    row: pd.Series,
     frames_per_sample,
     channels=3,
     begin_frame=None,
     end_frame=None,
     sample_span=1,
     normalize=True,
+    out_channels=3,
 ):
     """
     -return samples given the interval given
@@ -42,7 +51,6 @@ def sample_video(
         )
     ]
     sample_idx = 0
-
     samples = []
     counts = []
     partial_sample = []
@@ -121,7 +129,21 @@ def sample_video(
     )
     end_time = time.time()
     logging.info("Time taken to sample video: " + str(end_time - start_time))
-    return samples
+
+    logging.info(
+        "Writing the samples to the dataset ; handing off the the write_to_dataset_function"
+    )
+    write_to_dataset(
+        video_path,
+        dataset_writer,
+        samples,
+        row,
+        lock,
+        video_path,
+        channels,
+        frames_per_sample,
+        out_channels,
+    )
 
 
 def getVideoInfo(video_path):
@@ -147,4 +169,3 @@ def getVideoInfo(video_path):
     cap.release()
 
     return width, height, total_frames
-
