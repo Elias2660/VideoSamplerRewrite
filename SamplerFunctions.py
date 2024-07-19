@@ -25,6 +25,7 @@ def sample_video(
     """
     -return samples given the interval given
     """
+    logging.info(f"Sampling {video_path}")
     start_time = time.time()
     begin_frame = row["begin frame"].values[0]
     end_frame = row["end frame"].values[0]
