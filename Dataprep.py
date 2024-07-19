@@ -6,7 +6,7 @@ import webdataset as wds
 from SamplerFunctions import sample_video
 import argparse
 import subprocess
-from multiprocessing import freeze_support, Lock
+from multiprocessing import Manager, freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
 import re
 import os
@@ -40,32 +40,34 @@ def create_writers(
             os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")),
             encoder=False,
         )
-        # write_list = Manager().list()
-        tar_lock = Lock()
+        with Manager() as manager:
+            
+            # write_list = Manager().list()
+            tar_lock = manager.Lock()
 
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=max_workers
-        ) as executor:
-            futures = [
-                executor.submit(
-                    sample_video,
-                    dataset_path,
-                    number_of_samples_max,
-                    datawriter,
-                    tar_lock,
-                    row,
-                    frames_per_sample,
-                    frames_per_sample,
-                    normalize,
-                    out_channels,
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=max_workers
+            ) as executor:
+                futures = [
+                    executor.submit(
+                        sample_video,
+                        dataset_path,
+                        number_of_samples_max,
+                        datawriter,
+                        tar_lock,
+                        row,
+                        frames_per_sample,
+                        frames_per_sample,
+                        normalize,
+                        out_channels,
+                    )
+                    for index, row in dataset.iterrows()
+                ]
+                logging.info(
+                    f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
-                for index, row in dataset.iterrows()
-            ]
-            logging.info(
-                f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
-            )
-            concurrent.futures.wait(futures)
-            logging.info(f"Executor mapped for {dataset_name}")
+                concurrent.futures.wait(futures)
+                logging.info(f"Executor mapped for {dataset_name}")
 
         sample_end = time.time()
         datawriter.close()
