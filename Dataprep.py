@@ -47,10 +47,12 @@ def create_writers(
             futures = [
                 executor.submit(
                     sample_video,
+                    dataset_path,
                     number_of_samples_max,
                     datawriter,
                     tar_lock,
                     row,
+                    frames_per_sample,
                     frames_per_sample,
                 )
                 for index, row in dataset.iterrows()
