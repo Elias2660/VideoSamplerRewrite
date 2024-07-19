@@ -74,6 +74,7 @@ def create_writers(
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
         )
+        return futures
     except Exception as e:
         logging.error(f"An error occured in create_writers function: {e}")
         raise e
