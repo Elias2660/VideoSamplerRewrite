@@ -10,9 +10,9 @@ import webdataset as wds
 from WriteToDataset import write_to_dataset
 
 import os
-os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
+# os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
 
-cv2.setNumThreads(400)
+# cv2.setNumThreads(400)
 
 def sample_video(
     video_path: str,
@@ -60,7 +60,7 @@ def sample_video(
         logging.info(f"Capture to {video_path} about to be established")
         cap = cv2.VideoCapture(video_path)
         fourcc = cv2.VideoWriter_fourcc(*'H264')  # Using H.264 codec
-        cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+        # cap.set(cv2.CAP_PROP_FOURCC, fourcc)
         while count <= end_frame:
             ret, frame = cap.read()
             if not ret:
