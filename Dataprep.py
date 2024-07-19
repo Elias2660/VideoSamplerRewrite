@@ -17,14 +17,14 @@ logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 
 def create_writers(
-    dataset_path,
-    dataset_name,
-    dataset,
-    number_of_samples_max,
-    max_workers,
-    frames_per_sample,
-    normalize,
-    out_channels,
+    dataset_path: str,
+    dataset_name: str,
+    dataset: pd.DataFrame,
+    number_of_samples_max: int,
+    max_workers: int,
+    frames_per_sample: int,
+    normalize: bool,
+    out_channels: int,
 ):
     sample_start = time.time()
     """
@@ -42,7 +42,7 @@ def create_writers(
         )
         # write_list = Manager().list()
         tar_lock = Lock()
-        
+
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=max_workers
         ) as executor:
@@ -59,7 +59,7 @@ def create_writers(
                     normalize,
                     out_channels,
                 )
-                for row in dataset
+                for row in dataset.interrows()
             ]
             logging.info(
                 f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
