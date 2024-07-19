@@ -19,6 +19,7 @@ def write_to_dataset(
     out_channels: int = 1,
 ):
     try: 
+        tar_writer = wds.TarWriter(name, encoder=False)
         """using the lock, write the files to the datase5t"""
         start_time = time.time()
         logging.info(f"Enumerating through the samples")
@@ -73,8 +74,9 @@ def write_to_dataset(
                         sample[f"{i}.png"] = buffers[i].getbuffer()
                         
             with lock:
-                tar_writer = wds.TarWriter(name, encoder=False)
                 tar_writer.write(sample)
+                
+        tar_writer.close()
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
         raise
