@@ -56,6 +56,8 @@ def sample_video(
         frame_of_sample = 0
         logging.info(f"Capture to {video_path} about to be established")
         cap = cv2.VideoCapture(video_path)
+        fourcc = cv2.VideoWriter_fourcc(*'H264')  # Using H.264 codec
+        cap.set(cv2.CAP_PROP_FOURCC, fourcc)
         while count <= end_frame:
             ret, frame = cap.read()
             if not ret:
