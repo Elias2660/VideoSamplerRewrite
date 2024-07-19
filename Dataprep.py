@@ -51,7 +51,7 @@ def create_writers(
                 futures = [
                     executor_inner.submit(
                         sample_video,
-                        row["filename"],
+                        row["file"],
                         number_of_samples_max,
                         datawriter,
                         tar_lock,
@@ -161,7 +161,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # freeze_support()
+    freeze_support()
     """
     Run three 
     """
