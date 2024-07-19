@@ -44,7 +44,7 @@ def create_writers(
             
             # write_list = Manager().list()
             tar_lock = manager.Lock()
-
+            print(f"Number of samples: {number_of_samples_max}, datawriter: {datawriter}, tar_lock: {tar_lock}, frames_per_sample: {frames_per_sample}, normalize: {normalize}, out_channels: {out_channels}")
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_workers
             ) as executor_inner:
