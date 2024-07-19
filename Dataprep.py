@@ -6,6 +6,7 @@ import webdataset as wds
 from SamplerFunctions import sample_video
 import argparse
 import subprocess
+import multiprocessing
 from multiprocessing import Manager, freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
 import re
@@ -43,7 +44,7 @@ def create_writers(
         with Manager() as manager:
             
             # write_list = Manager().list()
-            tar_lock = manager.Lock()
+            tar_lock = multiprocessing.Lock()
             print(f"Number of samples: {number_of_samples_max}, datawriter: {datawriter}, tar_lock: {tar_lock}, frames_per_sample: {frames_per_sample}, normalize: {normalize}, out_channels: {out_channels}")
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_workers
