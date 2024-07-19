@@ -3,20 +3,19 @@ import pandas as pd
 import os
 import logging
 import time
+import multiprocessing
 from torchvision import transforms
 import io
 
 
 def write_to_dataset(
-    path,
     tar_writer: wds.TarWriter,
     row: pd.Series,
     samples,
-    lock,
-    video_path,
-    channels,
-    frames_per_sample,
-    out_channels,
+    lock: multiprocessing.Lock,
+    video_path: str,
+    frames_per_sample: int = 1,
+    out_channels: int = 1,
 ):
     """using the lock, write the files to the datase5t"""
     start_time = time.time()

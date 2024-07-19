@@ -8,36 +8,31 @@ import os
 import torch
 import io
 import webdataset as wds
+import multiprocessing
 from torchvision import transforms
 from WriteToDataset import write_to_dataset
 
 
 def sample_video(
-    video_path,
-    num_samples,
-    dataset_writer,
-    lock,
+    video_path: str,
+    num_samples: int,
+    dataset_writer: wds.TarWriter,
+    lock: multiprocessing.Lock,
     row: pd.Series,
-    frames_per_sample,
-    channels=3,
-    begin_frame=None,
-    end_frame=None,
+    frames_per_sample: int = 1,
     sample_span=1,
     normalize=True,
-    out_channels=3,
+    out_channels=1,
 ):
     """
     -return samples given the interval given
     """
     start_time = time.time()
-
+    begin_frame = row["begin frame"].values[0]
+    end_frame = row["end frame"].values[0]
     width, height, total_frames = getVideoInfo(video_path)
     available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
     num_samples = min(available_samples, num_samples)
-    if end_frame is None:
-        end_frame = total_frames
-    if begin_frame is None:
-        begin_frame = 0
 
     logging.info(f"Sampling frames from video {video_path}")
     logging.info(
@@ -56,7 +51,7 @@ def sample_video(
     partial_sample = []
 
     count = 0
-    sample_recorded = False
+    samples_recorded = False
     frame_of_sample = 0
     logging.info(f"Capture to {video_path} about to be established")
     cap = cv2.VideoCapture(video_path)
@@ -79,7 +74,7 @@ def sample_video(
                     frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX
                 )
 
-            if channels == 1:
+            if out_channels == 1:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
@@ -87,7 +82,7 @@ def sample_video(
             brightness = 10  # Simple brightness control [0-100]
             frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
 
-            if channels == 1:
+            if out_channels == 1:
                 if counts % 500 == 0:
                     logging.debug(
                         f"Converting frame {count} to gray with shape {frame.shape}/"
@@ -97,7 +92,7 @@ def sample_video(
             in_frame = torch.tensor(
                 data=np_frame,
                 dtype=torch.uint8,
-            ).reshape([1, height, width, channels])
+            ).reshape([1, height, width, out_channels])
             in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
 
             if counts % 500 == 0:
@@ -134,19 +129,16 @@ def sample_video(
         "Writing the samples to the dataset ; handing off the the write_to_dataset_function"
     )
     write_to_dataset(
-        video_path,
         dataset_writer,
-        samples,
         row,
+        samples,
         lock,
-        video_path,
-        channels,
         frames_per_sample,
         out_channels,
     )
 
 
-def getVideoInfo(video_path):
+def getVideoInfo(video_path: str):
     """
     Get the total frames in a video.
 
