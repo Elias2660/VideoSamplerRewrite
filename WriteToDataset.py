@@ -19,9 +19,15 @@ def write_to_dataset(
 ):
     """using the lock, write the files to the datase5t"""
     start_time = time.time()
-    logging.info(f"Enumerating through the sampes")
+    logging.info(f"Enumerating through the samples")
     for sample_num, sample in enumerate(samples):
         frame, video_path, frame_num = sample
+        # frame = frame.numpy()
+        logging.debug(f"Writing sample {sample_num} to dataset")
+        logging.debug(f"Frame shape: {frame.shape}")
+        logging.debug(f"Frame number: {frame_num}")
+        logging.debug(f"Video path: {video_path}")
+        logging.debug(f"frame type: {type(frame)}")
         base_name = os.path.basename(video_path).replace(" ", "_").replace(".", "_")
         video_time = os.path.basename(video_path).split(".")[0]
         time_sec = time.mktime(time.strptime(video_time, "%Y-%m-%d %H:%M:%S"))
@@ -40,7 +46,7 @@ def write_to_dataset(
             sample = {
                 "__key__": "_".join((base_name, "_".join(frame_num))),
                 "0.png": buf.getbuffer(),
-                "cls": row["class"].encode("utf-8"),
+                "cls": str(row["class"]).encode("utf-8"),
                 "metadata.txt": metadata.encode("utf-8"),
             }
         else:
@@ -58,13 +64,15 @@ def write_to_dataset(
 
                 sample = {
                     "__key__": "_".join((base_name, "_".join(frame_num))),
-                    "cls": row["class"].encode("utf-8"),
+                    "cls": str(row["class"]).encode("utf-8"),
                     "metadata.txt": metadata.encode("utf-8"),
                 }
                 for i in range(frames_per_sample):
                     sample[f"{i}.png"] = buffers[i].getbuffer()
-    with lock:
-        tar_writer.write(sample)
-
+                    
+        with lock:
+            tar_writer.write(sample)
+            
+    tar_writer.close()
     end_time = time.time()
     logging.info("Time taken to write to dataset: " + str(end_time - start_time))

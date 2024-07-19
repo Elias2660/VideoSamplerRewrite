@@ -26,8 +26,8 @@ def sample_video(
     """
     logging.info(f"Sampling {video_path}")
     start_time = time.time()
-    begin_frame = row["begin frame"].values[0]
-    end_frame = row["end frame"].values[0]
+    begin_frame = row["begin frame"]
+    end_frame = row["end frame"]
     width, height, total_frames = getVideoInfo(video_path)
     available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
     num_samples = min(available_samples, num_samples)
@@ -43,6 +43,7 @@ def sample_video(
             random.sample(population=range(available_samples), k=num_samples)
         )
     ]
+    logging.debug(f"Target_Samples: {target_samples}")
     sample_idx = 0
     samples = []
     counts = []
@@ -53,18 +54,23 @@ def sample_video(
     frame_of_sample = 0
     logging.info(f"Capture to {video_path} about to be established")
     cap = cv2.VideoCapture(video_path)
-    while True:
+    while count <= end_frame:
         ret, frame = cap.read()
         if not ret:
             break
+        
+        logging.debug(f"Frame {count} read from video {video_path}")
+        
         count += 1
-        if count == target_samples[sample_idx]:
+        if count in target_samples:
+            logging.debug(f"Frame {count} just triggered the samples_recorded variable")
             samples_recorded = True
             frame_of_sample = 0
             partial_sample = []
 
         #  check if sample needed to be read ->
         if samples_recorded:
+            logging.debug(f"Frame {count} is in the target samples")
             # convert to greyscale
             frame_of_sample += 1
             if normalize:
@@ -79,35 +85,38 @@ def sample_video(
             contrast = 1.9  # Simple contrast control [1.0-3.0]
             brightness = 10  # Simple brightness control [0-100]
             frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+            
+            # if level is on debug, name the first frame of the sample to be saved
+
+            cv2.imwrite(f"test_images/{count}.png", frame)
 
             if out_channels == 1:
-                if counts % 500 == 0:
-                    logging.debug(
-                        f"Converting frame {count} to gray with shape {frame.shape}/"
-                    )
+                logging.debug(f"Converting frame {count} to greyscale")
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             np_frame = np.array(frame)
             in_frame = torch.tensor(
                 data=np_frame,
                 dtype=torch.uint8,
             ).reshape([1, height, width, out_channels])
-            in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
+            in_frame = in_frame[:, :height, :width, :]
 
-            if counts % 500 == 0:
-                logging.debug(
-                    f"Appending frame {count} to sample with shape {in_frame.shape}/"
-                )
-                logging.debug(f"Tensor has shape {in_frame.shape}")
+            in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
+            logging.debug(f"in_frame shape: {in_frame.shape}")
+            logging.debug(f"Tensor has shape {in_frame.shape}")
 
             partial_sample.append(in_frame)
             counts.append(str(count))
+            
+            # read one sample as an image
 
         if frame_of_sample == frames_per_sample:
             if frames_per_sample == 1:
-                samples.append(partial_sample[0], video_path, counts)
+                logging.debug(f"Appending partial sample {partial_sample[0]}")
+                samples.append([partial_sample[0], video_path, counts])
 
             else:
-                samples.append(torch.cat(partial_sample), video_path, counts)
+                logging.debug(f"Appending partial sample {torch.cat(partial_sample)}")
+                samples.append([torch.cat(partial_sample), video_path, counts])
                 sample_idx += 1
 
             frame_of_sample = 0
@@ -159,3 +168,28 @@ def getVideoInfo(video_path: str):
     cap.release()
 
     return width, height, total_frames
+
+
+if __name__ == "__main__":
+    format = "%(asctime)s: %(message)s"
+    logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
+    tar_writer = wds.TarWriter("dataset.tar", encoder=False)
+    sample_video(
+        "2024-07-03 17:20:20.604941.mp4",
+        500,
+        tar_writer,
+        multiprocessing.Lock(),
+        pd.Series(
+            {
+                "filename": "2024-07-03 17:20:20.604941.mp4",
+                "class": 1,
+                "begin frame": 0,
+                "end frame": 1000,
+            }
+        ),
+        1,
+        1, 
+        True,
+        1 
+    )
+    tar_writer.close()
