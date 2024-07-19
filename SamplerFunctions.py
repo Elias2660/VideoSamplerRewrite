@@ -170,26 +170,26 @@ def getVideoInfo(video_path: str):
     return width, height, total_frames
 
 
-if __name__ == "__main__":
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
-    tar_writer = wds.TarWriter("dataset.tar", encoder=False)
-    sample_video(
-        "2024-07-03 17:20:20.604941.mp4",
-        500,
-        tar_writer,
-        multiprocessing.Lock(),
-        pd.Series(
-            {
-                "filename": "2024-07-03 17:20:20.604941.mp4",
-                "class": 1,
-                "begin frame": 0,
-                "end frame": 1000,
-            }
-        ),
-        1,
-        1, 
-        True,
-        1 
-    )
-    tar_writer.close()
+# if __name__ == "__main__":
+#     format = "%(asctime)s: %(message)s"
+#     logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
+#     tar_writer = wds.TarWriter("dataset.tar", encoder=False)
+#     sample_video(
+#         "2024-07-03 17:20:20.604941.mp4",
+#         500,
+#         tar_writer,
+#         multiprocessing.Lock(),
+#         pd.Series(
+#             {
+#                 "filename": "2024-07-03 17:20:20.604941.mp4",
+#                 "class": 1,
+#                 "begin frame": 0,
+#                 "end frame": 1000,
+#             }
+#         ),
+#         1,
+#         1, 
+#         True,
+#         1 
+#     )
+#     tar_writer.close()
