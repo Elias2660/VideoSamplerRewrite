@@ -49,7 +49,7 @@ def write_to_dataset(
                 sample = {
                     "__key__": "_".join((base_name, "_".join(frame_num))),
                     "0.png": buf.getbuffer(),
-                    "cls": str(row["class"]).encode("utf-8"),
+                    "cls": str(row[1]).encode("utf-8"),
                     "metadata.txt": metadata.encode("utf-8"),
                 }
             else:
@@ -67,7 +67,7 @@ def write_to_dataset(
 
                     sample = {
                         "__key__": "_".join((base_name, "_".join(frame_num))),
-                        "cls": str(row["class"]).encode("utf-8"),
+                        "cls": str(row[1]).encode("utf-8"),
                         "metadata.txt": metadata.encode("utf-8"),
                     }
                     for i in range(frames_per_sample):
