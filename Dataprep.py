@@ -63,6 +63,7 @@ def create_writers(
                     )
                     for index, row in dataset.iterrows()
                 ]
+                logging.info(futures)
                 logging.info(
                     f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
