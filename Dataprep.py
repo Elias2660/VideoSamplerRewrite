@@ -89,7 +89,7 @@ if __name__ == "__main__":
             help="Grep string to get the datasets",
             default="dataset_*.csv",
         )
-        parser.add_arguement(
+        parser.add_argument(
             "--number-of-samples",
             type=int,
             help="the number of samples max that will be gathered by the sampler",
