@@ -13,7 +13,7 @@ from WriteToDataset import write_to_dataset
 def sample_video(
     video_path: str,
     num_samples: int,
-    dataset_writer: wds.TarWriter,
+    dataset_writer: wds.writer.TarWriter,
     lock,
     row: pd.Series,
     frames_per_sample: int = 1,
