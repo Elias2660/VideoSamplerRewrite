@@ -108,7 +108,7 @@ if __name__ == "__main__":
             default=1,
         )
         args = parser.parse_args()
-
+        print(args.max_workers)
         dataset_path = args.dataset_path
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
