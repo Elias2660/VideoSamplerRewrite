@@ -15,7 +15,7 @@ import os
 
 
 import os
-os.environ['OMP_NUM_THREADS'] = '500'  # Adjust the number as necessary
+os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
 
 
 format = "%(asctime)s: %(message)s"
