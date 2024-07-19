@@ -35,7 +35,7 @@ def create_writers(
     - write the samples to a tar file
     """
     try:
-
+        logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
         datawriter = wds.TarWriter(
             os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")),
             encoder=False,
