@@ -54,7 +54,7 @@ def create_writers(
                         sample_video,
                         row["file"],
                         number_of_samples_max,
-                        datawriter,
+                        dataset_name.replace(".csv", ".tar"),
                         tar_lock,
                         row,
                         frames_per_sample,
