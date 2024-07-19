@@ -6,7 +6,6 @@ import webdataset as wds
 from SamplerFunctions import sample_video
 import argparse
 import subprocess
-import multiprocessing
 from multiprocessing import Manager, freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
 import re
@@ -15,7 +14,7 @@ import os
 
 
 import os
-os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
+# os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
 
 
 format = "%(asctime)s: %(message)s"
@@ -67,10 +66,10 @@ def create_writers(
                     )
                     for index, row in dataset.iterrows()
                 ]
+                concurrent.futures.wait(futures)
                 logging.info(
                     f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
-                concurrent.futures.wait(futures)
                 logging.info(f"Executor mapped for {dataset_name}")
 
         sample_end = time.time()
@@ -165,7 +164,7 @@ def main():
 
 
 if __name__ == "__main__":
-    cv2.setNumThreads(400)
+    # cv2.setNumThreads(400)
     freeze_support()
     """
     Run three 
