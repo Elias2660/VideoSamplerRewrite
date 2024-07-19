@@ -47,9 +47,9 @@ def create_writers(
 
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_workers
-            ) as executor:
+            ) as executor_inner:
                 futures = [
-                    executor.submit(
+                    executor_inner.submit(
                         sample_video,
                         dataset_path,
                         number_of_samples_max,
@@ -160,7 +160,7 @@ def main():
 
 
 if __name__ == "__main__":
-    freeze_support()
+    # freeze_support()
     """
     Run three 
     """
