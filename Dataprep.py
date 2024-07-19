@@ -18,7 +18,7 @@ import os
 
 
 format = "%(asctime)s: %(message)s"
-logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
 
 
 def create_writers(
