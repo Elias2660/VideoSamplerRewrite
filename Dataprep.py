@@ -24,6 +24,8 @@ def create_writers(
     number_of_samples_max,
     max_workers,
     frames_per_sample,
+    normalize,
+    out_channels
 ):
     sample_start = time.time()
     """
@@ -54,6 +56,8 @@ def create_writers(
                     row,
                     frames_per_sample,
                     frames_per_sample,
+                    normalize,
+                    out_channels
                 )
                 for index, row in dataset.iterrows()
             ]
@@ -109,6 +113,18 @@ if __name__ == "__main__":
             help="The number of frames per sample",
             default=1,
         )
+        parser.add_argument(
+            "--normalize",
+            type = bool,
+            help = "Normalize the images",
+            default = True
+        )
+        parser.add_argument(
+            "--out-channels",
+            type = int,
+            help = "The number of output channels",
+            default = 1
+        )
         args = parser.parse_args()
         dataset_path = args.dataset_path
         number_of_samples = args.number_of_samples
@@ -133,6 +149,8 @@ if __name__ == "__main__":
                     number_of_samples,
                     args.max_workers,
                     args.frames_per_sample,
+                    args.normalize,
+                    args.out_channels,
                 )
                 for file in file_list
             ]
