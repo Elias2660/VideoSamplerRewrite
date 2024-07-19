@@ -51,7 +51,7 @@ def create_writers(
                 futures = [
                     executor_inner.submit(
                         sample_video,
-                        dataset_path,
+                        row["filename"],
                         number_of_samples_max,
                         datawriter,
                         tar_lock,
