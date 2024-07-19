@@ -174,7 +174,7 @@ def getVideoInfo(video_path: str):
     logging.info(video_path.split("/")[-1])
     total_frames = counts[counts["filename"] == video_path.split("/")[-1]][
         "framecount"
-    ]
+    ].values[0]
     
     cap.release()
 
