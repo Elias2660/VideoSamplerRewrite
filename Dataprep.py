@@ -8,7 +8,6 @@ import argparse
 import subprocess
 from multiprocessing import freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
-from SamplerFunctions import sample_video
 import re
 import os
 
@@ -43,6 +42,7 @@ def create_writers(
         )
         # write_list = Manager().list()
         tar_lock = Lock()
+        
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=max_workers
         ) as executor:
@@ -61,7 +61,9 @@ def create_writers(
                 )
                 for row in dataset
             ]
-            logging.info(f"Submitted {len(futures)} tasks to the executor for {dataset_name}")
+            logging.info(
+                f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
+            )
             concurrent.futures.wait(futures)
             logging.info(f"Executor mapped for {dataset_name}")
 
