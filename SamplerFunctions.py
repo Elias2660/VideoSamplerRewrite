@@ -21,129 +21,132 @@ def sample_video(
     normalize=True,
     out_channels=1,
 ):
-    """
-    -return samples given the interval given
-    """
-    logging.info(f"Sampling {video_path}")
-    start_time = time.time()
-    begin_frame = row["begin frame"]
-    end_frame = row["end frame"]
-    width, height, total_frames = getVideoInfo(video_path)
-    available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
-    num_samples = min(available_samples, num_samples)
+    try:
+        """
+        -return samples given the interval given
+        """
+        logging.info(f"Sampling {video_path}")
+        start_time = time.time()
+        begin_frame = row["begin frame"]
+        end_frame = row["end frame"]
+        width, height, total_frames = getVideoInfo(video_path)
+        available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
+        num_samples = min(available_samples, num_samples)
 
-    logging.info(f"Sampling frames from video {video_path}")
-    logging.info(
-        f"Total frames: {total_frames}; frame_width: {width}; frame_height: {height}"
-    )
-    logging.info(f"Sampling {num_samples} samples from {video_path}")
-    target_samples = [
-        (begin_frame) + x * sample_span
-        for x in sorted(
-            random.sample(population=range(available_samples), k=num_samples)
+        logging.info(f"Sampling frames from video {video_path}")
+        logging.info(
+            f"Total frames: {total_frames}; frame_width: {width}; frame_height: {height}"
         )
-    ]
-    logging.debug(f"Target_Samples: {target_samples}")
-    sample_idx = 0
-    samples = []
-    counts = []
-    partial_sample = []
+        logging.info(f"Sampling {num_samples} samples from {video_path}")
+        target_samples = [
+            (begin_frame) + x * sample_span
+            for x in sorted(
+                random.sample(population=range(available_samples), k=num_samples)
+            )
+        ]
+        logging.debug(f"Target_Samples: {target_samples}")
+        sample_idx = 0
+        samples = []
+        counts = []
+        partial_sample = []
 
-    count = 0
-    samples_recorded = False
-    frame_of_sample = 0
-    logging.info(f"Capture to {video_path} about to be established")
-    cap = cv2.VideoCapture(video_path)
-    while count <= end_frame:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        
-        logging.debug(f"Frame {count} read from video {video_path}")
-        
-        count += 1
-        if count in target_samples:
-            logging.debug(f"Frame {count} just triggered the samples_recorded variable")
-            samples_recorded = True
-            frame_of_sample = 0
-            partial_sample = []
-
-        #  check if sample needed to be read ->
-        if samples_recorded:
-            logging.debug(f"Frame {count} is in the target samples")
-            # convert to greyscale
-            frame_of_sample += 1
-            if normalize:
-                frame = cv2.normalize(
-                    frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX
-                )
-
-            if out_channels == 1:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-
-            contrast = 1.9  # Simple contrast control [1.0-3.0]
-            brightness = 10  # Simple brightness control [0-100]
-            frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+        count = 0
+        samples_recorded = False
+        frame_of_sample = 0
+        logging.info(f"Capture to {video_path} about to be established")
+        cap = cv2.VideoCapture(video_path)
+        while count <= end_frame:
+            ret, frame = cap.read()
+            if not ret:
+                break
             
-            # if level is on debug, name the first frame of the sample to be saved
-
-            cv2.imwrite(f"test_images/{count}.png", frame)
-
-            if out_channels == 1:
-                logging.debug(f"Converting frame {count} to greyscale")
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            np_frame = np.array(frame)
-            in_frame = torch.tensor(
-                data=np_frame,
-                dtype=torch.uint8,
-            ).reshape([1, height, width, out_channels])
-            in_frame = in_frame[:, :height, :width, :]
-
-            in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
-            logging.debug(f"in_frame shape: {in_frame.shape}")
-            logging.debug(f"Tensor has shape {in_frame.shape}")
-
-            partial_sample.append(in_frame)
-            counts.append(str(count))
+            logging.debug(f"Frame {count} read from video {video_path}")
             
-            # read one sample as an image
+            count += 1
+            if count in target_samples:
+                logging.debug(f"Frame {count} just triggered the samples_recorded variable")
+                samples_recorded = True
+                frame_of_sample = 0
+                partial_sample = []
 
-        if frame_of_sample == frames_per_sample:
-            if frames_per_sample == 1:
-                logging.debug(f"Appending partial sample {partial_sample[0]}")
-                samples.append([partial_sample[0], video_path, counts])
+            #  check if sample needed to be read ->
+            if samples_recorded:
+                logging.debug(f"Frame {count} is in the target samples")
+                # convert to greyscale
+                frame_of_sample += 1
+                if normalize:
+                    frame = cv2.normalize(
+                        frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX
+                    )
 
-            else:
-                logging.debug(f"Appending partial sample {torch.cat(partial_sample)}")
-                samples.append([torch.cat(partial_sample), video_path, counts])
+                if out_channels == 1:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+
+                contrast = 1.9  # Simple contrast control [1.0-3.0]
+                brightness = 10  # Simple brightness control [0-100]
+                frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
+                
+                # if level is on debug, name the first frame of the sample to be saved
+
+                cv2.imwrite(f"test_images/{count}.png", frame)
+
+                if out_channels == 1:
+                    logging.debug(f"Converting frame {count} to greyscale")
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                np_frame = np.array(frame)
+                in_frame = torch.tensor(
+                    data=np_frame,
+                    dtype=torch.uint8,
+                ).reshape([1, height, width, out_channels])
+                in_frame = in_frame[:, :height, :width, :]
+
+                in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
+                logging.debug(f"in_frame shape: {in_frame.shape}")
+                logging.debug(f"Tensor has shape {in_frame.shape}")
+
+                partial_sample.append(in_frame)
+                counts.append(str(count))
+                
+                # read one sample as an image
+
+            if frame_of_sample == frames_per_sample:
+                if frames_per_sample == 1:
+                    logging.debug(f"Appending partial sample {partial_sample[0]}")
+                    samples.append([partial_sample[0], video_path, counts])
+
+                else:
+                    logging.debug(f"Appending partial sample {torch.cat(partial_sample)}")
+                    samples.append([torch.cat(partial_sample), video_path, counts])
+                    sample_idx += 1
+
+                frame_of_sample = 0
                 sample_idx += 1
+                counts = []
+                partial_sample = []
+                samples_recorded = False
 
-            frame_of_sample = 0
-            sample_idx += 1
-            counts = []
-            partial_sample = []
-            samples_recorded = False
+        cap.release()
+        logging.info(
+            f"Capture to {video_path} has been released, returning {len(samples)} samples"
+        )
+        end_time = time.time()
+        logging.info("Time taken to sample video: " + str(end_time - start_time))
 
-    cap.release()
-    logging.info(
-        f"Capture to {video_path} has been released, returning {len(samples)} samples"
-    )
-    end_time = time.time()
-    logging.info("Time taken to sample video: " + str(end_time - start_time))
-
-    logging.info(
-        "Writing the samples to the dataset ; handing off the the write_to_dataset_function"
-    )
-    write_to_dataset(
-        dataset_writer,
-        row,
-        samples,
-        lock,
-        frames_per_sample,
-        out_channels,
-    )
-
+        logging.info(
+            "Writing the samples to the dataset ; handing off the the write_to_dataset_function"
+        )
+        write_to_dataset(
+            dataset_writer,
+            row,
+            samples,
+            lock,
+            frames_per_sample,
+            out_channels,
+        )
+    except Exception as e:
+        logging.error(f"Error sampling video {video_path}: {e}")
+        raise
 
 def getVideoInfo(video_path: str):
     """
