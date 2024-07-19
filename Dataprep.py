@@ -10,6 +10,7 @@ import multiprocessing
 from multiprocessing import Manager, freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
 import re
+import cv2
 import os
 
 
@@ -160,6 +161,7 @@ def main():
 
 
 if __name__ == "__main__":
+    cv2.setNumThreads(400)
     freeze_support()
     """
     Run three 
