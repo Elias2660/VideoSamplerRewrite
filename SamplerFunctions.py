@@ -181,7 +181,7 @@ if __name__ == "__main__":
         multiprocessing.Lock(),
         pd.Series(
             {
-                "filename": "2024-07-03 17:20:20.604941.mp4",
+                "file": "2024-07-03 17:20:20.604941.mp4",
                 "class": 1,
                 "begin frame": 0,
                 "end frame": 1000,
