@@ -68,6 +68,9 @@ def create_writers(
                     f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
                 concurrent.futures.wait(futures)
+                
+                for future in futures:
+                    print(future.result())
                 logging.info(f"Executor mapped for {dataset_name}")
 
         sample_end = time.time()
