@@ -83,7 +83,7 @@ if __name__ == "__main__":
         parser.add_argument(
             "--dataset_path", type=str, help="Path to the datasets", default="."
         )
-        parser.add_arguement(
+        parser.add_argument(
             "--dataset-search-string",
             type=str,
             help="Grep string to get the datasets",
