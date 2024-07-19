@@ -44,8 +44,6 @@ def create_writers(
         with Manager() as manager:
             
             tar_lock = Manager().Lock()
-            # tar_lock = multiprocessing.Lock()
-            print(f"Number of samples: {number_of_samples_max}, datawriter: {datawriter}, tar_lock: {tar_lock}, frames_per_sample: {frames_per_sample}, normalize: {normalize}, out_channels: {out_channels}")
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_workers
             ) as executor_inner:
@@ -64,14 +62,10 @@ def create_writers(
                     )
                     for index, row in dataset.iterrows()
                 ]
-                logging.info(futures)
                 logging.info(
                     f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
                 concurrent.futures.wait(futures)
-                
-                for future in futures:
-                    print(future.result())
                 logging.info(f"Executor mapped for {dataset_name}")
 
         sample_end = time.time()
