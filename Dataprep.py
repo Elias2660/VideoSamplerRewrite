@@ -59,7 +59,7 @@ def create_writers(
                     normalize,
                     out_channels,
                 )
-                for index, row in dataset.iterrows()
+                for row in dataset
             ]
             concurrent.futures.wait(futures)
             logging.info(f"Executor mapped for {dataset_name}")
