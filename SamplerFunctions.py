@@ -4,9 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 import random
-import os
 import torch
-import io
 import webdataset as wds
 import multiprocessing
 from torchvision import transforms
