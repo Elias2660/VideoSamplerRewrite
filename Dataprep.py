@@ -64,7 +64,7 @@ def create_writers(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
         )
     except Exception as e:
-        logging.error(f"An error occured: {e}")
+        logging.error(f"An error occured in create_writers function: {e}")
         raise e
 
 
@@ -141,5 +141,5 @@ if __name__ == "__main__":
         logging.info(f"Time taken to run the the script: {end - start} seconds")
 
     except Exception as e:
-        logging.error(f"An error occured: {e}")
+        logging.error(f"An error occured in main function: {e}")
         raise e
