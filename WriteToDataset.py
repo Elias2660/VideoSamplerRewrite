@@ -5,6 +5,7 @@ import logging
 import time
 import multiprocessing
 from torchvision import transforms
+
 import io
 
 
@@ -12,7 +13,7 @@ def write_to_dataset(
     tar_writer: wds.TarWriter,
     row: pd.Series,
     samples,
-    lock: multiprocessing.Lock,
+    lock,
     video_path: str,
     frames_per_sample: int = 1,
     out_channels: int = 1,
