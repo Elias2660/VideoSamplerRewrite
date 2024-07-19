@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
         dataset_path = args.dataset_path
         number_of_samples = args.number_of_samples
-        command = f"ls {args.dataset_path} | grep {args.dataset_search_string}"
+        command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         file_list = sorted(
