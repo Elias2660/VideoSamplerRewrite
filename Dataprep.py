@@ -14,6 +14,10 @@ import cv2
 import os
 
 
+import os
+os.environ['OMP_NUM_THREADS'] = '500'  # Adjust the number as necessary
+
+
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
