@@ -171,9 +171,11 @@ def getVideoInfo(video_path: str):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     counts = pd.read_csv("counts.csv")
+    logging.info(video_path.split("/")[-1])
     total_frames = counts[counts["filename"] == video_path.split("/")[-1]][
         "framecount"
     ].values[0]
+    
     cap.release()
 
     return width, height, total_frames
