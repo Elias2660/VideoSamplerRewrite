@@ -126,6 +126,7 @@ if __name__ == "__main__":
             futures = [
                 executor.submit(
                     create_writers,
+                    file,
                     dataset_path,
                     pd.read_csv(file),
                     number_of_samples,
