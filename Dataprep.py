@@ -59,7 +59,7 @@ def create_writers(
                     normalize,
                     out_channels,
                 )
-                for row in dataset.interrows()
+                for index, row in dataset.interrows()
             ]
             logging.info(
                 f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
