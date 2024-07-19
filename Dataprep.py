@@ -61,6 +61,7 @@ def create_writers(
                 )
                 for row in dataset
             ]
+            logging.info(f"Submitted {len(futures)} tasks to the executor for {dataset_name}")
             concurrent.futures.wait(futures)
             logging.info(f"Executor mapped for {dataset_name}")
 
