@@ -14,7 +14,7 @@ def sample_video(
     video_path: str,
     num_samples: int,
     dataset_writer: wds.TarWriter,
-    lock: multiprocessing.Lock,
+    lock,
     row: pd.Series,
     frames_per_sample: int = 1,
     sample_span=1,
