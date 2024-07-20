@@ -43,10 +43,6 @@ def create_writers(
     """
     try:
         logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
-        datawriter = wds.TarWriter(
-            os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")),
-            encoder=False,
-        )
         with Manager() as manager:
             sample_list = manager.list()
             tar_lock = Manager().Lock()
@@ -86,7 +82,6 @@ def create_writers(
                 out_channels,
             )
         sample_end = time.time()
-        datawriter.close()
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
         )
