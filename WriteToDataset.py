@@ -92,7 +92,8 @@ def write_to_dataset(
         logging.info(f"Closing tar file {name}")
         sleep(2)
         tar_writer.close()
-        buf.close()
+        if buf is not None:
+            buf.close()
         for buffer in buffers:
             buffer.close()
         
