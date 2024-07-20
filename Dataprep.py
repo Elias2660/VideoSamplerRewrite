@@ -154,27 +154,30 @@ def main():
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
-        with Manager() as manager:
-            with concurrent.futures.ProcessPoolExecutor(
-                max_workers=args.max_workers
-            ) as executor:
-                logging.debug(f"Executor established")
-                futures = [
-                    executor.submit(
-                        create_writers,
-                        dataset_path,
-                        file,
-                        pd.read_csv(file),
-                        number_of_samples,
-                        args.max_workers,
-                        args.frames_per_sample,
-                        args.normalize,
-                        args.out_channels,
-                    )
-                    for file in file_list
-                ]
-                concurrent.futures.wait(futures)
-                logging.debug(f"Executor mapped")
+        
+        for file in file_list:
+            create_writers(dataset_path, file, pd.read_csv(file), number_of_samples, args.max_workers, args.frames_per_sample, args.normalize, args.out_channels)
+        # with Manager() as manager:
+        #     with concurrent.futures.ProcessPoolExecutor(
+        #         max_workers=args.max_workers
+        #     ) as executor:
+        #         logging.debug(f"Executor established")
+        #         futures = [
+        #             executor.submit(
+        #                 create_writers,
+        #                 dataset_path,
+        #                 file,
+        #                 pd.read_csv(file),
+        #                 number_of_samples,
+        #                 args.max_workers,
+        #                 args.frames_per_sample,
+        #                 args.normalize,
+        #                 args.out_channels,
+        #             )
+        #             for file in file_list
+        #         ]
+        #         concurrent.futures.wait(futures)
+        #         logging.debug(f"Executor mapped")
             end = time.time()
             logging.info(f"Time taken to run the the script: {end - start} seconds")
 
