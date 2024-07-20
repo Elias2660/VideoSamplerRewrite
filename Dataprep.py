@@ -73,21 +73,21 @@ def create_writers(
                     )
                     logging.info(f"Executor mapped for {dataset_name}")
 
-            logging.info(
-                f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
-            )
-            logging.info(f"Executor mapped for {dataset_name}")
+                logging.info(
+                    f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
+                )
+                logging.info(f"Executor mapped for {dataset_name}")
 
-            logging.info(f"Writing samples to the tar file for {dataset_name}")
-            logging.debug(f"Sampler list: {sample_list}")
-            sleep(3)
-            write_to_dataset(
-                dataset_name.replace(".csv", ".tar"),
-                sample_list,
-                frames_per_sample,
-                out_channels,
-            )
-            sleep(3)
+                logging.info(f"Writing samples to the tar file for {dataset_name}")
+                logging.debug(f"Sampler list: {sample_list}")
+                sleep(3)
+                write_to_dataset(
+                    dataset_name.replace(".csv", ".tar"),
+                    sample_list,
+                    frames_per_sample,
+                    out_channels,
+                )
+                sleep(3)
         sample_end = time.time()
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
