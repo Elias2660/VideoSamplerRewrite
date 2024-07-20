@@ -7,6 +7,7 @@ from SamplerFunctions import sample_video
 from WriteToDataset import write_to_dataset
 import argparse
 import subprocess
+import multiprocessing
 from multiprocessing import Manager, freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
 import re
@@ -16,7 +17,8 @@ import os
 
 import os
 
-# os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
+multiprocessing.set_start_method("spawn", force=True)
+os.environ["OMP_NUM_THREADS"] = "1"
 
 
 format = "%(asctime)s: %(message)s"
