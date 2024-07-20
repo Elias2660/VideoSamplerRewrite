@@ -23,7 +23,7 @@ def write_to_dataset(
             logging.info(f"Writing samples to dataset")
             for sample_num, sample in enumerate(samples):
                 logging.info("Writing sample to dataset")
-                frame, video_path, frame_num, type = sample
+                frame, video_path, frame_num, class_num = sample
                 logging.debug(f"Writing sample {sample_num} to dataset")
                 logging.debug(f"Frame shape: {frame.shape}")
                 logging.debug(f"Frame number: {frame_num}")
@@ -49,7 +49,7 @@ def write_to_dataset(
                     sample = {
                         "__key__": "_".join((base_name, "_".join(frame_num))),
                         "0.png": buf.getbuffer(),
-                        "cls": str(type).encode("utf-8"),
+                        "cls": str(class_num).encode("utf-8"),
                         "metadata.txt": metadata.encode("utf-8"),
                     }
                 else:
@@ -69,7 +69,7 @@ def write_to_dataset(
 
                         sample = {
                             "__key__": "_".join((base_name, "_".join(frame_num))),
-                            "cls": str(type).encode("utf-8"),
+                            "cls": str(class_num).encode("utf-8"),
                             "metadata.txt": metadata.encode("utf-8"),
                         }
                         for i in range(frames_per_sample):
