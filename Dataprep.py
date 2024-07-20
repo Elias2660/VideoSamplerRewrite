@@ -3,7 +3,7 @@ import time
 import ipdb
 import pandas as pd
 import logging
-from loky import reusable_executor
+from loky import get_reusable_executor
 import webdataset as wds
 from SamplerFunctions import sample_video
 from WriteToDataset import write_to_dataset
@@ -60,9 +60,8 @@ def create_writers(
                 f"Creating the executor for {dataset_name}, cpu count: {multiprocessing.cpu_count() - 2}"
             )
             
-            ipdb.set_trace()
-            executor_inner = reusable_executor(
-                max_workers=10, timeout=5
+            executor_inner = get_reusable_executor(
+                max_workers=int(multiprocessing.cpu_count() / 4), timeout=5
             )
 
             futures = [
