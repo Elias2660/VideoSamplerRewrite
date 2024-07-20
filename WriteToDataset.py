@@ -91,6 +91,7 @@ def write_to_dataset(
         raise
     
     finally:
+        sleep(2)
         tar_writer.close()
         
     end_time = time.time()
