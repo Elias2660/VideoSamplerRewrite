@@ -54,7 +54,7 @@ def create_writers(
         logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
         with Manager() as manager:
             sample_list = manager.list()
-            tar_lock = Manager().Lock()
+            tar_lock = manager.Lock()
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=int(multiprocessing.cpu_count() / 5)
             ) as executor_inner:
