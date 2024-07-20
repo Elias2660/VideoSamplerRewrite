@@ -9,7 +9,7 @@ from WriteToDataset import write_to_dataset
 import argparse
 import subprocess
 import multiprocessing
-from multiprocessing import Manager, Semaphore, freeze_support, Lock
+from multiprocessing import Manager, Semaphore, freeze_support
 import concurrent  # for multitprocessing and other stuff
 import re
 import cv2
