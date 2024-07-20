@@ -68,6 +68,9 @@ def sample_video(
             return
         fourcc = cv2.VideoWriter_fourcc(*"H264")  # Using H.264 codec
         # cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+        
+        if count % 10000 == 0:
+            logging.info(f"Frame {count} read from video {video_path}")        
         while count <= end_frame:
             ret, frame = cap.read()
             if not ret:
@@ -86,7 +89,6 @@ def sample_video(
 
             #  check if sample needed to be read ->
             if samples_recorded:
-                logging.info(f"Frame {count} is in the target samples")
                 # convert to greyscale
                 frame_of_sample += 1
                 if normalize:
