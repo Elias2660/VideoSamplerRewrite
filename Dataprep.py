@@ -20,7 +20,8 @@ import os
 import resource
 
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-resource.setrlimit(resource.RLIMIT_NOFILE, (500000000000, rlimit[1]))
+# Set the current limit to the maximum limit
+resource.setrlimit(resource.RLIMIT_NOFILE, (rlimit[1], rlimit[1]))
 
 logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
 
