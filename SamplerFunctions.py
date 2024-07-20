@@ -24,6 +24,7 @@ def sample_video(
     normalize=True,
     out_channels=1,
 ):
+    cap = None
     try:
         """
         -return samples given the interval given
