@@ -56,8 +56,9 @@ def create_writers(
         with Manager() as manager:
             sample_list = manager.list()
             tar_lock = Manager().Lock()
+            logging.info(f"Creating the executor for {dataset_name}, cpu count: {multiprocessing.cpu_count() - 2}")
             with concurrent.futures.ProcessPoolExecutor(
-                max_workers=max_workers
+                max_workers=multiprocessing.cpu_count() - 2
             ) as executor_inner:
                 futures = [
                     executor_inner.submit(
