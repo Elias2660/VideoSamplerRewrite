@@ -163,7 +163,6 @@ def sample_video(
         
         logging.info(f"SAMPLER LIST LENGTH: {len(sample_list)}")
         with lock:
-            
             sample_list.append(samples)
 
     except Exception as e:
@@ -207,28 +206,28 @@ def getVideoInfo(video_path: str):
     return width, height, total_frames
 
 
-if __name__ == "__main__":
-    with Manager() as manager:
-        lock = manager.Lock()
-        format = "%(asctime)s: %(message)s"
-        logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
-        tar_writer = wds.TarWriter("dataset.tar", encoder=False)
-        sample_video(
-            "2024-07-03 17:20:20.604941.mp4",
-            500,
-            "dataset.tar",
-            lock,
-            pd.Series(
-                {
-                    "file": "2024-07-03 17:20:20.604941.mp4",
-                    "class": 1,
-                    "begin frame": 0,
-                    "end frame": 1000,
-                }
-            ),
-            1,
-            1,
-            True,
-            1,
-        )
-        tar_writer.close()
+# if __name__ == "__main__":
+#     with Manager() as manager:
+#         lock = manager.Lock()
+#         format = "%(asctime)s: %(message)s"
+#         logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
+#         tar_writer = wds.TarWriter("dataset.tar", encoder=False)
+#         sample_video(
+#             "2024-07-03 17:20:20.604941.mp4",
+#             500,
+#             "dataset.tar",
+#             lock,
+#             pd.Series(
+#                 {
+#                     "file": "2024-07-03 17:20:20.604941.mp4",
+#                     "class": 1,
+#                     "begin frame": 0,
+#                     "end frame": 1000,
+#                 }
+#             ),
+#             1,
+#             1,
+#             True,
+#             1,
+#         )
+#         tar_writer.close()
