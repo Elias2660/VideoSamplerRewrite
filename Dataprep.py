@@ -178,8 +178,8 @@ def main():
         #         ]
         #         concurrent.futures.wait(futures)
         #         logging.debug(f"Executor mapped")
-            end = time.time()
-            logging.info(f"Time taken to run the the script: {end - start} seconds")
+        end = time.time()
+        logging.info(f"Time taken to run the the script: {end - start} seconds")
 
     except Exception as e:
         logging.error(f"An error occured in main function: {e}")
