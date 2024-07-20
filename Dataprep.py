@@ -8,6 +8,7 @@ from WriteToDataset import write_to_dataset
 import argparse
 import subprocess
 import multiprocessing
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing import Manager, freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
 import re
@@ -50,32 +51,28 @@ def create_writers(
             sample_list = manager.list()
             tar_lock = Manager().Lock()
             tar_lock = Manager().Lock()
-            with multiprocessing.Pool(processes=max_workers) as pool:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = [
-                    pool.apply_async(
+                    executor.submit(
                         sample_video,
-                        (
-                            row["file"],
-                            sample_list,
-                            number_of_samples_max,
-                            dataset_name.replace(".csv", ".tar"),
-                            tar_lock,
-                            row,
-                            frames_per_sample,
-                            frames_per_sample,
-                            normalize,
-                            out_channels,
-                        ),
+                        row["file"],
+                        sample_list,
+                        number_of_samples_max,
+                        dataset_name.replace(".csv", ".tar"),
+                        tar_lock,
+                        row,
+                        frames_per_sample,
+                        frames_per_sample,
+                        normalize,
+                        out_channels,
                     )
                     for index, row in dataset.iterrows()
                 ]
-                pool.close()
-                pool.join()
-                logging.info(
-                    f"Submitted {len(futures)} tasks to the pool for {dataset_name}"
-                )
-                logging.info(f"Executor mapped for {dataset_name}")
-
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        logging.error(f"An error occurred: {e}")
             logging.info(f"Writing samples to the tar file for {dataset_name}")
             logging.debug(f"Sampler list: {sample_list}")
             write_to_dataset(
