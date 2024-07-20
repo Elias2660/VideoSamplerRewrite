@@ -50,8 +50,9 @@ def write_to_dataset(
                     else:
                         img = transforms.ToPILImage()(frame[0] / 255.0).convert("L")
                         # Now save the image as a png into a buffer in memory
-                    buf = io.BytesIO()
-                    img.save(fp=buf, format="png")
+                    with img: 
+                        buf = io.BytesIO()
+                        img.save(fp=buf, format="png")
                     sample = {
                         "__key__": "_".join((base_name, "_".join(frame_num))),
                         "0.png": buf.getbuffer(),
@@ -69,9 +70,9 @@ def write_to_dataset(
                             )
                         else:
                             img = transforms.ToPILImage()(frame[i] / 255.0).convert("L")
-
-                            buffers.append(io.BytesIO())
-                            img.save(fp=buffers[-1], format="png")
+                            with img:
+                                buffers.append(io.BytesIO())
+                                img.save(fp=buffers[-1], format="png")
 
                         sample = {
                             "__key__": "_".join((base_name, "_".join(frame_num))),
@@ -91,6 +92,9 @@ def write_to_dataset(
         logging.info(f"Closing tar file {name}")
         sleep(2)
         tar_writer.close()
+        buf.close()
+        for buffer in buffers:
+            buffer.close()
         
     end_time = time.time()
     logging.info("Time taken to write to dataset: " + str(end_time - start_time))
