@@ -20,7 +20,7 @@ import os
 import resource
 
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-resource.setrlimit(resource.RLIMIT_NOFILE, (500000000000, rlimit[1]))
+resource.setrlimit(resource.RLIMIT_NOFILE, (min(1048576, rlimit[1]), rlimit[1]))
 
 logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
 
@@ -31,12 +31,6 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
-
-# os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
-
-
-format = "%(asctime)s: %(message)s"
-logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
 
 
 def create_writers(
