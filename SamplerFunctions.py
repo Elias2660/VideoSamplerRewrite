@@ -151,7 +151,10 @@ def sample_video(
         logging.info(
             "Appending samples to the sample list for the dataset: " + str(name)
         )
+        
+        logging.info(f"SAMPLER LIST LENGTH: {len(sample_list)}")
         with lock:
+            
             sample_list.append(samples)
 
     except Exception as e:
