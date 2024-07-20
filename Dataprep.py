@@ -9,12 +9,11 @@ from WriteToDataset import write_to_dataset
 import argparse
 import subprocess
 import multiprocessing
-from multiprocessing import Manager, Semaphore, freeze_support
+from multiprocessing import Manager, Semaphore, freeze_support, Pool
 import concurrent  # for multitprocessing and other stuff
 import re
 import cv2
 import os
-from time import sleep
 max_open_files = 100
 
 file_semaphore = Semaphore(max_open_files)
@@ -49,7 +48,7 @@ def create_writers(
                 sample_list = manager.list()
                 tar_lock = manager.Lock()
                 with concurrent.futures.ProcessPoolExecutor(
-                    max_workers=min(max_workers, int(multiprocessing.cpu_count() / 5)), initializer=cv2.setNumThreads, initargs=(1,)
+                    max_workers=min(max_workers, multiprocessing.cpu_count()), initializer=cv2.setNumThreads, initargs=(1,)
                 ) as executor_inner:
                     futures = [
                         executor_inner.submit(
@@ -68,9 +67,7 @@ def create_writers(
                         )
                         for index, row in dataset.iterrows()
                     ]
-                    sleep(3)
                     concurrent.futures.wait(futures)
-                    sleep(3)
                     logging.info(
                         f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                     )
@@ -83,7 +80,6 @@ def create_writers(
 
                 logging.info(f"Writing samples to the tar file for {dataset_name}")
                 logging.debug(f"Sampler list: {sample_list}")
-                sleep(3)
                 write_to_dataset(
                     dataset_name.replace(".csv", ".tar"),
                     sample_list,
@@ -93,7 +89,6 @@ def create_writers(
                 )
                 
                 subprocess.run(f"rm -rf {name}", shell=True)
-                sleep(3)
         sample_end = time.time()
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
@@ -155,17 +150,18 @@ def main():
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
-
-        create_writers(
-            dataset_path,
-            file_list[0],
-            pd.read_csv(file_list[0]),
-            number_of_samples,
-            args.max_workers,
-            args.frames_per_sample,
-            args.normalize,
-            args.out_channels,
-        )
+        for file in file_list:
+            create_writers(
+                dataset_path,
+                file,
+                pd.read_csv(file),
+                number_of_samples,
+                args.max_workers,
+                args.frames_per_sample,
+                args.normalize,
+                args.out_channels,
+            )
+        # pool = Pool(args.max_workers)
         # with Manager() as manager:
         #     with concurrent.futures.ProcessPoolExecutor(
         #         max_workers=args.max_workers
@@ -197,7 +193,7 @@ def main():
 
 if __name__ == "__main__":
     freeze_support()
-    # cv2.setNumThreads(1)
+
     """
     Run three 
     """
