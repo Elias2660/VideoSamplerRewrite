@@ -69,7 +69,7 @@ def sample_video(
             if not ret:
                 break
 
-            logging.debug(f"Frame {count} read from video {video_path}")
+            # logging.debug(f"Frame {count} read from video {video_path}")
 
             count += 1
             if count in target_samples:
