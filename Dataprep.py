@@ -56,31 +56,30 @@ def create_writers(
         with Manager() as manager:
             sample_list = manager.list()
             tar_lock = Manager().Lock()
-            logging.info(
-                f"Creating the executor for {dataset_name}, cpu count: {multiprocessing.cpu_count() - 2}"
-            )
-            
-            executor_inner = get_reusable_executor(
-                max_workers=int(multiprocessing.cpu_count() / 8), timeout=5
-            )
-
-            futures = [
-                executor_inner.submit(
-                    sample_video,
-                    row["file"],
-                    sample_list,
-                    number_of_samples_max,
-                    dataset_name.replace(".csv", ".tar"),
-                    tar_lock,
-                    row,
-                    frames_per_sample,
-                    frames_per_sample,
-                    normalize,
-                    out_channels,
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=max_workers
+            ) as executor_inner:
+                futures = [
+                    executor_inner.submit(
+                        sample_video,
+                        row["file"],
+                        sample_list,
+                        number_of_samples_max,
+                        dataset_name.replace(".csv", ".tar"),
+                        tar_lock,
+                        row,
+                        frames_per_sample,
+                        frames_per_sample,
+                        normalize,
+                        out_channels,
+                    )
+                    for index, row in dataset.iterrows()
+                ]
+                concurrent.futures.wait(futures)
+                logging.info(
+                    f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
-                for index, row in dataset.iterrows()
-            ]
-            concurrent.futures.wait(futures)
+                logging.info(f"Executor mapped for {dataset_name}")
 
             logging.info(
                 f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
