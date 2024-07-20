@@ -142,7 +142,7 @@ def main():
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         file_list = sorted(
-            [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
+            [ ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
         with Manager() as manager:
