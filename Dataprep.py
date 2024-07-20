@@ -1,9 +1,8 @@
 import numpy as np
 import time
-import ipdb
+
 import pandas as pd
 import logging
-from loky import get_reusable_executor
 import webdataset as wds
 from SamplerFunctions import sample_video
 from WriteToDataset import write_to_dataset
