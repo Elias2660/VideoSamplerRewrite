@@ -61,7 +61,7 @@ def create_writers(
             )
             
             executor_inner = get_reusable_executor(
-                max_workers=int(multiprocessing.cpu_count() / 4), timeout=5
+                max_workers=int(multiprocessing.cpu_count() / 8), timeout=5
             )
 
             futures = [
