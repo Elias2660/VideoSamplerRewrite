@@ -4,6 +4,7 @@ import pandas as pd
 import logging
 import webdataset as wds
 from SamplerFunctions import sample_video
+from WriteToDataset import write_to_dataset
 import argparse
 import subprocess
 from multiprocessing import Manager, freeze_support, Lock
@@ -46,7 +47,7 @@ def create_writers(
             encoder=False,
         )
         with Manager() as manager:
-            
+            sample_list = manager.list()
             tar_lock = Manager().Lock()
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=max_workers
@@ -55,6 +56,7 @@ def create_writers(
                     executor_inner.submit(
                         sample_video,
                         row["file"],
+                        sample_list,
                         number_of_samples_max,
                         dataset_name.replace(".csv", ".tar"),
                         tar_lock,
@@ -71,7 +73,17 @@ def create_writers(
                     f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
                 logging.info(f"Executor mapped for {dataset_name}")
+                
+        logging.info(f"Writing samples to the tar file for {dataset_name}")
 
+        write_to_dataset(
+            dataset_name.replace(".csv", ".tar"),
+            sample_list,
+            tar_lock,
+            dataset_path,
+            frames_per_sample,
+            out_channels,
+        )
         sample_end = time.time()
         datawriter.close()
         logging.info(
