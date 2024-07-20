@@ -17,6 +17,14 @@ import os
 
 import os
 
+import resource
+
+rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+resource.setrlimit(resource.RLIMIT_NOFILE, (2048, rlimit[1]))
+
+logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
+
+
 multiprocessing.set_start_method("spawn", force=True)
 os.environ["OMP_NUM_THREADS"] = "1"
 
