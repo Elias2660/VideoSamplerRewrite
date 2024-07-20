@@ -50,7 +50,7 @@ def create_writers(
                 sample_list = manager.list()
                 tar_lock = manager.Lock()
                 with concurrent.futures.ProcessPoolExecutor(
-                    max_workers=min(max_workers, multiprocessing.cpu_count())//4,
+                    max_workers=min(max_workers, multiprocessing.cpu_count())//2,
                     initializer=cv2.setNumThreads,
                     initargs=(1,),
                 ) as executor_inner:
