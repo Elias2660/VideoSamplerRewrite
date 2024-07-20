@@ -82,7 +82,7 @@ def sample_video(
 
             #  check if sample needed to be read ->
             if samples_recorded:
-                logging.debug(f"Frame {count} is in the target samples")
+                logging.info(f"Frame {count} is in the target samples")
                 # convert to greyscale
                 frame_of_sample += 1
                 if normalize:
