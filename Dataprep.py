@@ -59,7 +59,8 @@ def create_writers(
             logging.info(
                 f"Creating the executor for {dataset_name}, cpu count: {multiprocessing.cpu_count() - 2}"
             )
-
+            
+            ipdb.set_trace()
             executor_inner = reusable_executor(
                 max_workers=10, timeout=5
             )
