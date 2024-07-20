@@ -186,7 +186,7 @@ def main():
 
 
 if __name__ == "__main__":
-    cv2.setNumThreads(400)
+    cv2.setNumThreads(20)
     freeze_support()
     """
     Run three 
