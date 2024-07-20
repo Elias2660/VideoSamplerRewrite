@@ -62,6 +62,10 @@ def sample_video(
         frame_of_sample = 0
         logging.info(f"Capture to {video_path} about to be established")
         cap = cv2.VideoCapture(video_path)
+
+        if not cap.isOpened():
+            logging.error(f"Failed to open video {video_path}")
+            return
         fourcc = cv2.VideoWriter_fourcc(*"H264")  # Using H.264 codec
         # cap.set(cv2.CAP_PROP_FOURCC, fourcc)
         while count <= end_frame:
@@ -160,6 +164,11 @@ def sample_video(
     except Exception as e:
         logging.error(f"Error sampling video {video_path}: {e}")
         raise
+    
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+        logging.info(f"Released video capture for {video_path}")
 
 
 def getVideoInfo(video_path: str):
