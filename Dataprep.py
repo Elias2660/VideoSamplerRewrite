@@ -155,8 +155,8 @@ def main():
         )
         logging.info(f"File List: {file_list}")
         
-        for file in file_list:
-            create_writers(dataset_path, file, pd.read_csv(file), number_of_samples, args.max_workers, args.frames_per_sample, args.normalize, args.out_channels)
+        
+        create_writers(dataset_path, file_list[0], pd.read_csv(file_list[0]), number_of_samples, args.max_workers, args.frames_per_sample, args.normalize, args.out_channels)
         # with Manager() as manager:
         #     with concurrent.futures.ProcessPoolExecutor(
         #         max_workers=args.max_workers
@@ -188,7 +188,7 @@ def main():
 
 if __name__ == "__main__":
     freeze_support()
-    cv2.setNumThreads(5)
+    cv2.setNumThreads(5``)
     """
     Run three 
     """
