@@ -36,40 +36,35 @@ def create_writers(
     out_channels: int,
 ):
     sample_start = time.time()
-    """
-    get all the samples from sample video and writem them to a tar file using webdataset
-
-    - read in the dataset
-    - run the command off the dataset
-    - write the samples to a tar file
-    """
     try:
         logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
         with Manager() as manager:
             sample_list = manager.list()
             tar_lock = Manager().Lock()
-            with concurrent.futures.ProcessPoolExecutor(
-                max_workers=max_workers
-            ) as executor_inner:
+            tar_lock = Manager().Lock()
+            with multiprocessing.Pool(processes=max_workers) as pool:
                 futures = [
-                    executor_inner.submit(
+                    pool.apply_async(
                         sample_video,
-                        row["file"],
-                        sample_list,
-                        number_of_samples_max,
-                        dataset_name.replace(".csv", ".tar"),
-                        tar_lock,
-                        row,
-                        frames_per_sample,
-                        frames_per_sample,
-                        normalize,
-                        out_channels,
+                        (
+                            row["file"],
+                            sample_list,
+                            number_of_samples_max,
+                            dataset_name.replace(".csv", ".tar"),
+                            tar_lock,
+                            row,
+                            frames_per_sample,
+                            frames_per_sample,
+                            normalize,
+                            out_channels,
+                        ),
                     )
                     for index, row in dataset.iterrows()
                 ]
-                concurrent.futures.wait(futures)
+                pool.close()
+                pool.join()
                 logging.info(
-                    f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
+                    f"Submitted {len(futures)} tasks to the pool for {dataset_name}"
                 )
                 logging.info(f"Executor mapped for {dataset_name}")
 
