@@ -19,19 +19,6 @@ from time import sleep
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
-
-# import resource
-
-# rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-# resource.setrlimit(resource.RLIMIT_NOFILE, (min(1048576, rlimit[1]), rlimit[1]))
-
-# logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
-
-
-# multiprocessing.set_start_method("spawn", force=True)
-# os.environ["OMP_NUM_THREADS"] = "1"
-
-
 def create_writers(
     dataset_path: str,
     dataset_name: str,
@@ -56,7 +43,7 @@ def create_writers(
             sample_list = manager.list()
             tar_lock = manager.Lock()
             with concurrent.futures.ProcessPoolExecutor(
-                max_workers=int(multiprocessing.cpu_count() / 5), initializer=cv2.setNumThreads, initargs=(1,)
+                max_workers=min(max_workers, int(multiprocessing.cpu_count() / 5)), initializer=cv2.setNumThreads, initargs=(1,)
             ) as executor_inner:
                 futures = [
                     executor_inner.submit(
