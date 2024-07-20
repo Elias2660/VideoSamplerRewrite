@@ -34,8 +34,8 @@ def sample_video(
         """
         logging.info(f"Sampling {video_path}")
         start_time = time.time()
-        begin_frame = row[2]
-        end_frame = row[3]
+        begin_frame = row.iloc[2]
+        end_frame = row.iloc[3]
         width, height, total_frames = getVideoInfo(video_path)
         available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
         num_samples = min(available_samples, num_samples)
@@ -130,14 +130,14 @@ def sample_video(
             if frame_of_sample == frames_per_sample:
                 if frames_per_sample == 1:
                     logging.debug(f"Appending partial sample {partial_sample[0]}")
-                    samples.append([partial_sample[0], video_path, counts, row[1]])
+                    samples.append([partial_sample[0], video_path, counts, row.iloc[1]])
 
                 else:
                     logging.debug(
                         f"Appending partial sample {torch.cat(partial_sample)}"
                     )
                     samples.append(
-                        [torch.cat(partial_sample), video_path, counts, row[1]]
+                        [torch.cat(partial_sample), video_path, counts, row.iloc[1]]
                     )
                     sample_idx += 1
 
