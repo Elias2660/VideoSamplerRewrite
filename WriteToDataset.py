@@ -12,20 +12,16 @@ import io
 def write_to_dataset(
     name,
     list_of_sample_list,
-    lock,
-    video_path: str,
     frames_per_sample: int = 1,
     out_channels: int = 1,
 ):
     try:
         tar_writer = wds.TarWriter(name, encoder=False)
-        """using the lock, write the files to the datase5t"""
         start_time = time.time()
         logging.info(f"Enumerating through the samples")
         for samples in list_of_sample_list:
             for sample_num, sample in enumerate(samples):
                 frame, video_path, frame_num, type = sample
-                # frame = frame.numpy()
                 logging.debug(f"Writing sample {sample_num} to dataset")
                 logging.debug(f"Frame shape: {frame.shape}")
                 logging.debug(f"Frame number: {frame_num}")
@@ -76,7 +72,7 @@ def write_to_dataset(
                         }
                         for i in range(frames_per_sample):
                             sample[f"{i}.png"] = buffers[i].getbuffer()
-
+                logging.debug(f"Writing sample {sample_num} to dataset tar file")
                 tar_writer.write(sample)
 
         tar_writer.close()

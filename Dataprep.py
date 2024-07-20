@@ -72,12 +72,10 @@ def create_writers(
                 logging.info(f"Executor mapped for {dataset_name}")
 
             logging.info(f"Writing samples to the tar file for {dataset_name}")
-
+            logging.debug(f"Sampler list: {sample_list}")
             write_to_dataset(
                 dataset_name.replace(".csv", ".tar"),
                 sample_list,
-                tar_lock,
-                dataset_path,
                 frames_per_sample,
                 out_channels,
             )
