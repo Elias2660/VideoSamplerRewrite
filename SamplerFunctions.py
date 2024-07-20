@@ -2,14 +2,11 @@ import logging
 import cv2
 import pandas as pd
 import numpy as np
-from multiprocessing import Manager
 import time
 import random
 import torch
 import webdataset as wds
-
 import os
-from time import sleep 
 
 
 def sample_video(
@@ -158,7 +155,6 @@ def sample_video(
     finally:
         logging.info(f"Releasing video capture for {video_path}")
         cap.release()
-        sleep(2)
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video_path}")
     return
@@ -182,7 +178,6 @@ def getVideoInfo(video_path: str):
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     finally:
         cap.release()
-    sleep(2)
     counts = pd.read_csv("counts.csv")
     logging.info(video_path.split("/")[-1])
     logging.info(counts[counts["filename"] == video_path.split("/")[-1]])
