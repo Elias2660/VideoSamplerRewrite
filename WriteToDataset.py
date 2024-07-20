@@ -8,7 +8,7 @@ from torchvision import transforms
 import cv2
 import io
 
-cv2.setNumThreads(5)
+cv2.setNumThreads(1)
 
 
 os.environ['OMP_NUM_THREADS'] = '1' 

@@ -7,11 +7,10 @@ import time
 import random
 import torch
 import webdataset as wds
-from WriteToDataset import write_to_dataset
 
 import os
 
-cv2.setNumThreads(5)
+cv2.setNumThreads(1)
 os.environ['OMP_NUM_THREADS'] = '1'  # Adjust the number as necessary
 
 # cv2.setNumThreads(400)
@@ -190,6 +189,7 @@ def getVideoInfo(video_path: str):
     cap = cv2.VideoCapture(video_path)
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    cap.release()
     counts = pd.read_csv("counts.csv")
     logging.info(video_path.split("/")[-1])
     logging.info(counts[counts["filename"] == video_path.split("/")[-1]])
@@ -197,7 +197,6 @@ def getVideoInfo(video_path: str):
         "framecount"
     ].values[0]
 
-    cap.release()
 
     return width, height, total_frames
 
