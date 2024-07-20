@@ -162,8 +162,7 @@ def sample_video(
         )
         
         logging.info(f"SAMPLER LIST LENGTH: {len(sample_list)}")
-        with lock:
-            sample_list.append(samples)
+        sample_list.append(samples)
 
     except Exception as e:
         logging.error(f"Error sampling video {video_path}: {e}")
