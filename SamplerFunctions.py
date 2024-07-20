@@ -171,7 +171,7 @@ def sample_video(
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video_path}")
-
+    return
 
 def getVideoInfo(video_path: str):
     """
