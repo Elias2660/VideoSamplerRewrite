@@ -9,10 +9,10 @@ from torchvision import transforms
 import cv2
 import io
 
-cv2.setNumThreads(1)
+# cv2.setNumThreads(1)
 
 
-os.environ['OMP_NUM_THREADS'] = '1' 
+# os.environ['OMP_NUM_THREADS'] = '1' 
 
 
 def write_to_dataset(

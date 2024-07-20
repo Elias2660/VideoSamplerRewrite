@@ -11,11 +11,6 @@ import webdataset as wds
 import os
 from time import sleep 
 
-cv2.setNumThreads(1)
-os.environ['OMP_NUM_THREADS'] = '1'  # Adjust the number as necessary
-
-# cv2.setNumThreads(400)
-
 
 def sample_video(
     video_path: str,
@@ -74,10 +69,9 @@ def sample_video(
             logging.info(f"Frame {count} read from video {video_path}")        
         while count <= end_frame:
             ret, frame = cap.read()
+            
             if not ret:
                 break
-
-            # logging.debug(f"Frame {count} read from video {video_path}")
 
             count += 1
             if count in target_samples:
@@ -88,9 +82,7 @@ def sample_video(
                 frame_of_sample = 0
                 partial_sample = []
 
-            #  check if sample needed to be read ->
             if samples_recorded:
-                # convert to greyscale
                 frame_of_sample += 1
                 if normalize:
                     frame = cv2.normalize(
@@ -105,9 +97,6 @@ def sample_video(
                 brightness = 10  # Simple brightness control [0-100]
                 frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
 
-                # if level is on debug, name the first frame of the sample to be saved
-
-                # cv2.imwrite(f"test_images/{count}.png", frame)
 
                 if out_channels == 1:
                     logging.debug(f"Converting frame {count} to greyscale")
@@ -148,26 +137,18 @@ def sample_video(
                 partial_sample = []
                 samples_recorded = False
                 
-        logging.info(f"Releasing capture for {video_path}")
-        cap.release()
-        sleep(2)
         logging.info(
             f"Capture to {video_path} has been released, returning {len(samples)} samples"
         )
         end_time = time.time()
-        logging.info("Time taken to sample video: " + str(end_time - start_time))
-
-        logging.info(
-            "Appending samples to the sample list for the dataset: " + str(name)
-        )
-        
+        logging.info("Time taken to sample video: " + str(end_time - start_time))        
         logging.info(f"SAMPLER LIST LENGTH: {len(sample_list)}")
         sample_list.append(samples)
 
     except Exception as e:
         logging.error(f"Error sampling video {video_path}: {e}")
         raise
-    
+
     finally:
         logging.info(f"Releasing video capture for {video_path}")
         cap.release()
