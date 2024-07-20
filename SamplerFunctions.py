@@ -146,7 +146,8 @@ def sample_video(
                 counts = []
                 partial_sample = []
                 samples_recorded = False
-
+                
+        logging.info(f"Releasing capture for {video_path}")
         cap.release()
         logging.info(
             f"Capture to {video_path} has been released, returning {len(samples)} samples"
@@ -168,6 +169,7 @@ def sample_video(
         raise
     
     finally:
+        logging.info(f"Releasing video capture for {video_path}")
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video_path}")
