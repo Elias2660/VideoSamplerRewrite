@@ -62,8 +62,6 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video_path}")
             return
-        fourcc = cv2.VideoWriter_fourcc(*"H264")  # Using H.264 codec
-        # cap.set(cv2.CAP_PROP_FOURCC, fourcc)
         
         if count % 10000 == 0:
             logging.info(f"Frame {count} read from video {video_path}")        
