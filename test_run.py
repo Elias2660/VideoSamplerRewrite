@@ -30,7 +30,7 @@ def write_video_to_frames(row):
             break
 
         if frame_num >= start_frame and frame_num < end_frame:
-            cv2.imwrite(f"frames/{frame_num}.jpg", frame)
+            cv2.imwrite(f"frames/{row[' class']}/{video_path}_{frame_num}.jpg", frame)
         frame_num += 1
     cap.release()
     return
