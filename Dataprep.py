@@ -9,12 +9,15 @@ from WriteToDataset import write_to_dataset
 import argparse
 import subprocess
 import multiprocessing
-from multiprocessing import Manager, freeze_support, Lock
+from multiprocessing import Manager, Semaphore, freeze_support, Lock
 import concurrent  # for multitprocessing and other stuff
 import re
 import cv2
 import os
 from time import sleep
+max_open_files = 100
+
+file_semaphore = Semaphore(max_open_files)
 
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
@@ -40,34 +43,35 @@ def create_writers(
     try:
         logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
         with Manager() as manager:
-            sample_list = manager.list()
-            tar_lock = manager.Lock()
-            with concurrent.futures.ProcessPoolExecutor(
-                max_workers=min(max_workers, int(multiprocessing.cpu_count() / 5)), initializer=cv2.setNumThreads, initargs=(1,)
-            ) as executor_inner:
-                futures = [
-                    executor_inner.submit(
-                        sample_video,
-                        row["file"],
-                        sample_list,
-                        number_of_samples_max,
-                        dataset_name.replace(".csv", ".tar"),
-                        tar_lock,
-                        row,
-                        frames_per_sample,
-                        frames_per_sample,
-                        normalize,
-                        out_channels,
+            with file_semaphore:
+                sample_list = manager.list()
+                tar_lock = manager.Lock()
+                with concurrent.futures.ProcessPoolExecutor(
+                    max_workers=min(max_workers, int(multiprocessing.cpu_count() / 5)), initializer=cv2.setNumThreads, initargs=(1,)
+                ) as executor_inner:
+                    futures = [
+                        executor_inner.submit(
+                            sample_video,
+                            row["file"],
+                            sample_list,
+                            number_of_samples_max,
+                            dataset_name.replace(".csv", ".tar"),
+                            tar_lock,
+                            row,
+                            frames_per_sample,
+                            frames_per_sample,
+                            normalize,
+                            out_channels,
+                        )
+                        for index, row in dataset.iterrows()
+                    ]
+                    sleep(3)
+                    concurrent.futures.wait(futures)
+                    sleep(3)
+                    logging.info(
+                        f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                     )
-                    for index, row in dataset.iterrows()
-                ]
-                sleep(3)
-                concurrent.futures.wait(futures)
-                sleep(3)
-                logging.info(
-                    f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
-                )
-                logging.info(f"Executor mapped for {dataset_name}")
+                    logging.info(f"Executor mapped for {dataset_name}")
 
             logging.info(
                 f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
