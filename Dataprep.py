@@ -88,10 +88,10 @@ def create_writers(
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
         )
-        return futures
     except Exception as e:
         logging.error(f"An error occured in create_writers function: {e}")
         raise e
+    return futures
 
 
 def main():
@@ -146,31 +146,31 @@ def main():
         )
         logging.info(f"File List: {file_list}")
         with Manager() as manager:
-            with concurrent.futures.ProcessPoolExecutor(
-                max_workers=args.max_workers
-            ) as executor:
-                logging.debug(f"Executor established")
-                futures = [
-                    executor.submit(
+            with multiprocessing.Pool(processes=args.max_workers) as pool:
+                logging.debug(f"Pool established")
+                results = [
+                    pool.apply_async(
                         create_writers,
-                        dataset_path,
-                        file,
-                        pd.read_csv(file),
-                        number_of_samples,
-                        args.max_workers,
-                        args.frames_per_sample,
-                        args.normalize,
-                        args.out_channels,
+                        (
+                            dataset_path,
+                            file,
+                            pd.read_csv(file),
+                            number_of_samples,
+                            args.max_workers,
+                            args.frames_per_sample,
+                            args.normalize,
+                            args.out_channels,
+                        ),
                     )
                     for file in file_list
                 ]
-                concurrent.futures.wait(futures)
-                logging.debug(f"Executor mapped")
+                for result in results:
+                    result.get()
+                logging.debug(f"Pool mapped")
             end = time.time()
-            logging.info(f"Time taken to run the the script: {end - start} seconds")
-
+            logging.info(f"Time taken to run the script: {end - start} seconds")
     except Exception as e:
-        logging.error(f"An error occured in main function: {e}")
+        logging.error(f"An error occurred in main function: {e}")
         raise e
 
 
