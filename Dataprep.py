@@ -142,30 +142,29 @@ def main():
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
-        with Manager() as manager:
-            pool =  multiprocessing.Pool(processes=args.max_workers)
-            logging.debug(f"Pool established")
-            results = [
-                pool.apply_async(
-                    create_writers,
-                    (
-                        dataset_path,
-                        file,
-                        pd.read_csv(file),
-                        number_of_samples,
-                        args.max_workers,
-                        args.frames_per_sample,
-                        args.normalize,
-                        args.out_channels,
-                    ),
-                )
-                for file in file_list
+        pool =  multiprocessing.Pool(processes=args.max_workers)
+        logging.debug(f"Pool established")
+        results = [
+            pool.apply_async(
+                create_writers,
+                (
+                    dataset_path,
+                    file,
+                    pd.read_csv(file),
+                    number_of_samples,
+                    args.max_workers,
+                    args.frames_per_sample,
+                    args.normalize,
+                    args.out_channels,
+                ),
+            )
+            for file in file_list
             ]
-            for result in results:
-                result.get()
-            logging.debug(f"Pool mapped")
-            end = time.time()
-            logging.info(f"Time taken to run the script: {end - start} seconds")
+        for result in results:
+            result.get()
+        logging.debug(f"Pool mapped")
+        end = time.time()
+        logging.info(f"Time taken to run the script: {end - start} seconds")
     except Exception as e:
         logging.error(f"An error occurred in main function: {e}")
         raise e
