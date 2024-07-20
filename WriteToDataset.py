@@ -5,7 +5,6 @@ import logging
 import time
 import multiprocessing
 import torch
-from time import sleep
 from torchvision import transforms
 import cv2
 import io
@@ -93,10 +92,7 @@ def write_to_dataset(
     
     finally:
         logging.info(f"Closing tar file {name}")
-        sleep(2)
         tar_writer.close()
-        if buf is not None:
-            buf.close()
         for buffer in buffers:
             buffer.close()
         
