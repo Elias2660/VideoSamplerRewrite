@@ -20,7 +20,7 @@ import os
 import resource
 
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-resource.setrlimit(resource.RLIMIT_NOFILE, (2048, rlimit[1]))
+resource.setrlimit(resource.RLIMIT_NOFILE, (500000000000, rlimit[1]))
 
 logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
 
@@ -31,6 +31,12 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+
+# os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
+
+
+format = "%(asctime)s: %(message)s"
+logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
 
 
 def create_writers(
@@ -44,35 +50,40 @@ def create_writers(
     out_channels: int,
 ):
     sample_start = time.time()
+    """
+    get all the samples from sample video and writem them to a tar file using webdataset
+
+    - read in the dataset
+    - run the command off the dataset
+    - write the samples to a tar file
+    """
     try:
         logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
         with Manager() as manager:
             sample_list = manager.list()
             tar_lock = Manager().Lock()
-            tar_lock = Manager().Lock()
-            with multiprocessing.Pool(processes=max_workers) as pool:
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=max_workers
+            ) as executor_inner:
                 futures = [
-                    pool.apply_async(
+                    executor_inner.submit(
                         sample_video,
-                        (
-                            row["file"],
-                            sample_list,
-                            number_of_samples_max,
-                            dataset_name.replace(".csv", ".tar"),
-                            tar_lock,
-                            row,
-                            frames_per_sample,
-                            frames_per_sample,
-                            normalize,
-                            out_channels,
-                        ),
+                        row["file"],
+                        sample_list,
+                        number_of_samples_max,
+                        dataset_name.replace(".csv", ".tar"),
+                        tar_lock,
+                        row,
+                        frames_per_sample,
+                        frames_per_sample,
+                        normalize,
+                        out_channels,
                     )
                     for index, row in dataset.iterrows()
                 ]
-                pool.close()
-                pool.join()
+                concurrent.futures.wait(futures)
                 logging.info(
-                    f"Submitted {len(futures)} tasks to the pool for {dataset_name}"
+                    f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
                 logging.info(f"Executor mapped for {dataset_name}")
 
@@ -88,10 +99,10 @@ def create_writers(
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
         )
+        return futures
     except Exception as e:
         logging.error(f"An error occured in create_writers function: {e}")
         raise e
-    return futures
 
 
 def main():
@@ -142,35 +153,35 @@ def main():
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         file_list = sorted(
-            [ ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
+            [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
         with Manager() as manager:
-            with multiprocessing.Pool(processes=args.max_workers) as pool:
-                logging.debug(f"Pool established")
-                results = [
-                    pool.apply_async(
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=args.max_workers
+            ) as executor:
+                logging.debug(f"Executor established")
+                futures = [
+                    executor.submit(
                         create_writers,
-                        (
-                            dataset_path,
-                            file,
-                            pd.read_csv(file),
-                            number_of_samples,
-                            args.max_workers,
-                            args.frames_per_sample,
-                            args.normalize,
-                            args.out_channels,
-                        ),
+                        dataset_path,
+                        file,
+                        pd.read_csv(file),
+                        number_of_samples,
+                        args.max_workers,
+                        args.frames_per_sample,
+                        args.normalize,
+                        args.out_channels,
                     )
                     for file in file_list
                 ]
-                for result in results:
-                    result.get()
-                logging.debug(f"Pool mapped")
+                concurrent.futures.wait(futures)
+                logging.debug(f"Executor mapped")
             end = time.time()
-            logging.info(f"Time taken to run the script: {end - start} seconds")
+            logging.info(f"Time taken to run the the script: {end - start} seconds")
+
     except Exception as e:
-        logging.error(f"An error occurred in main function: {e}")
+        logging.error(f"An error occured in main function: {e}")
         raise e
 
 
