@@ -84,3 +84,4 @@ def write_to_dataset(
         raise
     end_time = time.time()
     logging.info("Time taken to write to dataset: " + str(end_time - start_time))
+    return 
