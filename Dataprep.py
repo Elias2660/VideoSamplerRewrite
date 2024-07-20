@@ -30,7 +30,7 @@ logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
 
 
 multiprocessing.set_start_method("spawn", force=True)
-os.environ["OMP_NUM_THREADS"] = "1"
+# os.environ["OMP_NUM_THREADS"] = "1"
 
 
 def create_writers(
@@ -186,7 +186,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # cv2.setNumThreads(400)
+    cv2.setNumThreads(400)
     freeze_support()
     """
     Run three 
