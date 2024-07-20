@@ -34,6 +34,20 @@ format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 
+class NoDaemonProcess(multiprocessing.Process):
+    def _get_daemon(self):
+        return False
+
+    def _set_daemon(self, value):
+        pass
+
+    daemon = property(_get_daemon, _set_daemon)
+
+
+class NoDaemonContext(type(multiprocessing.get_context())):
+    Process = NoDaemonProcess
+
+
 def create_writers(
     dataset_path: str,
     dataset_name: str,
@@ -50,37 +64,37 @@ def create_writers(
         with Manager() as manager:
             sample_list = manager.list()
             tar_lock = Manager().Lock()
-            tar_lock = Manager().Lock()
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = [
-                    executor.submit(
+            with multiprocessing.Pool(
+                processes=max_workers, context=NoDaemonContext()
+            ) as pool:
+                results = [
+                    pool.apply_async(
                         sample_video,
-                        row["file"],
-                        sample_list,
-                        number_of_samples_max,
-                        dataset_name.replace(".csv", ".tar"),
-                        tar_lock,
-                        row,
-                        frames_per_sample,
-                        frames_per_sample,
-                        normalize,
-                        out_channels,
+                        (
+                            row["file"],
+                            sample_list,
+                            number_of_samples_max,
+                            dataset_name.replace(".csv", ".tar"),
+                            tar_lock,
+                            row,
+                            frames_per_sample,
+                            frames_per_sample,
+                            normalize,
+                            out_channels,
+                        ),
                     )
                     for index, row in dataset.iterrows()
                 ]
-                for future in as_completed(futures):
-                    try:
-                        future.result()
-                    except Exception as e:
-                        logging.error(f"An error occurred: {e}")
             logging.info(f"Writing samples to the tar file for {dataset_name}")
             logging.debug(f"Sampler list: {sample_list}")
+
             write_to_dataset(
                 dataset_name.replace(".csv", ".tar"),
                 sample_list,
                 frames_per_sample,
                 out_channels,
             )
+
         sample_end = time.time()
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
@@ -142,7 +156,7 @@ def main():
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
-        pool =  multiprocessing.Pool(processes=args.max_workers)
+        pool = multiprocessing.Pool(processes=args.max_workers)
         logging.debug(f"Pool established")
         results = [
             pool.apply_async(
@@ -159,7 +173,7 @@ def main():
                 ),
             )
             for file in file_list
-            ]
+        ]
         for result in results:
             result.get()
         logging.debug(f"Pool mapped")
