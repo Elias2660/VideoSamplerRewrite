@@ -44,6 +44,8 @@ def create_writers(
         logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
         with Manager() as manager:
             with file_semaphore:
+                name = dataset_name.replace(".csv", "tar") + "directory_temporary"
+                subprocess.run(f"mkdir {name}", shell=True)
                 sample_list = manager.list()
                 tar_lock = manager.Lock()
                 with concurrent.futures.ProcessPoolExecutor(
@@ -62,6 +64,7 @@ def create_writers(
                             frames_per_sample,
                             normalize,
                             out_channels,
+                            name
                         )
                         for index, row in dataset.iterrows()
                     ]
@@ -86,7 +89,10 @@ def create_writers(
                     sample_list,
                     frames_per_sample,
                     out_channels,
+                    name
                 )
+                
+                subprocess.run(f"rm -rf {name}", shell=True)
                 sleep(3)
         sample_end = time.time()
         logging.info(

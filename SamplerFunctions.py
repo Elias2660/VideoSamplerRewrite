@@ -23,6 +23,7 @@ def sample_video(
     sample_span=1,
     normalize=True,
     out_channels=1,
+    directory_name:str="",
 ):
     cap = None
     try:
@@ -119,14 +120,20 @@ def sample_video(
             if frame_of_sample == frames_per_sample:
                 if frames_per_sample == 1:
                     logging.debug(f"Appending partial sample {partial_sample[0]}")
-                    samples.append([partial_sample[0], video_path, counts, row.iloc[1]])
+                    t = partial_sample[0]
+                    pt_name = f"{directory_name}/{video_path.split('/')[-1]}_{count}.pt"
+                    torch.save(t, pt_name)
+                    samples.append([pt_name, video_path, counts, row.iloc[1]])
 
                 else:
                     logging.debug(
                         f"Appending partial sample {torch.cat(partial_sample)}"
                     )
+                    t = torch.cat(partial_sample)
+                    pt_name = f"{directory_name}/{video_path.split('/')[-1]}_{count}.pt"
+                    torch.save(t, pt_name)
                     samples.append(
-                        [torch.cat(partial_sample), video_path, counts, row.iloc[1]]
+                        [pt_name, video_path, counts, row.iloc[1]]
                     )
                     sample_idx += 1
 

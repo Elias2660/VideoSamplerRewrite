@@ -4,6 +4,7 @@ import os
 import logging
 import time
 import multiprocessing
+import torch
 from time import sleep
 from torchvision import transforms
 import cv2
@@ -20,6 +21,7 @@ def write_to_dataset(
     list_of_sample_list,
     frames_per_sample: int = 1,
     out_channels: int = 1,
+    directory_name: str = "",
 ):
     try:
         tar_writer = wds.TarWriter(name, encoder=False)
@@ -29,7 +31,8 @@ def write_to_dataset(
             logging.info(f"Writing samples to dataset")
             for sample_num, sample in enumerate(samples):
                 logging.info("Writing sample to dataset")
-                frame, video_path, frame_num, sample_class = sample
+                pt_name, video_path, frame_num, sample_class = sample
+                frame = torch.load(pt_name)
                 logging.debug(f"Writing sample {sample_num} to dataset")
                 logging.debug(f"Frame shape: {frame.shape}")
                 logging.debug(f"Frame number: {frame_num}")
@@ -43,13 +46,13 @@ def write_to_dataset(
                 time_struct = time.localtime(time_sec + int(frame_num[0]) // 3)
                 curtime = time.strftime("%Y-%m-%d %H:%M:%S", time_struct)
                 metadata = f"{video_path},{frame_num[0]},{curtime}"
-                # height, width = frame.size(2), frame.size(3)
+
                 if 1 == frames_per_sample:
                     if 3 == out_channels:
                         img = transforms.ToPILImage()(frame[0] / 255.0).convert("RGB")
                     else:
                         img = transforms.ToPILImage()(frame[0] / 255.0).convert("L")
-                        # Now save the image as a png into a buffer in memory
+
                     with img: 
                         buf = io.BytesIO()
                         img.save(fp=buf, format="png")
