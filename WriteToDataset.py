@@ -17,7 +17,7 @@ def write_to_dataset(
     frames_per_sample: int = 1,
     out_channels: int = 1,
 ):
-    try: 
+    try:
         tar_writer = wds.TarWriter(name, encoder=False)
         """using the lock, write the files to the datase5t"""
         start_time = time.time()
@@ -31,7 +31,9 @@ def write_to_dataset(
                 logging.debug(f"Frame number: {frame_num}")
                 logging.debug(f"Video path: {video_path}")
                 logging.debug(f"frame type: {type(frame)}")
-                base_name = os.path.basename(video_path).replace(" ", "_").replace(".", "_")
+                base_name = (
+                    os.path.basename(video_path).replace(" ", "_").replace(".", "_")
+                )
                 video_time = os.path.basename(video_path).split(".")[0]
                 time_sec = time.mktime(time.strptime(video_time, "%Y-%m-%d %H:%M:%S"))
                 time_struct = time.localtime(time_sec + int(frame_num[0]) // 3)
@@ -58,7 +60,9 @@ def write_to_dataset(
 
                     for i in range(frames_per_sample):
                         if 3 == out_channels:
-                            img = transforms.ToPILImage()(frame[i] / 255.0).convert("RGB")
+                            img = transforms.ToPILImage()(frame[i] / 255.0).convert(
+                                "RGB"
+                            )
                         else:
                             img = transforms.ToPILImage()(frame[i] / 255.0).convert("L")
 
@@ -72,9 +76,9 @@ def write_to_dataset(
                         }
                         for i in range(frames_per_sample):
                             sample[f"{i}.png"] = buffers[i].getbuffer()
-                            
+
                 tar_writer.write(sample)
-                
+
         tar_writer.close()
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
