@@ -9,6 +9,7 @@ import torch
 import webdataset as wds
 
 import os
+from time import sleep 
 
 cv2.setNumThreads(1)
 os.environ['OMP_NUM_THREADS'] = '1'  # Adjust the number as necessary
@@ -173,6 +174,7 @@ def sample_video(
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video_path}")
+        sleep(2)
     return
 
 def getVideoInfo(video_path: str):
