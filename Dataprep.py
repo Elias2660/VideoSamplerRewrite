@@ -20,8 +20,7 @@ import os
 import resource
 
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
-# Set the current limit to the maximum limit
-resource.setrlimit(resource.RLIMIT_NOFILE, (rlimit[1], rlimit[1]))
+resource.setrlimit(resource.RLIMIT_NOFILE, (500000000000, rlimit[1]))
 
 logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
 
@@ -32,6 +31,12 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+
+# os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
+
+
+format = "%(asctime)s: %(message)s"
+logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
 
 
 def create_writers(
@@ -45,35 +50,40 @@ def create_writers(
     out_channels: int,
 ):
     sample_start = time.time()
+    """
+    get all the samples from sample video and writem them to a tar file using webdataset
+
+    - read in the dataset
+    - run the command off the dataset
+    - write the samples to a tar file
+    """
     try:
         logging.info(os.path.join(dataset_path, dataset_name.replace(".csv", ".tar")))
         with Manager() as manager:
             sample_list = manager.list()
             tar_lock = Manager().Lock()
-            tar_lock = Manager().Lock()
-            with multiprocessing.Pool(processes=max_workers) as pool:
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=max_workers
+            ) as executor_inner:
                 futures = [
-                    pool.apply_async(
+                    executor_inner.submit(
                         sample_video,
-                        (
-                            row["file"],
-                            sample_list,
-                            number_of_samples_max,
-                            dataset_name.replace(".csv", ".tar"),
-                            tar_lock,
-                            row,
-                            frames_per_sample,
-                            frames_per_sample,
-                            normalize,
-                            out_channels,
-                        ),
+                        row["file"],
+                        sample_list,
+                        number_of_samples_max,
+                        dataset_name.replace(".csv", ".tar"),
+                        tar_lock,
+                        row,
+                        frames_per_sample,
+                        frames_per_sample,
+                        normalize,
+                        out_channels,
                     )
                     for index, row in dataset.iterrows()
                 ]
-                pool.close()
-                pool.join()
+                concurrent.futures.wait(futures)
                 logging.info(
-                    f"Submitted {len(futures)} tasks to the pool for {dataset_name}"
+                    f"Submitted {len(futures)} tasks to the executor for {dataset_name}"
                 )
                 logging.info(f"Executor mapped for {dataset_name}")
 
@@ -176,10 +186,9 @@ def main():
 
 
 if __name__ == "__main__":
-    # multiprocessing.set_start_method('spawn')
-    cv2.setNumThreads(400)
+    # cv2.setNumThreads(400)
     freeze_support()
     """
-    Run three
+    Run three 
     """
     main()
