@@ -92,7 +92,7 @@ def create_writers(
                     name,
                 )
 
-                subprocess.run(f"rm -rf {name}", shell=True)
+                result = subprocess.run(f"rm -rf {name}", shell=True)
         sample_end = time.time()
         logging.info(
             f"Time taken to write the samples for {dataset_name}: {sample_end - sample_start} seconds"
