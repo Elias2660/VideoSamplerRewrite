@@ -20,7 +20,9 @@ def write_to_dataset(
         start_time = time.time()
         logging.info(f"Enumerating through the samples")
         for samples in list_of_sample_list:
+            logging.info(f"Writing samples to dataset")
             for sample_num, sample in enumerate(samples):
+                logging.info("Writing sample to dataset")
                 frame, video_path, frame_num, type = sample
                 logging.debug(f"Writing sample {sample_num} to dataset")
                 logging.debug(f"Frame shape: {frame.shape}")
@@ -72,9 +74,10 @@ def write_to_dataset(
                         }
                         for i in range(frames_per_sample):
                             sample[f"{i}.png"] = buffers[i].getbuffer()
-                logging.debug(f"Writing sample {sample_num} to dataset tar file")
+                logging.info(f"Writing sample {sample_num} to dataset tar file")
                 tar_writer.write(sample)
 
+        logging.info(f"Closing tar file {name}")
         tar_writer.close()
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
