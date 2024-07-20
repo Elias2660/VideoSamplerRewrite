@@ -16,6 +16,7 @@ import os
 
 def sample_video(
     video_path: str,
+    sample_list,
     num_samples: int,
     name,
     lock,
@@ -119,11 +120,11 @@ def sample_video(
             if frame_of_sample == frames_per_sample:
                 if frames_per_sample == 1:
                     logging.debug(f"Appending partial sample {partial_sample[0]}")
-                    samples.append([partial_sample[0], video_path, counts])
+                    samples.append([partial_sample[0], video_path, counts, row[1]])
 
                 else:
                     logging.debug(f"Appending partial sample {torch.cat(partial_sample)}")
-                    samples.append([torch.cat(partial_sample), video_path, counts])
+                    samples.append([torch.cat(partial_sample), video_path, counts, row[1]])
                     sample_idx += 1
 
                 frame_of_sample = 0
@@ -140,16 +141,11 @@ def sample_video(
         logging.info("Time taken to sample video: " + str(end_time - start_time))
 
         logging.info(
-            "Writing the samples to the dataset ; handing off the the write_to_dataset_function"
+            "Appending samples to the sample list for the dataset: " + str(name)
         )
-        write_to_dataset(
-            name,
-            row,
-            samples,
-            lock,
-            frames_per_sample,
-            out_channels,
-        )
+        with lock:
+            sample_list.append(samples)
+            
     except Exception as e:
         logging.error(f"Error sampling video {video_path}: {e}")
         raise
