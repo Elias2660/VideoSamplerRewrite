@@ -4,6 +4,7 @@ import os
 import logging
 import time
 import multiprocessing
+from time import sleep
 from torchvision import transforms
 import cv2
 import io
@@ -84,6 +85,7 @@ def write_to_dataset(
 
         logging.info(f"Closing tar file {name}")
         tar_writer.close()
+        sleep(2)
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
         raise
