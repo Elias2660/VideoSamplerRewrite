@@ -59,9 +59,8 @@ def create_writers(
                 f"Creating the executor for {dataset_name}, cpu count: {multiprocessing.cpu_count() - 2}"
             )
 
-            import ipdb; ipdb.set_trace()
             executor_inner = reusable_executor(
-                max_workers=int(multiprocessing.cpu_count() / 4), timeout=2
+                max_workers=10, timeout=5
             )
 
             futures = [
