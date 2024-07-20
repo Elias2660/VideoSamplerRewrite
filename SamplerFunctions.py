@@ -107,7 +107,7 @@ def sample_video(
 
                 # if level is on debug, name the first frame of the sample to be saved
 
-                cv2.imwrite(f"test_images/{count}.png", frame)
+                # cv2.imwrite(f"test_images/{count}.png", frame)
 
                 if out_channels == 1:
                     logging.debug(f"Converting frame {count} to greyscale")
