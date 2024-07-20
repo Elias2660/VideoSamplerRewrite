@@ -73,8 +73,7 @@ def write_to_dataset(
                         for i in range(frames_per_sample):
                             sample[f"{i}.png"] = buffers[i].getbuffer()
                             
-                with lock:
-                    tar_writer.write(sample)
+                tar_writer.write(sample)
                 
         tar_writer.close()
     except Exception as e:
