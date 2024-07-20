@@ -14,12 +14,14 @@ import concurrent  # for multitprocessing and other stuff
 import re
 import cv2
 import os
+
 max_open_files = 100
 
 file_semaphore = Semaphore(max_open_files)
 
 format = "%(asctime)s: %(message)s"
 logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+
 
 def create_writers(
     dataset_path: str,
@@ -48,7 +50,9 @@ def create_writers(
                 sample_list = manager.list()
                 tar_lock = manager.Lock()
                 with concurrent.futures.ProcessPoolExecutor(
-                    max_workers=min(max_workers, multiprocessing.cpu_count()), initializer=cv2.setNumThreads, initargs=(1,)
+                    max_workers=min(max_workers, multiprocessing.cpu_count()),
+                    initializer=cv2.setNumThreads,
+                    initargs=(1,),
                 ) as executor_inner:
                     futures = [
                         executor_inner.submit(
@@ -63,7 +67,7 @@ def create_writers(
                             frames_per_sample,
                             normalize,
                             out_channels,
-                            name
+                            name,
                         )
                         for index, row in dataset.iterrows()
                     ]
@@ -85,9 +89,9 @@ def create_writers(
                     sample_list,
                     frames_per_sample,
                     out_channels,
-                    name
+                    name,
                 )
-                
+
                 subprocess.run(f"rm -rf {name}", shell=True)
         sample_end = time.time()
         logging.info(
@@ -150,39 +154,28 @@ def main():
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
-        for file in file_list:
-            create_writers(
-                dataset_path,
-                file,
-                pd.read_csv(file),
-                number_of_samples,
-                args.max_workers,
-                args.frames_per_sample,
-                args.normalize,
-                args.out_channels,
-            )
-        # pool = Pool(args.max_workers)
-        # with Manager() as manager:
-        #     with concurrent.futures.ProcessPoolExecutor(
-        #         max_workers=args.max_workers
-        #     ) as executor:
-        #         logging.debug(f"Executor established")
-        #         futures = [
-        #             executor.submit(
-        #                 create_writers,
-        #                 dataset_path,
-        #                 file,
-        #                 pd.read_csv(file),
-        #                 number_of_samples,
-        #                 args.max_workers,
-        #                 args.frames_per_sample,
-        #                 args.normalize,
-        #                 args.out_channels,
-        #             )
-        #             for file in file_list
-        #         ]
-        #         concurrent.futures.wait(futures)
-        #         logging.debug(f"Executor mapped")
+
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=args.max_workers
+        ) as executor:
+            logging.debug(f"Executor established")
+            futures = [
+                executor.submit(
+                    create_writers,
+                    dataset_path,
+                    file,
+                    pd.read_csv(file),
+                    number_of_samples,
+                    args.max_workers,
+                    args.frames_per_sample,
+                    args.normalize,
+                    args.out_channels,
+                )
+                for file in file_list
+            ]
+            concurrent.futures.wait(futures)
+            logging.debug(f"Executor mapped")
+
         end = time.time()
         logging.info(f"Time taken to run the the script: {end - start} seconds")
 
