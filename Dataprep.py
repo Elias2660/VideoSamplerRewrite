@@ -15,7 +15,10 @@ import cv2
 import os
 
 
-import os
+
+format = "%(asctime)s: %(message)s"
+logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+
 
 import resource
 
@@ -28,9 +31,6 @@ logging.info(f"RLIMIT_NOFILE: {resource.getrlimit(resource.RLIMIT_NOFILE)}")
 multiprocessing.set_start_method("spawn", force=True)
 os.environ["OMP_NUM_THREADS"] = "1"
 
-
-format = "%(asctime)s: %(message)s"
-logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 
 def create_writers(
