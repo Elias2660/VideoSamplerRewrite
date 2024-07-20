@@ -83,14 +83,12 @@ def write_to_dataset(
                 logging.info(f"Writing sample {sample_num} to dataset tar file")
                 tar_writer.write(sample)
 
-        logging.info(f"Closing tar file {name}")
-        tar_writer.close()
-        sleep(2)
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
         raise
     
     finally:
+        logging.info(f"Closing tar file {name}")
         sleep(2)
         tar_writer.close()
         

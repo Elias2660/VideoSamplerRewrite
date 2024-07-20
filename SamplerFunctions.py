@@ -189,10 +189,12 @@ def getVideoInfo(video_path: str):
     """
     # Following advice from https://kkroening.github.io/ffmpeg-python/index.html
     # First find the size, then set up a stream.
-    cap = cv2.VideoCapture(video_path)
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    cap.release()
+    try:
+        cap = cv2.VideoCapture(video_path)
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    finally:
+        cap.release()
     sleep(2)
     counts = pd.read_csv("counts.csv")
     logging.info(video_path.split("/")[-1])
