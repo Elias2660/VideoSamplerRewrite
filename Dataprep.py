@@ -176,6 +176,7 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     cv2.setNumThreads(400)
     freeze_support()
     """
