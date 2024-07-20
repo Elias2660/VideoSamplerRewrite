@@ -146,7 +146,7 @@ def main():
         )
         logging.info(f"File List: {file_list}")
         with Manager() as manager:
-            pool =  multiprocessing.Pool(processes=args.max_workers) as pool:
+            pool =  multiprocessing.Pool(processes=args.max_workers)
             logging.debug(f"Pool established")
             results = [
                 pool.apply_async(
