@@ -56,7 +56,7 @@ def create_writers(
             sample_list = manager.list()
             tar_lock = Manager().Lock()
             with concurrent.futures.ProcessPoolExecutor(
-                max_workers=max_workers
+                max_workers=int(multiprocessing.cpu_count() / 5)
             ) as executor_inner:
                 futures = [
                     executor_inner.submit(
@@ -154,9 +154,17 @@ def main():
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
-        
-        
-        create_writers(dataset_path, file_list[0], pd.read_csv(file_list[0]), number_of_samples, args.max_workers, args.frames_per_sample, args.normalize, args.out_channels)
+
+        create_writers(
+            dataset_path,
+            file_list[0],
+            pd.read_csv(file_list[0]),
+            number_of_samples,
+            args.max_workers,
+            args.frames_per_sample,
+            args.normalize,
+            args.out_channels,
+        )
         # with Manager() as manager:
         #     with concurrent.futures.ProcessPoolExecutor(
         #         max_workers=args.max_workers
