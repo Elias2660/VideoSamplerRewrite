@@ -187,8 +187,8 @@ def main():
 
 
 if __name__ == "__main__":
-    cv2.setNumThreads(10)
     freeze_support()
+    cv2.setNumThreads(5)
     """
     Run three 
     """

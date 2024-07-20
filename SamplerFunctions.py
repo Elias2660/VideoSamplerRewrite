@@ -11,7 +11,8 @@ from WriteToDataset import write_to_dataset
 
 import os
 
-# os.environ['OMP_NUM_THREADS'] = '4'  # Adjust the number as necessary
+cv2.setNumThreads(5)
+os.environ['OMP_NUM_THREADS'] = '1'  # Adjust the number as necessary
 
 # cv2.setNumThreads(400)
 
