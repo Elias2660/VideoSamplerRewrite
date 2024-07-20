@@ -82,6 +82,10 @@ def write_to_dataset(
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
         raise
+    
+    finally:
+        tar_writer.close()
+        
     end_time = time.time()
     logging.info("Time taken to write to dataset: " + str(end_time - start_time))
     return 
