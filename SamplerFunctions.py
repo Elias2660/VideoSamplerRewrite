@@ -150,6 +150,7 @@ def sample_video(
                 
         logging.info(f"Releasing capture for {video_path}")
         cap.release()
+        sleep(2)
         logging.info(
             f"Capture to {video_path} has been released, returning {len(samples)} samples"
         )
@@ -172,9 +173,9 @@ def sample_video(
     finally:
         logging.info(f"Releasing video capture for {video_path}")
         cap.release()
+        sleep(2)
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video_path}")
-        sleep(2)
     return
 
 def getVideoInfo(video_path: str):
@@ -194,6 +195,7 @@ def getVideoInfo(video_path: str):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     cap.release()
+    sleep(2)
     counts = pd.read_csv("counts.csv")
     logging.info(video_path.split("/")[-1])
     logging.info(counts[counts["filename"] == video_path.split("/")[-1]])
