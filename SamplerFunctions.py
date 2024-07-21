@@ -35,11 +35,11 @@ def sample_video(
         available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
         num_samples = min(available_samples, num_samples)
 
-        logging.info(f"Sampling frames from video {video_path}")
         logging.info(
             f"Total frames: {total_frames}; frame_width: {width}; frame_height: {height}"
         )
         logging.info(f"Sampling {num_samples} samples from {video_path}")
+        logging.info(f"Begin frame: {begin_frame}; End frame: {end_frame}")
         target_samples = [
             (begin_frame) + x * sample_span
             for x in sorted(

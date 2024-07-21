@@ -29,7 +29,8 @@ def write_to_dataset(
         for samples in list_of_sample_list:
             logging.info(f"Writing samples to dataset")
             for sample_num, sample in enumerate(samples):
-                logging.info("Writing sample to dataset")
+                if sample_num % 100 == 0:
+                    logging.info(f"Writing sample {sample_num} to dataset")
                 pt_name, video_path, frame_num, sample_class = sample
                 frame = torch.load(pt_name)
                 logging.debug(f"Writing sample {sample_num} to dataset")
@@ -83,6 +84,7 @@ def write_to_dataset(
                         }
                         for i in range(frames_per_sample):
                             sample[f"{i}.png"] = buffers[i].getbuffer()
+                
                 logging.info(f"Writing sample {sample_num} to dataset tar file")
                 tar_writer.write(sample)
 
