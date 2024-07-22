@@ -49,6 +49,7 @@ def sample_video(
             ]
             
             logging.debug(f"Target samples for {video}: {target_samples}")
+            print(index)
             print(dataframe.at[index, "target_samples"])
             dataframe.at[index, "target_samples"] = target_samples
             
