@@ -43,11 +43,11 @@ def sample_video(
             ]
             dataframe.at[index, "target_samples"] = target_samples
         
-        dataframe["samples"] = []
-        dataframe["counts"] = []
-        dataframe["partial_sample"] = []
-        dataframe["samples_recorded"] = False 
-        dataframe["frame_of_sample"] = 0
+            dataframe[index, "samples"] = []
+            dataframe[index, "counts"] = []
+            dataframe[index, "partial_sample"] = []
+            dataframe[index, "samples_recorded"] = False 
+            dataframe[index, "frame_of_sample"] = 0
             
         logging.info(f"Capture to {video} about to be established")
         cap = cv2.VideoCapture(video)
