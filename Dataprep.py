@@ -102,7 +102,7 @@ def main():
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
             futures = [
-                [
+                
                     executor.submit(
                         sample_video
                         dataset.iloc[0, 0],
@@ -112,7 +112,7 @@ def main():
                         args.normalize,
                         args.out_channels,
                     )
-                ]
+                
                 for dataset in data_frame_list
             ]
             concurrent.futures.wait(futures)
