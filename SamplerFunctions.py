@@ -134,7 +134,7 @@ def sample_video(
                     #     f"Appending partial sample {torch.cat(dataframe.loc["partial_sample"][0])}"
                     # )
                     t = torch.cat(dataframe.at[index, "partial_sample"])
-                    pt_name = f"{directory_name}/{row.loc["data_file"]}_{s_c}_{count}_{d_name}.pt"
+                    pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{count}_{d_name}.pt"
                     torch.save(t, pt_name)
 
                 dataframe.at[index, "frame_of_sample"] = 0
