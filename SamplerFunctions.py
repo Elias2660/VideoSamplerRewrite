@@ -5,10 +5,6 @@ import numpy as np
 import time
 import random
 import torch
-import webdataset as wds
-import os
-import re
-
 
 def sample_video(
     video: str,
