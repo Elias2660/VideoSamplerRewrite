@@ -126,7 +126,7 @@ def sample_video(
                     logging.debug(f"Tensor has shape {in_frame.shape}")
 
                     dataframe.at[index, "partial_sample"].append(in_frame)
-                    dataframe.at[index, "counts"].append(in_frame)
+                    dataframe.at[index, "counts"].append(str(count))
 
                     # read one sample as an image
 
@@ -142,7 +142,7 @@ def sample_video(
 
                             # join the counts list with "_"
                             # then encode in frame
-                            pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{d_name}_{count}.pt"
+                            pt_name = f"{directory_name}/{row.loc['data_file']}_{d_name}_{s_c}.pt"
                             torch.save(t, pt_name)
                             # dataframe.at[index, samples].append([pt_name, video, counts, row.iloc[1]])
 
@@ -155,7 +155,7 @@ def sample_video(
                             #     f"Appending partial sample {torch.cat(dataframe.loc["partial_sample"][0])}"
                             # )
                             t = torch.cat(dataframe.at[index, "partial_sample"])
-                            pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{count}_{d_name}.pt"
+                            pt_name = f"{directory_name}/{row.loc['data_file']}_{d_name}_{s_c}.pt"
                             torch.save(t, pt_name)
 
                         dataframe.at[index, "frame_of_sample"] = 0

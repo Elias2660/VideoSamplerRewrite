@@ -32,13 +32,12 @@ def write_to_dataset(
         )
 
         for file in file_list:
-            split = file.split(".")[0].split("/")[-1].split("_")
-            filename, s_c, d_name, frame_num = split
+            s = file.split(".")[0].split("/")[-1].split("_")
+            filename, d_name, frame_num = s
             video_path = filename
-            sample_num = s_c.split("-")
             sample_class = d_name
             frame = torch.load(filename)
-            logging.debug(f"Writing sample {sample_num} to dataset")
+            logging.debug(f"Writing sample to dataset")
             logging.debug(f"Frame shape: {frame.shape}")
             logging.debug(f"Frame number: {frame_num}")
             logging.debug(f"Video path: {video_path}")
@@ -87,7 +86,7 @@ def write_to_dataset(
                     for i in range(frames_per_sample):
                         sample[f"{i}.png"] = buffers[i].getbuffer()
 
-            logging.info(f"Writing sample {sample_num} to dataset tar file")
+            logging.info(f"Writing sample to dataset tar file")
             tar_writer.write(sample)
 
     except Exception as e:
