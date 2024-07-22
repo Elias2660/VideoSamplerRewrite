@@ -129,11 +129,11 @@ def save_sample(row, video, frames_per_sample, dataframe, index):
     d_name = row.iloc[1]
     if frames_per_sample == 1:
         t = dataframe.loc[index, "partial_sample"][0]
-        pt_name = f"{directory_name}/{video.replace(" ", "SPACE")}_{d_name}_{s_c}.pt".replace("\x00", "")
+        pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{s_c}.pt".replace("\x00", "")
         torch.save(t, pt_name)
     else:
         t = torch.cat(dataframe.at[index, "partial_sample"])
-        pt_name = f"{directory_name}/{video.replace(" ", "SPACE")}_{d_name}_{s_c}.pt".replace("\x00", "")
+        pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{s_c}.pt".replace("\x00", "")
         torch.save(t, pt_name)
 
 
