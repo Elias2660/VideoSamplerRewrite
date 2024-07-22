@@ -1,4 +1,14 @@
+"""
+TODO: create dirs function -> standardize!
+TODO: adapt writers function
+TODO: adapt the sampler function
+
+? MAYBE: Add multiprocessing???
+"""
+
+
 import numpy as np
+
 import time
 
 import pandas as pd
@@ -50,7 +60,7 @@ def create_writers(
                 sample_list = manager.list()
                 tar_lock = manager.Lock()
                 with concurrent.futures.ProcessPoolExecutor(
-                    max_workers=min(max_workers, multiprocessing.cpu_count())//5,
+                    max_workers=min(max_workers, multiprocessing.cpu_count()) // 5,
                     initializer=cv2.setNumThreads,
                     initargs=(1,),
                 ) as executor_inner:
@@ -154,27 +164,24 @@ def main():
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
         logging.info(f"File List: {file_list}")
+        counts = pd.read_csv("counts.csv")
 
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=args.max_workers
-        ) as executor:
-            logging.debug(f"Executor established")
-            futures = [
-                executor.submit(
-                    create_writers,
-                    dataset_path,
-                    file,
-                    pd.read_csv(file),
-                    number_of_samples,
-                    args.max_workers,
-                    args.frames_per_sample,
-                    args.normalize,
-                    args.out_channels,
-                )
-                for file in file_list
-            ]
-            concurrent.futures.wait(futures)
-            logging.debug(f"Executor mapped")
+        total_dataframe = pd.DataFrame()
+        for file in file_list:
+            df = pd.read_csv(file)
+            df["file"] = file
+            total_dataframe = pd.concat([total_dataframe, df])
+
+        # group by file to get for each file a list of rows
+        # then for each file, create a writer
+        total_dataframe.groupby("file").apply(lambda x: sample_video(
+            x["file"].iloc[0],
+            x,
+            number_of_samples,
+            args.frames_per_sample,
+            args.normalize,
+            args.out_channels,
+        ))
 
         end = time.time()
         logging.info(f"Time taken to run the the script: {end - start} seconds")
@@ -186,7 +193,7 @@ def main():
 
 if __name__ == "__main__":
     freeze_support()
-    cv2.setNumThreads(5) 
+    cv2.setNumThreads(5)
     """
     Run three 
     """
