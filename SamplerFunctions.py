@@ -125,7 +125,7 @@ def sample_video(
                     dataframe.at[index, "partial_sample"].append(in_frame)
                     dataframe.at[index, "counts"].append(in_frame)
 
-                # read one sample as an image
+                    # read one sample as an image
 
             if row["frame_of_sample"] == frames_per_sample:
                 directory_name = (
