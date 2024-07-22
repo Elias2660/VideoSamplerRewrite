@@ -103,7 +103,7 @@ def sample_video(
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
                     
-                    logging.debug(f"Frame shape: {frame.shape}")
+                    logging.debug(f"Frame shape: {frame.shape}, adding to partial sample")
                     contrast = 1.9  # Simple contrast control [1.0-3.0]
                     brightness = 10  # Simple brightness control [0-100]
                     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
