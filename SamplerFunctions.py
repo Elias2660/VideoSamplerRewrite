@@ -79,7 +79,7 @@ def sample_video(
             if count % 10000 == 0:
                 logging.info(f"Frame {count} read from video {video}")
             for index, row in dataframe.iterrows():
-                if t_s[0] > count or t_s[-1] < count:
+                if t_s[index][0] > count or t_s[index][-1] < count:
                     pass
 
                 logging.debug(f"length of target sample sample list: {len(t_s)}")
