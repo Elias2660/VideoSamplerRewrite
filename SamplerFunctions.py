@@ -28,8 +28,7 @@ def sample_video(
         """
         dataframe = dataframe.copy(deep=True)
         target_samples = []
-        dataframe["target_samples"] = ""
-        dataframe["target_samples"] = dataframe["target_samples"].apply(list)
+
         
         logging.info(f"Dataframe for {video} about to be prepared (0)")
 
