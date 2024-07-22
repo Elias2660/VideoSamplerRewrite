@@ -146,6 +146,8 @@ def main():
     
     
     finally:
+        # remove all the dirs
+        
         
 
 
