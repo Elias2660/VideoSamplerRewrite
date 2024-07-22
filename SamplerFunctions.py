@@ -27,6 +27,7 @@ def sample_video(
         -return samples given the interval given
         """
         dataframe = dataframe.copy(deep=True)
+        target_samples = []
         dataframe["target_samples"] = ""
         dataframe["target_samples"] = dataframe["target_samples"].apply(list)
         
