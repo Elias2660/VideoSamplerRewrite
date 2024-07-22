@@ -30,7 +30,6 @@ def sample_video(
         dataframe.reset_index(drop=True, inplace=True)
         t_s = []
 
-        
         logging.info(f"Dataframe for {video} about to be prepared (0)")
 
         for index, row in dataframe.iterrows():
@@ -61,9 +60,9 @@ def sample_video(
         dataframe["partial_sample"] = dataframe["partial_sample"].apply(list)
         dataframe["samples_recorded"] = False
         dataframe["frame_of_sample"] = 0
-        
+
         logging.debug(dataframe.head())
-        
+
         logging.info(f"Capture to {video} about to be established")
         cap = cv2.VideoCapture(video)
         if not cap.isOpened():
@@ -79,11 +78,10 @@ def sample_video(
             logging.debug(f"Frame {count} read from video {video}")
             if count % 10000 == 0:
                 logging.info(f"Frame {count} read from video {video}")
-
             for index, row in dataframe.iterrows():
-                if (t_s[0] > count) or (count > t_s[-1]):
+                if t_s[0] > count or t_s[-1] < count:
                     pass
-                
+
                 logging.debug(f"length of target sample sample list: {len(t_s)}")
                 logging.debug(f"index: {index}")
                 if count in t_s[index]:
@@ -102,11 +100,15 @@ def sample_video(
                         )
 
                     if out_channels == 1:
-                        logging.debug(f"Converting frame {count} to greyscale since out_channels is 1")
+                        logging.debug(
+                            f"Converting frame {count} to greyscale since out_channels is 1"
+                        )
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-                    
-                    logging.debug(f"Frame shape: {frame.shape}, adding contrast to partial sample")
+
+                    logging.debug(
+                        f"Frame shape: {frame.shape}, adding contrast to partial sample"
+                    )
                     contrast = 1.9  # Simple contrast control [1.0-3.0]
                     brightness = 10  # Simple brightness control [0-100]
                     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
@@ -114,7 +116,7 @@ def sample_video(
                     if out_channels == 1:
                         logging.debug(f"Converting frame {count} to greyscale")
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    
+
                     logging.debug(f"Frame shape: {frame.shape}, converting to a tensor")
                     np_frame = np.array(frame)
                     in_frame = torch.tensor(
@@ -135,7 +137,8 @@ def sample_video(
 
                     if row["frame_of_sample"] == frames_per_sample:
                         directory_name = (
-                            row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
+                            row.loc["data_file"].replace(".csv", "")
+                            + "_samplestemporary"
                         )
                         s_c = "-".join([str(x) for x in row["counts"]])
                         d_name = row.iloc[1]
