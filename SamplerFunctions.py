@@ -102,7 +102,8 @@ def sample_video(
                         logging.debug(f"Converting frame {count} to greyscale since out_channels is 1")
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-
+                    
+                    logging.debug()
                     contrast = 1.9  # Simple contrast control [1.0-3.0]
                     brightness = 10  # Simple brightness control [0-100]
                     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
