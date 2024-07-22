@@ -176,7 +176,7 @@ def main():
         data_frame_list = []
 
         total_dataframe.groupby("file").apply(lambda x: data_frame_list.append(x))
-
+        print(len(data_frame_list))
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
