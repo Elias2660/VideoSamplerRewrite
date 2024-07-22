@@ -122,9 +122,13 @@ def sample_video(
                     # dataframe.at[index, samples].append([pt_name, video, counts, row.iloc[1]])
 
                 else:
-                    logging.debug(
-                        f"Appending partial sample {torch.cat(dataframe.loc["partial_sample"][0])}"
-                    )
+             # The line `logging.debug(f"Appending partial sample
+             # {torch.cat(dataframe.loc["partial_sample"][0])}")` is logging a debug message. It is
+             # displaying information about the process of appending a partial sample to the
+             # dataframe.
+                    # logging.debug(
+                    #     f"Appending partial sample {torch.cat(dataframe.loc["partial_sample"][0])}"
+                    # )
                     t = torch.cat(dataframe.at[index, "partial_sample"])
                     pt_name = f"{directory_name}/{row.loc[0]}_{s_c}_{count}_{d_name}.pt"
                     torch.save(t, pt_name)
