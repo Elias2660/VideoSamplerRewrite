@@ -7,6 +7,8 @@ import random
 import torch
 import webdataset as wds
 import os
+import re
+
 
 
 def sample_video(
@@ -115,7 +117,7 @@ def sample_video(
                     
                     # join the counts list with "_" 
                     # then encode in frame
-                    pt_name = f"{directory_name}/{row["filename"]}_{s_c}_{count}_{d_name}.pt"
+                    pt_name = f"{directory_name}/{row["filename"]}_{s_c}_{d_name}_{count}.pt"
                     torch.save(t, pt_name)
                     # dataframe.at[index, samples].append([pt_name, video, counts, row.iloc[1]])
 
