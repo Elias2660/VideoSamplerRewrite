@@ -51,7 +51,7 @@ def sample_video(
             logging.debug(f"Target samples for {video}: {target_samples}")
             t_s.append(target_samples)
 
-        logging.info(f"Dataframe for {video} about to be prepared(1)")
+        logging.debug(f"Dataframe for {video} about to be prepared(1)")
 
         dataframe["samples"] = ""
         dataframe["samples"] = dataframe["samples"].apply(list)
@@ -81,7 +81,7 @@ def sample_video(
                 logging.info(f"Frame {count} read from video {video}")
 
             for index, row in dataframe.iterrows():
-                logging.info(f"length of target sample sample list: {len(t_s)}")
+                logging.debug(f"length of target sample sample list: {len(t_s)}")
                 logging.debug(f"index: {index}")
                 if count in t_s[index]:
                     logging.debug(
