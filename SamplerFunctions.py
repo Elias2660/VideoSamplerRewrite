@@ -106,24 +106,24 @@ def sample_video(
                     brightness = 10  # Simple brightness control [0-100]
                     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
 
-                if out_channels == 1:
-                    logging.debug(f"Converting frame {count} to greyscale")
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    if out_channels == 1:
+                        logging.debug(f"Converting frame {count} to greyscale")
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-                np_frame = np.array(frame)
-                in_frame = torch.tensor(
-                    data=np_frame,
-                    dtype=torch.uint8,
-                ).reshape([1, height, width, out_channels])
+                    np_frame = np.array(frame)
+                    in_frame = torch.tensor(
+                        data=np_frame,
+                        dtype=torch.uint8,
+                    ).reshape([1, height, width, out_channels])
 
-                in_frame = in_frame[:, :height, :width, :]
+                    in_frame = in_frame[:, :height, :width, :]
 
-                in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
-                logging.debug(f"in_frame shape: {in_frame.shape}")
-                logging.debug(f"Tensor has shape {in_frame.shape}")
+                    in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
+                    logging.debug(f"in_frame shape: {in_frame.shape}")
+                    logging.debug(f"Tensor has shape {in_frame.shape}")
 
-                dataframe.at[index, "partial_sample"].append(in_frame)
-                dataframe.at[index, "counts"].append(in_frame)
+                    dataframe.at[index, "partial_sample"].append(in_frame)
+                    dataframe.at[index, "counts"].append(in_frame)
 
                 # read one sample as an image
 
