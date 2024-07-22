@@ -112,7 +112,7 @@ def sample_video(
                         logging.debug(f"Converting frame {count} to greyscale")
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                     
-                    logging.debug(f"Frame shape: {frame.shape}, adding contrast to partial sample")
+                    logging.debug(f"Frame shape: {frame.shape}, converting to a tensor")
                     np_frame = np.array(frame)
                     in_frame = torch.tensor(
                         data=np_frame,
