@@ -62,7 +62,7 @@ def sample_video(
         dataframe["samples_recorded"] = False
         dataframe["frame_of_sample"] = 0
         
-        logging.info(dataframe.head())
+        logging.debug(dataframe.head())
         
         logging.info(f"Capture to {video} about to be established")
         cap = cv2.VideoCapture(video)
