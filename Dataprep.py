@@ -94,7 +94,7 @@ def main():
         logging.info(len(data_frame_list))
         # The `data_frame_list` in the provided code is being used to store groups of rows from the
         # `total_dataframe` DataFrame.
-        logging.debug(data_frame_list)
+        # logging.debug(data_frame_list)
         for dataframe in data_frame_list:
             logging.info(dataframe.head())
         with concurrent.futures.ProcessPoolExecutor(
