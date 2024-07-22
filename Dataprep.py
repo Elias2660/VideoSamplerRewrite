@@ -87,7 +87,9 @@ def main():
             df = pd.read_csv(file)
             df["data_file"] = file
             total_dataframe = pd.concat([total_dataframe, df])
-            subprocess.run(f"mkdir {file.replace('.csv', '')}_samplestemporary", shell=True)
+            subprocess.run(
+                f"mkdir {file.replace('.csv', '')}_samplestemporary", shell=True
+            )
 
         # group by file to get for each file a list of rows
         # then for each file, create a writer
@@ -140,13 +142,13 @@ def main():
     except Exception as e:
         logging.error(f"An error occured in main function: {e}")
         raise e
-    
-    
+
     finally:
         # remove all the dirs
         for file in file_list:
-            subprocess.run(f"rm -rf {file.replace('.csv', '')}_samplestemporary", shell=True)
-        
+            subprocess.run(
+                f"rm -rf {file.replace('.csv', '')}_samplestemporary", shell=True
+            )
 
 
 if __name__ == "__main__":
