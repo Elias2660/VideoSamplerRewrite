@@ -51,7 +51,7 @@ def sample_video(
             logging.debug(f"Target samples for {video}: {target_samples}")
             logging.debug(index)
             logging.debug(dataframe.loc[index, "target_samples"])
-            dataframe.loc[[index], "target_samples"] = pd.Series([target_samples])
+            dataframe.loc[[index], "target_samples"] = [target_samples]
 
         logging.info(f"Dataframe for {video} about to be prepared(1)")
 
