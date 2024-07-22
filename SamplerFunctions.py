@@ -112,7 +112,7 @@ def sample_video(
                 # read one sample as an image
 
             if row["frame_of_sample"] == frames_per_sample:
-                directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
+                directory_name = row.loc['data_file'].replace('.csv', '') + "_samplestemporary"
                 s_c = "-".join([str(x) for x in row["counts"]])
                 d_name = row.iloc[1]
                 if row["frames_per_sample"] == 1:
@@ -121,7 +121,7 @@ def sample_video(
                     
                     # join the counts list with "_" 
                     # then encode in frame
-                    pt_name = f"{directory_name}/{row.loc["data_file"]}_{s_c}_{d_name}_{count}.pt"
+                    pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{d_name}_{count}.pt"
                     torch.save(t, pt_name)
                     # dataframe.at[index, samples].append([pt_name, video, counts, row.iloc[1]])
 
