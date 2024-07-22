@@ -77,9 +77,7 @@ def sample_video(
                     f"length of target sample sample list: {len(t_s)} \n index: {index}"
                 )
                 if count in t_s[index]:
-                    logging.debug(
-                        f"Frame {count} just triggered the samples_recorded variable"
-                    )
+                    logging.debug(f"Frame {count} triggered samples_recorded")
                     dataframe.at[index, "samples_recorded"] = True
                     dataframe.at[index, "frame_of_sample"] = 0
                     dataframe.at[index, "partial_sample"] = []
@@ -101,7 +99,7 @@ def sample_video(
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
                         logging.debug(f"Saving sample at frame {count} for {video}")
-                        save_sample(row, frames_per_sample, dataframe, index)
+                        save_sample(row, video, frames_per_sample, dataframe, index)
 
                         logging.info(f"Saved sample at frame {count} for {video}")
                         dataframe.at[index, "frame_of_sample"] = 0
@@ -125,7 +123,7 @@ def sample_video(
     return
 
 
-def save_sample(row, frames_per_sample, dataframe, index):
+def save_sample(row, video, frames_per_sample, dataframe, index):
     directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
     s_c = "-".join([str(x) for x in row["counts"]])
     d_name = row.iloc[1]
@@ -135,7 +133,7 @@ def save_sample(row, frames_per_sample, dataframe, index):
         torch.save(t, pt_name)
     else:
         t = torch.cat(dataframe.at[index, "partial_sample"])
-        pt_name = f"{directory_name}/{row.loc['data_file'].replace('/', '')}_{d_name}_{s_c}.pt"
+        pt_name = f"{directory_name}/{video}_{d_name}_{s_c}.pt"
         torch.save(t, pt_name)
 
 
