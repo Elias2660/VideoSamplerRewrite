@@ -30,7 +30,7 @@ def sample_video(
         dataframe.reset_index(drop=True, inplace=True)
         t_s = []
 
-        logging.info(f"Dataframe for {video} about to be prepared (0)")
+        logging.debug(f"Dataframe for {video} about to be prepared (0)")
 
         for index, row in dataframe.iterrows():
             begin_frame = row.iloc[2]
