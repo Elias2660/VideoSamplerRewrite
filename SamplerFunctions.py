@@ -119,7 +119,7 @@ def sample_video(
                         dtype=torch.uint8,
                     ).reshape([1, height, width, out_channels])
 
-                    in_frame = in_frame[:, :height, :width, :]
+                    # in_frame = in_frame[:, :height, :width, :]
 
                     in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
                     logging.debug(f"in_frame shape: {in_frame.shape}")
