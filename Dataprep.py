@@ -142,6 +142,9 @@ def main():
     except Exception as e:
         logging.error(f"An error occured in main function: {e}")
         raise e
+    
+    
+    finally:
 
 
 if __name__ == "__main__":
