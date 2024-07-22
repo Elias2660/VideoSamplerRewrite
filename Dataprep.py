@@ -29,7 +29,7 @@ max_open_files = 100
 file_semaphore = Semaphore(max_open_files)
 
 format = "%(asctime)s: %(message)s"
-logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
 
 
 def create_writers(
@@ -177,6 +177,7 @@ def main():
 
         total_dataframe.groupby("file").apply(lambda x: data_frame_list.append(x))
         logging.info(len(data_frame_list))
+        logging.debug(data_frame_list)
         for dataframe in data_frame_list:
             logging.info(dataframe.head())
         with concurrent.futures.ProcessPoolExecutor(
