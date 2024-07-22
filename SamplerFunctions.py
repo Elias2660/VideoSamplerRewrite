@@ -39,12 +39,17 @@ def sample_video(
             width, height = getVideoInfo(video)
             available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
             num_samples = min(available_samples, number_of_samples_max)
+            
+            
             target_samples = [
                 (begin_frame) + x * sample_span
                 for x in sorted(
                     random.sample(population=range(available_samples), k=num_samples)
                 )
             ]
+            
+            logging.debug(f"Target samples for {video}: {target_samples}")
+            
             dataframe.at[index, "target_samples"] = target_samples
             
             
