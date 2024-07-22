@@ -30,6 +30,9 @@ def sample_video(
         dataframe = dataframe.copy(deep=True)
         dataframe["target_samples"] = ''
         dataframe["target_samples"] = dataframe["target_samples"].apply(list)
+        
+        logging.info(f"Dataframe for {video} about to be prepared (0)")
+        
         for index, row in dataframe.iterrows():
             begin_frame = row.iloc[2]
             end_frame = row.iloc[3]
@@ -45,7 +48,7 @@ def sample_video(
             dataframe.at[index, "target_samples"] = target_samples
             
             
-        logging.info(f"Dataframe for {video} about to be prepared")
+        logging.info(f"Dataframe for {video} about to be prepared(1)")
             
         dataframe['samples'] = ''
         dataframe['samples'] = dataframe['samples'].apply(list)
