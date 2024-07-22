@@ -28,7 +28,8 @@ def sample_video(
         -return samples given the interval given
         """
         dataframe = dataframe.copy(deep=True)
-        dataframe["target_samples"] = None
+        dataframe["target_samples"] = ''
+        dataframe["target_samples"] = dataframe["target_samples"].apply(list)
         for index, row in dataframe.iterrows():
             begin_frame = row.iloc[2]
             end_frame = row.iloc[3]
