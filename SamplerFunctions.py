@@ -48,7 +48,7 @@ def sample_video(
                 )
             ]
             
-            
+            target_samples.append()
 
         logging.info(f"Dataframe for {video} about to be prepared(1)")
 
