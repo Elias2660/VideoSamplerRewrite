@@ -103,7 +103,7 @@ def main():
             dataset.reset_index(drop=True, inplace=True)
         for i in range(3):
             logging.info(data_frame_list[i].head())
-        with concurrent.futures.ProcessPoolExecutor(
+        with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
             futures = [
