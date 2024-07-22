@@ -32,7 +32,9 @@ def write_to_dataset(
         )
 
         for file in file_list:
-            s = file.split(".")[0].split("/")[-1].split("_")
+            s = file.replace(".pt", "").split("/")[-1].split("_")
+            if len(s) != 3:
+                logging.error(f"Unexpected format in file name: {file}, split result: {s}")
             filename, d_name, frame_num = s
             video_path = filename
             sample_class = d_name
