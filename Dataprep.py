@@ -105,13 +105,12 @@ def main():
                 [
                     executor.submit(
                         sample_video
-                            dataset.iloc[0, 0],
-                            dataset,
-                            number_of_samples,
-                            args.frames_per_sample,
-                            args.normalize,
-                            args.out_channels,
-                        )
+                        dataset.iloc[0, 0],
+                        dataset,
+                        number_of_samples,
+                        args.frames_per_sample,
+                        args.normalize,
+                        args.out_channels,
                     )
                 ]
                 for dataset in data_frame_list
