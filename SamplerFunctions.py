@@ -127,33 +127,33 @@ def sample_video(
 
                     # read one sample as an image
 
-            if row["frame_of_sample"] == frames_per_sample:
-                directory_name = (
-                    row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
-                )
-                s_c = "-".join([str(x) for x in row["counts"]])
-                d_name = row.iloc[1]
-                if row["frames_per_sample"] == 1:
-                    # logging.debug(f"Saving partial sample {dataframe.loc[index, "partial_sample"][0]}")
-                    t = dataframe.loc[index, "partial_sample"][0]
+                    if row["frame_of_sample"] == frames_per_sample:
+                        directory_name = (
+                            row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
+                        )
+                        s_c = "-".join([str(x) for x in row["counts"]])
+                        d_name = row.iloc[1]
+                        if row["frames_per_sample"] == 1:
+                            # logging.debug(f"Saving partial sample {dataframe.loc[index, "partial_sample"][0]}")
+                            t = dataframe.loc[index, "partial_sample"][0]
 
-                    # join the counts list with "_"
-                    # then encode in frame
-                    pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{d_name}_{count}.pt"
-                    torch.save(t, pt_name)
-                    # dataframe.at[index, samples].append([pt_name, video, counts, row.iloc[1]])
+                            # join the counts list with "_"
+                            # then encode in frame
+                            pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{d_name}_{count}.pt"
+                            torch.save(t, pt_name)
+                            # dataframe.at[index, samples].append([pt_name, video, counts, row.iloc[1]])
 
-                else:
-                    # The line `logging.debug(f"Appending partial sample
-                    # {torch.cat(dataframe.loc["partial_sample"][0])}")` is logging a debug message. It is
-                    # displaying information about the process of appending a partial sample to the
-                    # dataframe.
-                    # logging.debug(
-                    #     f"Appending partial sample {torch.cat(dataframe.loc["partial_sample"][0])}"
-                    # )
-                    t = torch.cat(dataframe.at[index, "partial_sample"])
-                    pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{count}_{d_name}.pt"
-                    torch.save(t, pt_name)
+                        else:
+                            # The line `logging.debug(f"Appending partial sample
+                            # {torch.cat(dataframe.loc["partial_sample"][0])}")` is logging a debug message. It is
+                            # displaying information about the process of appending a partial sample to the
+                            # dataframe.
+                            # logging.debug(
+                            #     f"Appending partial sample {torch.cat(dataframe.loc["partial_sample"][0])}"
+                            # )
+                            t = torch.cat(dataframe.at[index, "partial_sample"])
+                            pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{count}_{d_name}.pt"
+                            torch.save(t, pt_name)
 
                 dataframe.at[index, "frame_of_sample"] = 0
                 dataframe.at[index, "counts"] = []
