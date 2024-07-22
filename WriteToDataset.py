@@ -36,6 +36,7 @@ def write_to_dataset(
             sample_class = d_name
             frame_num = frame_num.split("-")
             frame = torch.load(filename)
+            logging.info(f"video_path: {video_path}, sample_class: {sample_class}, frame_num: {frame_num}")
             logging.debug(f"Writing sample to dataset")
             logging.debug(f"Frame shape: {frame.shape}")
             logging.debug(f"Frame number: {frame_num}")
