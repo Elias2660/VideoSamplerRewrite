@@ -42,13 +42,17 @@ def sample_video(
                 )
             ]
             dataframe.at[index, "target_samples"] = target_samples
-        
-            dataframe[index, "samples"] = []
-            dataframe[index, "counts"] = []
-            dataframe[index, "partial_sample"] = []
-            dataframe[index, "samples_recorded"] = False 
-            dataframe[index, "frame_of_sample"] = 0
+    
             
+        dataframe['samples'] = ''
+        dataframe['samples'] = dataframe['samples'].apply(list)
+        dataframe['counts'] = ''
+        dataframe['counts'] = dataframe['counts'].apply(list)        
+        dataframe['partial_sample'] = ''
+        dataframe['partial_sample'] = dataframe['partial_sample'].apply(list)
+        dataframe["samples_recorded"] = False 
+        dataframe["frame_of_sample"] = 0
+
         logging.info(f"Capture to {video} about to be established")
         cap = cv2.VideoCapture(video)
         if not cap.isOpened():
