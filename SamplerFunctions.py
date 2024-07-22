@@ -12,7 +12,7 @@ import re
 
 def sample_video(
     video: str,
-    dataframe: pd.DataFrame,
+    old_df: pd.DataFrame,
     number_of_samples_max: int,
     frames_per_sample: int,
     normalize: bool,
