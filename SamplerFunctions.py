@@ -106,7 +106,7 @@ def sample_video(
                 # read one sample as an image
 
             if row["frame_of_sample"] == frames_per_sample:
-                directory_name = row["file"] + "_samplestemporary"
+                directory_name = row["file"].replace(".csv", "") + "_samplestemporary"
                 s_c = "-".join([str(x) for x in row["counts"]])
                 d_name = row.iloc[1]
                 if row["frames_per_sample"] == 1:

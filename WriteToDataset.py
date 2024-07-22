@@ -16,14 +16,13 @@ import io
 
 
 def write_to_dataset(
-    name,
-    list_of_sample_list,
+    directory: str,
+    tar_file: str,
     frames_per_sample: int = 1,
     out_channels: int = 1,
-    directory_name: str = "",
 ):
     try:
-        tar_writer = wds.TarWriter(name, encoder=False)
+        tar_writer = wds.TarWriter(tar_file, encoder=False)
         start_time = time.time()
         logging.info(f"Enumerating through the samples")
         for samples in list_of_sample_list:
