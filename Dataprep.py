@@ -104,7 +104,7 @@ def main():
             futures = [
                 [
                     executor.submit(
-                        sample_video(
+                        sample_video
                             dataset.iloc[0, 0],
                             dataset,
                             number_of_samples,
