@@ -30,6 +30,7 @@ logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
 
 
 def main():
+    file_list = []
     try:
 
         start = time.time()
