@@ -106,7 +106,7 @@ def main():
             futures = [
                 executor.submit(
                     sample_video,
-                    dataset.iloc[0, 0],
+                    dataset.loc[0, "file"],
                     dataset,
                     number_of_samples,
                     args.frames_per_sample,
