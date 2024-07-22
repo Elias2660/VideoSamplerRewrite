@@ -27,6 +27,7 @@ def sample_video(
         -return samples given the interval given
         """
         dataframe = dataframe.copy(deep=True)
+        dataframe.reset_index(drop=True, inplace=True)
         t_s = []
 
         
