@@ -99,7 +99,7 @@ def sample_video(
                         )
 
                     if out_channels == 1:
-                        logging.debug(f"Converting frame {count} to greyscale since ")
+                        logging.debug(f"Converting frame {count} to greyscale since out_channels is 1")
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
