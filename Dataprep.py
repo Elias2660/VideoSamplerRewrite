@@ -90,10 +90,10 @@ def main():
 
         # group by file to get for each file a list of rows
         # then for each file, create a writer
-        data_frame_list = []
-
-        total_dataframe.groupby("file").apply(lambda x: data_frame_list.append(x))
+        data_frame_list = [group for _, group in total_dataframe.groupby("file")]
         logging.info(len(data_frame_list))
+        # The `data_frame_list` in the provided code is being used to store groups of rows from the
+        # `total_dataframe` DataFrame.
         logging.debug(data_frame_list)
         for dataframe in data_frame_list:
             logging.info(dataframe.head())
