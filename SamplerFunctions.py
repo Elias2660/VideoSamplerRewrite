@@ -76,7 +76,7 @@ def sample_video(
                 break
 
             count += 1
-            logging.info(f"Frame {count} read from video {video}")
+            logging.debug(f"Frame {count} read from video {video}")
             if count % 10000 == 0:
                 logging.info(f"Frame {count} read from video {video}")
 
