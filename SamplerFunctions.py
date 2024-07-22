@@ -155,10 +155,10 @@ def sample_video(
                             pt_name = f"{directory_name}/{row.loc['data_file']}_{s_c}_{count}_{d_name}.pt"
                             torch.save(t, pt_name)
 
-                    dataframe.at[index, "frame_of_sample"] = 0
-                    dataframe.at[index, "counts"] = []
-                    dataframe.at[index, "partial_sample"] = []
-                    dataframe.at[index, "samples_recorded"] = False
+                        dataframe.at[index, "frame_of_sample"] = 0
+                        dataframe.at[index, "counts"] = []
+                        dataframe.at[index, "partial_sample"] = []
+                        dataframe.at[index, "samples_recorded"] = False
 
         logging.info(f"Capture to {video} has been released, writing samples")
         end_time = time.time()
