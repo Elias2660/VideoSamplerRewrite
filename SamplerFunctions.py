@@ -158,6 +158,7 @@ def sample_video(
                             pt_name = f"{directory_name}/{row.loc['data_file']}_{d_name}_{s_c}.pt"
                             torch.save(t, pt_name)
 
+                        logging.info(f"Saved sample at frame {count} for {video}")
                         dataframe.at[index, "frame_of_sample"] = 0
                         dataframe.at[index, "counts"] = []
                         dataframe.at[index, "partial_sample"] = []
