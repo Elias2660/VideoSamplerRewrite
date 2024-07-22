@@ -47,7 +47,7 @@ def sample_video(
                     random.sample(population=range(available_samples), k=num_samples)
                 )
             ]
-            logging.info()
+            logging.info(f"Target samples for {video}: {target_samples}")
             t_s.append(target_samples)
 
         logging.info(f"Dataframe for {video} about to be prepared(1)")
