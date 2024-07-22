@@ -18,7 +18,9 @@ def sample_video(
     out_channels: int,
     sample_span:int=1,
 ):
+    start_time = time.time()
     cap = None
+    count = 0
     try:
         """
         -return samples given the interval given
@@ -28,7 +30,7 @@ def sample_video(
         for index, row in dataframe.iterrows():
             begin_frame = row.iloc[2]
             end_frame = row.iloc[3]
-            width, height, total_frames = getVideoInfo(video)
+            width, height = getVideoInfo(video)
             available_samples = (end_frame - (sample_span - 1) - begin_frame) // sample_span
             num_samples = min(available_samples, number_of_samples_max)
             target_samples = [
@@ -47,20 +49,19 @@ def sample_video(
             
         logging.info(f"Capture to {video} about to be established")
         cap = cv2.VideoCapture(video)
-
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
         
-        if count % 10000 == 0:
-            logging.info(f"Frame {count} read from video {video}")        
-        while count <= end_frame:
+        while True:
             ret, frame = cap.read()
-            
             if not ret:
                 break
 
             count += 1
+            if count % 10000 == 0:
+                logging.info(f"Frame {count} read from video {video}")  
+                    
             for index, row in dataframe.iterrows():
                 if count in row["target_samples"]:
                     logging.debug(f"Frame {count} just triggered the samples_recorded variable")
@@ -105,40 +106,37 @@ def sample_video(
                 # read one sample as an image
 
             if row["frame_of_sample"] == frames_per_sample:
+                directory_name = row["file"] + "_samplestemporary"
+                s_c = "-".join([str(x) for x in row["counts"]])
+                d_name = row.iloc[1]
                 if row["frames_per_sample"] == 1:
-                    logging.debug(f"Saving partial sample {partial_sample[0]}")
-                    t = partial_sample[0]
+                    logging.debug(f"Saving partial sample {dataframe.at[index, "partial_sample"][0]}")
+                    t = dataframe.at[index, "partial_sample"][0]
+                    
                     # join the counts list with "_" 
                     # then encode in frame
-                    pt_name = f"{directory_name}/{video.split('/')[-1]}_{count}.pt"
+                    pt_name = f"{directory_name}/{row["filename"]}_{s_c}_{count}_{d_name}.pt"
                     torch.save(t, pt_name)
                     # dataframe.at[index, samples].append([pt_name, video, counts, row.iloc[1]])
 
                 else:
                     logging.debug(
-                        f"Appending partial sample {torch.cat(partial_sample)}"
+                        f"Appending partial sample {torch.cat(dataframe.at["partial_sample"][0])}"
                     )
-                    t = torch.cat(partial_sample)
-                    pt_name = f"{directory_name}/{video.split('/')[-1]}_{count}.pt"
+                    t = torch.cat(dataframe.at[index, "partial_sample"])
+                    pt_name = f"{directory_name}/{row["filename"]}_{s_c}_{count}_{d_name}.pt"
                     torch.save(t, pt_name)
-                    samples.append(
-                        [pt_name, video, counts, row.iloc[1]]
-                    )
-                    sample_idx += 1
 
-                frame_of_sample = 0
-                sample_idx += 1
-                counts = []
-                partial_sample = []
-                samples_recorded = False
+                dataframe.at[index, "frame_of_sample"] = 0
+                dataframe.at[index, "counts"] = []
+                dataframe.at[index, "partial_sample"] = []
+                dataframe.at[index, "samples_recorded"] = False
                 
         logging.info(
-            f"Capture to {video} has been released, returning {len(samples)} samples"
+            f"Capture to {video} has been released, writing samples"
         )
         end_time = time.time()
         logging.info("Time taken to sample video: " + str(end_time - start_time))        
-        logging.info(f"SAMPLER LIST LENGTH: {len(sample_list)}")
-        sample_list.append(samples)
 
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
@@ -170,39 +168,6 @@ def getVideoInfo(video: str):
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     finally:
         cap.release()
-    counts = pd.read_csv("counts.csv")
-    logging.info(video.split("/")[-1])
-    logging.info(counts[counts["filename"] == video.split("/")[-1]])
-    total_frames = counts[counts["filename"] == video.split("/")[-1]][
-        "framecount"
-    ].values[0]
 
 
-    return width, height, total_frames
-
-
-# if __name__ == "__main__":
-#     with Manager() as manager:
-#         lock = manager.Lock()
-#         format = "%(asctime)s: %(message)s"
-#         logging.basicConfig(format=format, level=logging.DEBUG, datefmt="%H:%M:%S")
-#         tar_writer = wds.TarWriter("dataset.tar", encoder=False)
-#         sample_video(
-#             "2024-07-03 17:20:20.604941.mp4",
-#             500,
-#             "dataset.tar",
-#             lock,
-#             pd.Series(
-#                 {
-#                     "file": "2024-07-03 17:20:20.604941.mp4",
-#                     "class": 1,
-#                     "begin frame": 0,
-#                     "end frame": 1000,
-#                 }
-#             ),
-#             1,
-#             1,
-#             True,
-#             1,
-#         )
-#         tar_writer.close()
+    return width, height
