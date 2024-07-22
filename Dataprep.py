@@ -147,7 +147,8 @@ def main():
     
     finally:
         # remove all the dirs
-        
+        for file in file_list:
+            subprocess.run(f"rm -rf {file.replace('.csv', '')}_samplestemporary", shell=True)
         
 
 
