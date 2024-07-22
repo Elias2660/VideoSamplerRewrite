@@ -27,7 +27,7 @@ def sample_video(
         -return samples given the interval given
         """
         dataframe = dataframe.copy(deep=True)
-        target_samples = []
+        t_s = []
 
         
         logging.info(f"Dataframe for {video} about to be prepared (0)")
