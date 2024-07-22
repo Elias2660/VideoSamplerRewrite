@@ -84,7 +84,7 @@ def main():
         total_dataframe = pd.DataFrame()
         for file in file_list:
             df = pd.read_csv(file)
-            df["file"] = file
+            df["data_file"] = file
             total_dataframe = pd.concat([total_dataframe, df])
             subprocess.run(f"mkdir {file.replace('.csv', '')}_samplestemporary", shell=True)
 
