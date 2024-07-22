@@ -24,12 +24,8 @@ def write_to_dataset(
         start_time = time.time()
 
         logging.info(f"Reading in the samples from {directory}")
-        command = f"ls {directory}"
-        ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        file_list = sorted(
-            [ansi_escape.sub("", line) for line in result.stdout.splitlines()]
-        )
+        file_list = sorted(os.listdir(directory))
+
 
         for file in file_list:
             s = file.replace(".pt", "").split("/")[-1].split("_")
