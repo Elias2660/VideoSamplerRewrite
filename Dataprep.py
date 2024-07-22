@@ -98,6 +98,9 @@ def main():
         # The `data_frame_list` in the provided code is being used to store groups of rows from the
         # `total_dataframe` DataFrame.
         # logging.debug(data_frame_list)
+        for dataset in data_frame_list:
+            # reset dataframe index
+            dataset.reset_index(drop=True, inplace=True)
         for i in range(3):
             logging.info(data_frame_list[i].head())
         with concurrent.futures.ProcessPoolExecutor(
