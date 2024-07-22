@@ -123,7 +123,7 @@ def sample_video(
                 logging.debug(f"Tensor has shape {in_frame.shape}")
 
                 dataframe.at[index, "partial_sample"].append(in_frame)
-                dataframe.at[index, "count"].append(in_frame)
+                dataframe.at[index, "counts"].append(in_frame)
 
                 # read one sample as an image
 
