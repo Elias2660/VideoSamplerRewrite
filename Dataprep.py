@@ -6,7 +6,6 @@ TODO: adapt the sampler function
 ? MAYBE: Add multiprocessing???
 """
 
-
 import numpy as np
 
 import time
@@ -174,14 +173,48 @@ def main():
 
         # group by file to get for each file a list of rows
         # then for each file, create a writer
-        total_dataframe.groupby("file").apply(lambda x: sample_video(
-            x["file"].iloc[0],
-            x,
-            number_of_samples,
-            args.frames_per_sample,
-            args.normalize,
-            args.out_channels,
-        ))
+        data_frame_list = []
+
+        total_dataframe.groupby("file").apply(lambda x: data_frame_list.append(x))
+
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=min(args.max_workers, multiprocessing.cpu_count())
+        ) as executor:
+            futures = [
+                [
+                    executor.submit(
+                        sample_video(
+                            dataset["file"].iloc[0],
+                            dataset,
+                            number_of_samples,
+                            args.frames_per_sample,
+                            args.normalize,
+                            args.out_channels,
+                        )
+                    )
+                ]
+                for dataset in data_frame_list
+            ]
+            concurrent.futures.wait(futures)
+            logging.info(f"Submitted {len(futures)} tasks to the executor")
+            logging.info(f"Executor mapped")
+
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=min(args.max_workers, multiprocessing.cpu_count())
+        ) as executor:
+            futures = [
+                executor.submit(
+                    write_to_dataset,
+                    file.replace(".csv", "") + "_samplestemporary",
+                    file.replace(".csv", ".tar"),
+                    args.frames_per_sample,
+                    args.out_channels,
+                )
+                for file in file_list
+            ]
+            concurrent.futures.wait(futures)
+            logging.info(f"Submitted {len(futures)} tasks to the executor")
+            logging.info(f"Executor mapped")
 
         end = time.time()
         logging.info(f"Time taken to run the the script: {end - start} seconds")
@@ -193,7 +226,6 @@ def main():
 
 if __name__ == "__main__":
     freeze_support()
-    cv2.setNumThreads(5)
     """
     Run three 
     """
