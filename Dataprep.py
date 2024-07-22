@@ -122,7 +122,7 @@ def main():
             logging.info(f"Submitted {len(futures)} tasks to the executor")
             logging.info(f"Executor mapped")
 
-        with concurrent.futures.ProcessPoolExecutor(
+        with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
             futures = [
