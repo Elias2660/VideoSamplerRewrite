@@ -47,11 +47,8 @@ def sample_video(
                     random.sample(population=range(available_samples), k=num_samples)
                 )
             ]
-
-            logging.debug(f"Target samples for {video}: {target_samples}")
-            logging.debug(index)
-            logging.debug(dataframe.loc[index, "target_samples"])
-            dataframe.at[[index], "target_samples"] = pd.Series[target_samples]
+            
+            
 
         logging.info(f"Dataframe for {video} about to be prepared(1)")
 
