@@ -136,7 +136,7 @@ def sample_video(
                         )
                         s_c = "-".join([str(x) for x in row["counts"]])
                         d_name = row.iloc[1]
-                        if row["frames_per_sample"] == 1:
+                        if frames_per_sample == 1:
                             # logging.debug(f"Saving partial sample {dataframe.loc[index, "partial_sample"][0]}")
                             t = dataframe.loc[index, "partial_sample"][0]
 
