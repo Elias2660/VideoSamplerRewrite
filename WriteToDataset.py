@@ -32,7 +32,7 @@ def write_to_dataset(
             if len(s) != 3:
                 logging.error(f"Unexpected format in file name: {file}, split result: {s}")
             filename, d_name, frame_num = s
-            video_path = filename
+            video_path = filename.replace("SPACE", " ")
             sample_class = d_name
             frame_num = frame_num.split("-")
             frame = torch.load(filename)
