@@ -81,7 +81,6 @@ def sample_video(
 
             for index, row in dataframe.iterrows():
                 logging.info(row)
-                logging.info(f"target_samples: {row['target_samples']}")
                 if count in row["target_samples"]:
                     logging.debug(
                         f"Frame {count} just triggered the samples_recorded variable"
