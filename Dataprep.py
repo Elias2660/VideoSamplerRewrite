@@ -184,7 +184,7 @@ def main():
                 [
                     executor.submit(
                         sample_video(
-                            dataset["file"].iloc[0],
+                            dataset.loc[0, "file"],
                             dataset,
                             number_of_samples,
                             args.frames_per_sample,
