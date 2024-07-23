@@ -25,11 +25,10 @@ def sample_video(
         t_s = []
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
-
+        width, height = getVideoInfo(video)
         for index, row in dataframe.iterrows():
             begin_frame = row.iloc[2]
             end_frame = row.iloc[3]
-            width, height = getVideoInfo(video)
             available_samples = (
                 end_frame - (sample_span - 1) - begin_frame
             ) // sample_span
