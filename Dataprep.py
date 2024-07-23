@@ -26,8 +26,11 @@ logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 def main():
     file_list = []
-    prep_file = open("dataprep.csv", "r+")
-    prep_file.truncate(0)
+    try:
+        prep_file = open("dataprep.log", "r+")
+        prep_file.truncate(0)
+    except:
+        logging.info("prep file not found")
     try:
 
         start = time.time()
@@ -67,8 +70,9 @@ def main():
         parser.add_argument(
             "--out-channels", type=int, help="The number of output channels", default=1
         )
+        parser.add_argument("--bg-subtract", type=str,choices=["mog2", "knn"] ,help="The background subtraction method to use", default=None)
+        
         args = parser.parse_args()
-        dataset_path = args.dataset_path
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
@@ -76,6 +80,8 @@ def main():
         file_list = sorted(
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
+        
+        
         logging.info(f"File List: {file_list}")
         counts = pd.read_csv("counts.csv")
 
@@ -115,6 +121,7 @@ def main():
                     args.frames_per_sample,
                     args.normalize,
                     args.out_channels,
+                    args.bg_subtract,
                 )
                 for dataset in data_frame_list
             ]

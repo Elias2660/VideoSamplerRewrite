@@ -14,6 +14,7 @@ def sample_video(
     frames_per_sample: int,
     normalize: bool,
     out_channels: int,
+    bg_subtract = None,
     sample_span: int = 1,
 ):
     start_time = time.time()
@@ -91,6 +92,7 @@ def sample_video(
                         out_channels,
                         height,
                         width,
+                        bg_subtract=bg_subtract
                     )
                     logging.debug(f"in_frame shape: {in_frame.shape}")
                     logging.debug(f"Tensor has shape {in_frame.shape}")
@@ -144,6 +146,7 @@ def apply_video_transformations(
     out_channels: int,
     height: int,
     width: int,
+    bg_subtract,
 ):
     if normalize:
         frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
