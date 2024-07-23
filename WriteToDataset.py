@@ -3,14 +3,11 @@ import pandas as pd
 import os
 import logging
 import time
-import multiprocessing
 import torch
-import subprocess
 from torchvision import transforms
-import cv2
 import io
 import time
-import re
+import random
 
 
 def write_to_dataset(
@@ -25,7 +22,7 @@ def write_to_dataset(
 
         logging.info(f"Reading in the samples from {directory}")
         file_list = sorted(os.listdir(directory))
-
+        random.shuffle(file_list)
 
         for file in file_list:
             frame = torch.load(os.path.join(directory, file))
