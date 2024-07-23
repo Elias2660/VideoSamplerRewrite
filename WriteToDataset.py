@@ -25,6 +25,8 @@ def write_to_dataset(
         random.shuffle(file_list)
 
         for file in file_list:
+            if file.endswith(".txt"):
+                continue
             frame = torch.load(os.path.join(directory, file))
             s_c_file = open(os.path.join(directory, file.replace(".pt", ".txt")), "r")
             s = file.replace(".pt", "").split("/")[-1].split("_")
