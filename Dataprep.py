@@ -6,22 +6,17 @@ TODO: adapt the sampler function
 ? MAYBE: Add multiprocessing???
 """
 
-import numpy as np
-
 import time
-
 import pandas as pd
 import logging
-import webdataset as wds
 from SamplerFunctions import sample_video
 from WriteToDataset import write_to_dataset
 import argparse
 import subprocess
 import multiprocessing
-from multiprocessing import Manager, Semaphore, freeze_support, Pool
+from multiprocessing import freeze_support
 import concurrent  # for multitprocessing and other stuff
 import re
-import cv2
 import os
 
 
@@ -31,6 +26,8 @@ logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 def main():
     file_list = []
+    prep_file = open("dataprep.csv", "r+")
+    prep_file.truncate(0)
     try:
 
         start = time.time()
@@ -87,6 +84,9 @@ def main():
             df = pd.read_csv(file)
             df["data_file"] = file
             total_dataframe = pd.concat([total_dataframe, df])
+            subprocess.run(
+                f"rm -rf {file.replace('.csv', '')}_samplestemporary", shell=True
+            )
             subprocess.run(
                 f"mkdir {file.replace('.csv', '')}_samplestemporary", shell=True
             )
