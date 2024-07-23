@@ -26,14 +26,20 @@ def write_to_dataset(
 
         for file in file_list:
             frame = torch.load(os.path.join(directory, file))
+            s_c_file = open(os.path.join(directory, file.replace(".pt", ".txt")), "r")
             s = file.replace(".pt", "").split("/")[-1].split("_")
             if len(s) != 3:
-                logging.error(f"Unexpected format in file name: {file}, split result: {s}")
-            filename, d_name, frame_num = s
+                logging.error(
+                    f"Unexpected format in file name: {file}, split result: {s}"
+                )
+            filename, d_name = s
             video_path = filename.replace("SPACE", " ")
             sample_class = d_name
-            frame_num = frame_num.split("-")
-            logging.info(f"video_path: {video_path}, sample_class: {sample_class}, frame_num: {frame_num}")
+            frame_num = s_c_file.read().split("-")
+            s_c_file.close()
+            logging.info(
+                f"video_path: {video_path}, sample_class: {sample_class}, frame_num: {frame_num}"
+            )
             logging.debug(f"Writing sample to dataset")
             logging.debug(f"Frame shape: {frame.shape}")
             logging.debug(f"Frame number: {frame_num}")

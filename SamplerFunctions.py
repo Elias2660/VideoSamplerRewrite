@@ -14,7 +14,7 @@ def sample_video(
     frames_per_sample: int,
     normalize: bool,
     out_channels: int,
-    bg_subtract = None,
+    bg_subtract=None,
     sample_span: int = 1,
 ):
     start_time = time.time()
@@ -92,7 +92,7 @@ def sample_video(
                         out_channels,
                         height,
                         width,
-                        bg_subtract=bg_subtract
+                        bg_subtract=bg_subtract,
                     )
                     logging.debug(f"in_frame shape: {in_frame.shape}")
                     logging.debug(f"Tensor has shape {in_frame.shape}")
@@ -131,11 +131,31 @@ def save_sample(row, video, frames_per_sample, dataframe, index):
     d_name = row.iloc[1]
     if frames_per_sample == 1:
         t = dataframe.loc[index, "partial_sample"][0]
-        pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{s_c}.pt".replace("\x00", "")
+        pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
+            "\x00", ""
+        )
         torch.save(t, pt_name)
+        s_c_file = open(
+            f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                "\x00", ""
+            ),
+            "w+",
+        )
+        s_c_file.write(s_c)
+        s_c_file.close()
     else:
         t = torch.cat(dataframe.at[index, "partial_sample"])
-        pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{s_c}.pt".replace("\x00", "")
+        pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
+            "\x00", ""
+        )
+        s_c_file = open(
+            f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                "\x00", ""
+            ),
+            "w+",
+        )
+        s_c_file.write(s_c)
+        s_c_file.close()
         torch.save(t, pt_name)
 
 

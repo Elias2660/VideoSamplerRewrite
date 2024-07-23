@@ -29,6 +29,7 @@ def main():
     try:
         prep_file = open("dataprep.log", "r+")
         prep_file.truncate(0)
+        prep_file.close()
     except:
         logging.info("prep file not found")
     try:
