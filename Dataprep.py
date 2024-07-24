@@ -123,6 +123,7 @@ def main():
                     args.normalize,
                     args.out_channels,
                     args.bg_subtract,
+                    args.frames_per_sample,
                 )
                 for dataset in data_frame_list
             ]
