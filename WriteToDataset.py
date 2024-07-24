@@ -30,7 +30,7 @@ def write_to_dataset(
             frame = torch.load(os.path.join(directory, file))
             s_c_file = open(os.path.join(directory, file.replace(".pt", ".txt")), "r")
             s = file.replace(".pt", "").split("/")[-1].split("_")
-            if len(s) != 3:
+            if len(s) != 2:
                 logging.error(
                     f"Unexpected format in file name: {file}, split result: {s}"
                 )
