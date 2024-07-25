@@ -22,6 +22,7 @@ def sample_video(
     count = 0
     try:
         dataframe = old_df.copy(deep=True)
+        dataframe.reset_index(drop=True, inplace=True)
         t_s = []
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
@@ -42,7 +43,8 @@ def sample_video(
             ]
             logging.debug(f"Target samples for {video}: {target_samples}")
             t_s.append(target_samples)
-
+            
+        logging.info(f"Size of target sample list for {video}: {len(t_s)}")
         logging.debug(f"Dataframe for {video} about to be prepared(1)")
 
         dataframe["counts"] = ""
@@ -127,6 +129,7 @@ def save_sample(row, video, frames_per_sample, dataframe, index):
         directory_name = row.loc["data_file"].replace(".csv", "").strip() + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
+        
         if frames_per_sample == 1:
             t = dataframe.loc[index, "partial_sample"][0]
             pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
