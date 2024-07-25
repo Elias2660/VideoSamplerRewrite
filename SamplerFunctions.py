@@ -170,7 +170,7 @@ def save_sample(row, video, frames_per_sample, dataframe, index, lock):
                 if pt_name in os.listdir(directory_name):
                     logging.error(f"Overwriting {pt_name}")
                 torch.save(t, pt_name)
-        logging.info(f"Saved sample {d_name} for {video}")
+        logging.info(f"Saved sample {d_name} for {video}, with name {directory_name}/{pt_name}")
     except Exception as e:
         logging.error(f"Error saving sample: {e}")
         raise
