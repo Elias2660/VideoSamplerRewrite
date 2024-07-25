@@ -44,7 +44,7 @@ def sample_video(
                 )
             ]
             logging.info(
-                f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end"
+                f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, frames per sample: {frames_per_sample}"
             )
             logging.debug(f"Target samples for {video}: {target_samples}")
             target_sample_list.append(target_samples)
@@ -107,7 +107,7 @@ def sample_video(
                         spc += 1
                         logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
-                            row,partial_frame_list[index], video, frames_per_sample, dataframe, index, count, spc
+                            row, partial_frame_list[index], video, frames_per_sample, count, spc
                         )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
@@ -132,7 +132,7 @@ def sample_video(
     return
 
 
-def save_sample(row, partial_frames, video, frames_per_sample, dataframe, index, count, spc):
+def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
     try:
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
