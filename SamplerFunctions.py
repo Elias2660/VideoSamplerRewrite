@@ -2,6 +2,7 @@ import logging
 import cv2
 import pandas as pd
 import numpy as np
+import os
 import time
 import random
 import torch
@@ -144,6 +145,10 @@ def save_sample(row, video, frames_per_sample, dataframe, index):
             )
             s_c_file.write(s_c)
             s_c_file.close()
+            # check for overwriting
+            if pt_name in os.listdir(directory_name):
+                logging.error(f"Overwriting {pt_name}")
+            
             torch.save(t, pt_name)
         else:
             t = torch.cat(dataframe.at[index, "partial_sample"])
@@ -158,6 +163,10 @@ def save_sample(row, video, frames_per_sample, dataframe, index):
             )
             s_c_file.write(s_c)
             s_c_file.close()
+            if pt_name in os.listdir(directory_name):
+                logging.error(f"Overwriting {pt_name}")
+            
+            
             torch.save(t, pt_name)
         logging.info(f"Saved sample {d_name} for {video}")
     except Exception as e:
