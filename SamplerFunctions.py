@@ -102,6 +102,9 @@ def sample_video(
                     logging.debug(f"Tensor has shape {in_frame.shape}")
                     partial_frame_list[index].append(in_frame)
                     dataframe.at[index, "counts"].append(str(count))
+                    
+                    logging.info(f"Frame {count} added to sample for {video}, partial frame list length: {len(partial_frame_list[index])}")
+                    
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
                         spc += 1
