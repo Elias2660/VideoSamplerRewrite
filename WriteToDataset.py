@@ -20,15 +20,16 @@ def write_to_dataset(
         tar_writer = wds.TarWriter(tar_file, encoder=False)
         start_time = time.time()
 
-        logging.info(f"Reading in the samples from {directory}")
-        file_list = sorted(os.listdir(directory))
-        random.shuffle(file_list)
+        file_list = os.listdir(directory)
+        logging.info(
+            f"Reading in the samples from {directory}, finding {len(file_list)} files"
+        )
 
         for file in file_list:
             if file.endswith(".txt"):
                 continue
             frame = torch.load(os.path.join(directory, file))
-            s_c_file = open(os.path.join(directory, file.replace(".pt", ".txt")), "r")
+            s_c_file = open(os.path.join(directory + "txt", file.replace(".pt", ".txt")), "r")
             s = file.replace(".pt", "").split("/")[-1].split("_")
             if len(s) != 2:
                 logging.error(
@@ -70,6 +71,8 @@ def write_to_dataset(
                     "cls": str(sample_class).encode("utf-8"),
                     "metadata.txt": metadata.encode("utf-8"),
                 }
+                logging.info(f"Writing sample to dataset tar file")
+                tar_writer.write(sample)
             else:
                 # Save multiple pngs
                 buffers = []
@@ -91,8 +94,8 @@ def write_to_dataset(
                     for i in range(frames_per_sample):
                         sample[f"{i}.png"] = buffers[i].getbuffer()
 
-            logging.info(f"Writing sample to dataset tar file")
-            tar_writer.write(sample)
+                logging.info(f"Writing sample to dataset tar file")
+                tar_writer.write(sample)
 
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
