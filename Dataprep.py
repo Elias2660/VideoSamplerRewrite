@@ -121,29 +121,26 @@ def main():
             dataset.reset_index(drop=True, inplace=True)
         for i in range(3):
             logging.info(data_frame_list[i].head())
-        with Manager() as manager:
-            lock = manager.Lock()
-            with concurrent.futures.ProcessPoolExecutor(
-                max_workers=min(args.max_workers, multiprocessing.cpu_count())
-            ) as executor:
-                futures = [
-                    executor.submit(
-                        sample_video,
-                        dataset.loc[0, "file"],
-                        dataset,
-                        number_of_samples,
-                        args.frames_per_sample,
-                        args.normalize,
-                        args.out_channels,
-                        args.bg_subtract,
-                        args.frames_per_sample,
-                        lock,
-                    )
-                    for dataset in data_frame_list
-                ]
-                concurrent.futures.wait(futures)
-                logging.info(f"Submitted {len(futures)} tasks to the executor")
-                logging.info(f"Executor mapped")
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=min(args.max_workers, multiprocessing.cpu_count())
+        ) as executor:
+            futures = [
+                executor.submit(
+                    sample_video,
+                    dataset.loc[0, "file"],
+                    dataset,
+                    number_of_samples,
+                    args.frames_per_sample,
+                    args.normalize,
+                    args.out_channels,
+                    args.bg_subtract,
+                    args.frames_per_sample,
+                )
+                for dataset in data_frame_list
+            ]
+            concurrent.futures.wait(futures)
+            logging.info(f"Submitted {len(futures)} tasks to the executor")
+            logging.info(f"Executor mapped")
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())

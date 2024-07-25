@@ -17,7 +17,6 @@ def sample_video(
     out_channels: int,
     bg_subtract,
     sample_span: int,
-    lock,
 ):
     start_time = time.time()
     cap = None
@@ -108,7 +107,7 @@ def sample_video(
                         spc += 1
                         logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
-                            row, video, frames_per_sample, dataframe, index, lock, count, spc
+                            row, video, frames_per_sample, dataframe, index, count, spc
                         )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
@@ -133,7 +132,7 @@ def sample_video(
     return
 
 
-def save_sample(row, video, frames_per_sample, dataframe, index, lock, count, spc):
+def save_sample(row, video, frames_per_sample, dataframe, index, count, spc):
     try:
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
