@@ -6,7 +6,6 @@ import os
 import time
 import random
 import torch
-from multiprocessing import Lock
 
 
 def sample_video(
@@ -16,11 +15,11 @@ def sample_video(
     frames_per_sample: int,
     normalize: bool,
     out_channels: int,
-    bg_subtract=None,
-    sample_span: int = 1,
+    bg_subtract,
+    sample_span: int,
+    lock,
 ):
     start_time = time.time()
-    lock = Lock()
     cap = None
     count = 0
     try:
@@ -106,7 +105,9 @@ def sample_video(
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
                         logging.debug(f"Saving sample at frame {count} for {video}")
-                        save_sample(row, video, frames_per_sample, dataframe, index, lock)
+                        save_sample(
+                            row, video, frames_per_sample, dataframe, index, lock
+                        )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
                         dataframe.at[index, "frame_of_sample"] = 0
@@ -170,7 +171,9 @@ def save_sample(row, video, frames_per_sample, dataframe, index, lock):
                 if pt_name in os.listdir(directory_name):
                     logging.error(f"Overwriting {pt_name}")
                 torch.save(t, pt_name)
-        logging.info(f"Saved sample {d_name} for {video}, with name {directory_name}/{pt_name}")
+        logging.info(
+            f"Saved sample {d_name} for {video}, with name {directory_name}/{pt_name}"
+        )
     except Exception as e:
         logging.error(f"Error saving sample: {e}")
         raise
