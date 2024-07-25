@@ -35,7 +35,7 @@ def write_to_dataset(
                 logging.error(
                     f"Unexpected format in file name: {file}, split result: {s}"
                 )
-            filename, d_name = s
+            filename, d_name, _ = s
             video_path = filename.replace("SPACE", " ")
             sample_class = d_name
             frame_num = s_c_file.read().split("-")
