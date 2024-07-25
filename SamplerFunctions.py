@@ -138,7 +138,6 @@ def save_sample(row, video, frames_per_sample, dataframe, index, count, spc):
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
 
-        # with lock:
         if frames_per_sample == 1:
             t = dataframe.loc[index, "partial_sample"][0]
             pt_name = (
@@ -161,12 +160,12 @@ def save_sample(row, video, frames_per_sample, dataframe, index, count, spc):
         else:
             t = torch.cat(dataframe.at[index, "partial_sample"])
             pt_name = (
-                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}.pt".replace(
+                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
                     "\x00", ""
                 )
             )
             s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}.txt".replace(
+                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
                     "\x00", ""
                 ),
                 "w+",
