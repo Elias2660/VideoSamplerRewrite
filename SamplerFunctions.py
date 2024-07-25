@@ -106,7 +106,7 @@ def sample_video(
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
                         logging.debug(f"Saving sample at frame {count} for {video}")
-                        save_sample(row, video, frames_per_sample, dataframe, index)
+                        save_sample(row, video, frames_per_sample, dataframe, index, lock)
 
                         logging.info(f"Saved sample at frame {count} for {video}")
                         dataframe.at[index, "frame_of_sample"] = 0
