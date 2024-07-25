@@ -104,9 +104,10 @@ def sample_video(
                     dataframe.at[index, "counts"].append(str(count))
                     
                     logging.info(f"Frame {count} added to sample for {video}, partial frame list length: {len(partial_frame_list[index])}")
-                    
+                    logging.info(f"row['frame_of_sample']: {row['frame_of_sample']}, frames_per_sample: {frames_per_sample}")
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
+                        logging.info(f"IF statement triggered; frames_per_sample: {frames_per_sample}, frame_of_sample: {row['frame_of_sample']}")
                         spc += 1
                         logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
