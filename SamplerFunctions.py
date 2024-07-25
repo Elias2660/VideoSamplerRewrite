@@ -75,6 +75,7 @@ def sample_video(
             logging.debug(f"Frame {count} read from video {video}")
             if count % 10000 == 0:
                 logging.info(f"Frame {count} read from video {video}")
+            spc = 0
             for index, row in dataframe.iterrows():
                 if t_s[index][0] > count or t_s[index][-1] < count:
                     continue
@@ -104,9 +105,10 @@ def sample_video(
                     dataframe.at[index, "counts"].append(str(count))
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
+                        spc += 1
                         logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
-                            row, video, frames_per_sample, dataframe, index, lock, count
+                            row, video, frames_per_sample, dataframe, index, lock, count, spc
                         )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
@@ -131,7 +133,7 @@ def sample_video(
     return
 
 
-def save_sample(row, video, frames_per_sample, dataframe, index, lock, count):
+def save_sample(row, video, frames_per_sample, dataframe, index, lock, count, spc):
     try:
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
@@ -141,12 +143,12 @@ def save_sample(row, video, frames_per_sample, dataframe, index, lock, count):
         if frames_per_sample == 1:
             t = dataframe.loc[index, "partial_sample"][0]
             pt_name = (
-                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}.pt".replace(
+                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
                     "\x00", ""
                 )
             )
             s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}.txt".replace(
+                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
                     "\x00", ""
                 ),
                 "w+",
