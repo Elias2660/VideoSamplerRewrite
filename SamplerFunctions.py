@@ -137,42 +137,46 @@ def save_sample(row, video, frames_per_sample, dataframe, index, lock):
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
 
-        with lock:
-            if frames_per_sample == 1:
-                t = dataframe.loc[index, "partial_sample"][0]
-                pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
+        # with lock:
+        if frames_per_sample == 1:
+            t = dataframe.loc[index, "partial_sample"][0]
+            pt_name = (
+                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
                     "\x00", ""
                 )
-                s_c_file = open(
-                    f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
-                        "\x00", ""
-                    ),
-                    "w+",
-                )
-                s_c_file.write(s_c)
-                s_c_file.close()
-                # check for overwriting
-                if pt_name in os.listdir(directory_name):
-                    logging.error(f"Overwriting {pt_name}")
-                torch.save(t, pt_name)
-            else:
-                t = torch.cat(dataframe.at[index, "partial_sample"])
-                pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
+            )
+            s_c_file = open(
+                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                    "\x00", ""
+                ),
+                "w+",
+            )
+            s_c_file.write(s_c)
+            s_c_file.close()
+            # check for overwriting
+            if pt_name in os.listdir(directory_name):
+                logging.error(f"Overwriting {pt_name}")
+            torch.save(t, pt_name)
+        else:
+            t = torch.cat(dataframe.at[index, "partial_sample"])
+            pt_name = (
+                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
                     "\x00", ""
                 )
-                s_c_file = open(
-                    f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
-                        "\x00", ""
-                    ),
-                    "w+",
-                )
-                s_c_file.write(s_c)
-                s_c_file.close()
-                if pt_name in os.listdir(directory_name):
-                    logging.error(f"Overwriting {pt_name}")
-                torch.save(t, pt_name)
+            )
+            s_c_file = open(
+                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                    "\x00", ""
+                ),
+                "w+",
+            )
+            s_c_file.write(s_c)
+            s_c_file.close()
+            if pt_name in os.listdir(directory_name):
+                logging.error(f"Overwriting {pt_name}")
+            torch.save(t, pt_name)
         logging.info(
-            f"Saved sample {d_name} for {video}, with name {directory_name}/{pt_name}"
+            f"Saved sample {s_c} for {video}, with name {directory_name}/{pt_name}"
         )
     except Exception as e:
         logging.error(f"Error saving sample: {e}")
