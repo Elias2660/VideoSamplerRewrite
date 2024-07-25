@@ -6,6 +6,7 @@ import os
 import time
 import random
 import torch
+from multiprocessing import Lock
 
 
 def sample_video(
@@ -19,6 +20,7 @@ def sample_video(
     sample_span: int = 1,
 ):
     start_time = time.time()
+    lock = Lock()
     cap = None
     count = 0
     try:
@@ -42,10 +44,12 @@ def sample_video(
                     random.sample(population=range(available_samples), k=num_samples)
                 )
             ]
-            logging.info(f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end")
+            logging.info(
+                f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end"
+            )
             logging.debug(f"Target samples for {video}: {target_samples}")
             t_s.append(target_samples)
-            
+
         logging.info(f"Size of target sample list for {video}: {len(t_s)}")
         logging.debug(f"Dataframe for {video} about to be prepared(1)")
 
@@ -126,50 +130,52 @@ def sample_video(
     return
 
 
-def save_sample(row, video, frames_per_sample, dataframe, index):
+def save_sample(row, video, frames_per_sample, dataframe, index, lock):
     try:
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
-        
-        if frames_per_sample == 1:
-            t = dataframe.loc[index, "partial_sample"][0]
-            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
-                "\x00", ""
-            )
-            s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+
+        with lock:
+            if frames_per_sample == 1:
+                t = dataframe.loc[index, "partial_sample"][0]
+                pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
                     "\x00", ""
-                ),
-                "w+",
-            )
-            s_c_file.write(s_c)
-            s_c_file.close()
-            # check for overwriting
-            if pt_name in os.listdir(directory_name):
-                logging.error(f"Overwriting {pt_name}")
-            torch.save(t, pt_name)
-        else:
-            t = torch.cat(dataframe.at[index, "partial_sample"])
-            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
-                "\x00", ""
-            )
-            s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                )
+                s_c_file = open(
+                    f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                        "\x00", ""
+                    ),
+                    "w+",
+                )
+                s_c_file.write(s_c)
+                s_c_file.close()
+                # check for overwriting
+                if pt_name in os.listdir(directory_name):
+                    logging.error(f"Overwriting {pt_name}")
+                torch.save(t, pt_name)
+            else:
+                t = torch.cat(dataframe.at[index, "partial_sample"])
+                pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
                     "\x00", ""
-                ),
-                "w+",
-            )
-            s_c_file.write(s_c)
-            s_c_file.close()
-            if pt_name in os.listdir(directory_name):
-                logging.error(f"Overwriting {pt_name}")
-            torch.save(t, pt_name)
+                )
+                s_c_file = open(
+                    f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                        "\x00", ""
+                    ),
+                    "w+",
+                )
+                s_c_file.write(s_c)
+                s_c_file.close()
+                if pt_name in os.listdir(directory_name):
+                    logging.error(f"Overwriting {pt_name}")
+                torch.save(t, pt_name)
         logging.info(f"Saved sample {d_name} for {video}")
     except Exception as e:
         logging.error(f"Error saving sample: {e}")
         raise
-    
+
+
 def apply_video_transformations(
     frame,
     count: int,
