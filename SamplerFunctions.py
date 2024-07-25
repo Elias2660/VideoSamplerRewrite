@@ -33,7 +33,7 @@ def sample_video(
             begin_frame = row.iloc[2]
             end_frame = row.iloc[3]
             available_samples = (
-                end_frame - (sample_span - 1) - begin_frame
+                end_frame - (sample_span - frames_per_sample) - begin_frame
             ) // sample_span
             num_samples = min(available_samples, number_of_samples_max)
 
