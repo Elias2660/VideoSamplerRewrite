@@ -96,19 +96,12 @@ def sample_video(
                         width,
                         bg_subtract=bg_subtract,
                     )
-                    logging.debug(f"in_frame shape: {in_frame.shape}")
-                    logging.debug(f"Tensor has shape {in_frame.shape}")
                     partial_frame_list[index].append(in_frame)
                     dataframe.at[index, "counts"].append(str(count))
                     
-                    logging.info(f"Frame {count} added to sample for {video}, partial frame list length: {len(partial_frame_list[index])}")
-                    logging.info(f"row['frame_of_sample']: {row['frame_of_sample']}, frames_per_sample: {frames_per_sample}")
                     # read one sample as an image
-                    if int(row["frame_of_sample"]) == int(frames_per_sample):
-                        logging.info(f"IF statement triggered; frames_per_sample: {frames_per_sample}, frame_of_sample: {row['frame_of_sample']}")
-                        logging.info(f"partial_frame_list[index]: {len(partial_frame_list[index])}")
+                    if int(row["frame_of_sample"]) == int(frames_per_sample) - 1: # -1 because we start at 0
                         spc += 1
-                        logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
                             row, partial_frame_list[index], video, frames_per_sample, count, spc
                         )
@@ -140,7 +133,6 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
-        logging.info(f"IMPORTANT Saving sample {s_c} for {video}, length of partial frames: {len(partial_frames)} frames_per_sample: {frames_per_sample}, count: {count}, spc: {spc}")
 
         if frames_per_sample == 1:
             t = partial_frames[0]
@@ -163,7 +155,7 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
             torch.save(t, pt_name)
         else:
             t = torch.cat(partial_frames)
-            logging.info(f"Concatenated partial frames, shape: {t.shape}")
+            logging.info(f"Concatenated multiple frames, shape: {t.shape}")
             pt_name = (
                 f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
                     "\x00", ""
