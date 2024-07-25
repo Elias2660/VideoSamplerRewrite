@@ -140,6 +140,7 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
+        logging.info(f"IMPORTANT Saving sample {s_c} for {video}, length of partial frames: {len(partial_frames)} frames_per_sample: {frames_per_sample}, count: {count}, spc: {spc}")
 
         if frames_per_sample == 1:
             t = partial_frames[0]
@@ -162,6 +163,7 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
             torch.save(t, pt_name)
         else:
             t = torch.cat(partial_frames)
+            logging.info(f"Concatenated partial frames, shape: {t.shape}")
             pt_name = (
                 f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
                     "\x00", ""
