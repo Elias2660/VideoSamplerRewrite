@@ -71,8 +71,14 @@ def main():
         parser.add_argument(
             "--out-channels", type=int, help="The number of output channels", default=1
         )
-        parser.add_argument("--bg-subtract", type=str,choices=["mog2", "knn"] ,help="The background subtraction method to use", default=None)
-        
+        parser.add_argument(
+            "--bg-subtract",
+            type=str,
+            choices=["mog2", "knn"],
+            help="The background subtraction method to use",
+            default=None,
+        )
+
         args = parser.parse_args()
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
@@ -81,8 +87,7 @@ def main():
         file_list = sorted(
             [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
-        
-        
+
         logging.info(f"File List: {file_list}")
         counts = pd.read_csv("counts.csv")
 
@@ -97,6 +102,12 @@ def main():
             subprocess.run(
                 f"mkdir {file.replace('.csv', '')}_samplestemporary", shell=True
             )
+            subprocess.run(
+                f"rm -rf {file.replace('.csv', '')}_samplestemporarytxt", shell=True
+            )
+            subprocess.run(
+                f"mkdir {file.replace('.csv', '')}_samplestemporarytxt", shell=True
+            )
 
         # group by file to get for each file a list of rows
         # then for each file, create a writer
@@ -110,7 +121,7 @@ def main():
             dataset.reset_index(drop=True, inplace=True)
         for i in range(3):
             logging.info(data_frame_list[i].head())
-        with concurrent.futures.ThreadPoolExecutor(
+        with concurrent.futures.ProcessPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
             futures = [
@@ -159,8 +170,12 @@ def main():
         # remove all the dirs
         for file in file_list:
             subprocess.run(
-                f"rm -rf {file.replace('.csv', '')}_samplestemporary", shell=True
+                f"rm -rf {file.replace('.csv', '')}_samplestemporarytxt", shell=True
             )
+            subprocess.run(
+                f"rm -rf {file.replace('.csv', '')}_samplestemporarytxt", shell=True
+            )
+            
 
 
 if __name__ == "__main__":
