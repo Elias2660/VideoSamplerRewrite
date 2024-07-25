@@ -24,7 +24,8 @@ def sample_video(
     try:
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
-        t_s = []
+        target_sample_list = []
+        partial_frame_list = []
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
         width, height = getVideoInfo(video)
@@ -46,15 +47,14 @@ def sample_video(
                 f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end"
             )
             logging.debug(f"Target samples for {video}: {target_samples}")
-            t_s.append(target_samples)
+            target_sample_list.append(target_samples)
+            partial_frame_list.append([])
 
-        logging.info(f"Size of target sample list for {video}: {len(t_s)}")
+        logging.info(f"Size of target sample list for {video}: {len(target_sample_list)}")
         logging.debug(f"Dataframe for {video} about to be prepared(1)")
 
         dataframe["counts"] = ""
         dataframe["counts"] = dataframe["counts"].apply(list)
-        dataframe["partial_sample"] = ""
-        dataframe["partial_sample"] = dataframe["partial_sample"].apply(list)
         dataframe["samples_recorded"] = False
         dataframe["frame_of_sample"] = 0
 
@@ -76,16 +76,16 @@ def sample_video(
                 logging.info(f"Frame {count} read from video {video}")
             spc = 0
             for index, row in dataframe.iterrows():
-                if t_s[index][0] > count or t_s[index][-1] < count:
+                if target_sample_list[index][0] > count or target_sample_list[index][-1] < count:
                     continue
                 logging.debug(
-                    f"length of target sample sample list: {len(t_s)} \n index: {index}"
+                    f"length of target sample sample list: {len(target_sample_list)} \n index: {index}"
                 )
-                if count in t_s[index]:
+                if count in target_sample_list[index]:
                     logging.debug(f"Frame {count} triggered samples_recorded")
                     dataframe.at[index, "samples_recorded"] = True
                     dataframe.at[index, "frame_of_sample"] = 0
-                    dataframe.at[index, "partial_sample"] = []
+                    partial_frame_list[index] = []
 
                 if row["samples_recorded"]:
                     dataframe.at[index, "frame_of_sample"] += 1
@@ -100,20 +100,20 @@ def sample_video(
                     )
                     logging.debug(f"in_frame shape: {in_frame.shape}")
                     logging.debug(f"Tensor has shape {in_frame.shape}")
-                    dataframe.at[index, "partial_sample"].append(in_frame)
+                    partial_frame_list[index].append(in_frame)
                     dataframe.at[index, "counts"].append(str(count))
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
                         spc += 1
                         logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
-                            row, video, frames_per_sample, dataframe, index, count, spc
+                            row,partial_frame_list[index], video, frames_per_sample, dataframe, index, count, spc
                         )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
                         dataframe.at[index, "frame_of_sample"] = 0
                         dataframe.at[index, "counts"] = []
-                        dataframe.at[index, "partial_sample"] = []
+                        partial_frame_list[index] = []
                         dataframe.at[index, "samples_recorded"] = False
 
         logging.info(f"Capture to {video} has been released, writing samples")
@@ -132,14 +132,14 @@ def sample_video(
     return
 
 
-def save_sample(row, video, frames_per_sample, dataframe, index, count, spc):
+def save_sample(row, partial_frames, video, frames_per_sample, dataframe, index, count, spc):
     try:
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
 
         if frames_per_sample == 1:
-            t = dataframe.loc[index, "partial_sample"][0]
+            t = partial_frames[0]
             pt_name = (
                 f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
                     "\x00", ""
@@ -158,7 +158,7 @@ def save_sample(row, video, frames_per_sample, dataframe, index, count, spc):
                 logging.error(f"Overwriting {pt_name}")
             torch.save(t, pt_name)
         else:
-            t = torch.cat(dataframe.at[index, "partial_sample"])
+            t = torch.cat(partial_frames)
             pt_name = (
                 f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
                     "\x00", ""
