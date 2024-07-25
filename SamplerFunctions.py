@@ -42,7 +42,7 @@ def sample_video(
                     random.sample(population=range(available_samples), k=num_samples)
                 )
             ]
-            logging.info(f"Target samples for {video}: {target_samples}")
+            logging.info(f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end")
             logging.debug(f"Target samples for {video}: {target_samples}")
             t_s.append(target_samples)
             
@@ -128,7 +128,7 @@ def sample_video(
 
 def save_sample(row, video, frames_per_sample, dataframe, index):
     try:
-        directory_name = row.loc["data_file"].replace(".csv", "").strip() + "_samplestemporary"
+        directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
         
@@ -148,7 +148,6 @@ def save_sample(row, video, frames_per_sample, dataframe, index):
             # check for overwriting
             if pt_name in os.listdir(directory_name):
                 logging.error(f"Overwriting {pt_name}")
-            
             torch.save(t, pt_name)
         else:
             t = torch.cat(dataframe.at[index, "partial_sample"])
@@ -165,8 +164,6 @@ def save_sample(row, video, frames_per_sample, dataframe, index):
             s_c_file.close()
             if pt_name in os.listdir(directory_name):
                 logging.error(f"Overwriting {pt_name}")
-            
-            
             torch.save(t, pt_name)
         logging.info(f"Saved sample {d_name} for {video}")
     except Exception as e:
