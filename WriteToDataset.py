@@ -82,9 +82,9 @@ def write_to_dataset(
                         img = transforms.ToPILImage()(frame[i] / 255.0).convert("RGB")
                     else:
                         img = transforms.ToPILImage()(frame[i] / 255.0).convert("L")
-                        with img:
-                            buffers.append(io.BytesIO())
-                            img.save(fp=buffers[-1], format="png")
+                        
+                    buffers.append(io.BytesIO())
+                    img.save(fp=buffers[-1], format="png")
 
                     sample = {
                         "__key__": "_".join((base_name, "_".join(frame_num))),
