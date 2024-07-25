@@ -108,6 +108,7 @@ def sample_video(
                     # read one sample as an image
                     if row["frame_of_sample"] == frames_per_sample:
                         logging.info(f"IF statement triggered; frames_per_sample: {frames_per_sample}, frame_of_sample: {row['frame_of_sample']}")
+                        logging.info(f"partial_frame_list[index]: {len(partial_frame_list[index])}")
                         spc += 1
                         logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
