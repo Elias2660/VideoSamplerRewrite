@@ -106,7 +106,7 @@ def sample_video(
                     if row["frame_of_sample"] == frames_per_sample:
                         logging.debug(f"Saving sample at frame {count} for {video}")
                         save_sample(
-                            row, video, frames_per_sample, dataframe, index, lock
+                            row, video, frames_per_sample, dataframe, index, lock, count
                         )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
@@ -131,7 +131,7 @@ def sample_video(
     return
 
 
-def save_sample(row, video, frames_per_sample, dataframe, index, lock):
+def save_sample(row, video, frames_per_sample, dataframe, index, lock, count):
     try:
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
@@ -141,12 +141,12 @@ def save_sample(row, video, frames_per_sample, dataframe, index, lock):
         if frames_per_sample == 1:
             t = dataframe.loc[index, "partial_sample"][0]
             pt_name = (
-                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
+                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}.pt".replace(
                     "\x00", ""
                 )
             )
             s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}.txt".replace(
                     "\x00", ""
                 ),
                 "w+",
@@ -160,12 +160,12 @@ def save_sample(row, video, frames_per_sample, dataframe, index, lock):
         else:
             t = torch.cat(dataframe.at[index, "partial_sample"])
             pt_name = (
-                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}.pt".replace(
+                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}.pt".replace(
                     "\x00", ""
                 )
             )
             s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}.txt".replace(
+                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}.txt".replace(
                     "\x00", ""
                 ),
                 "w+",
