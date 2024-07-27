@@ -50,7 +50,9 @@ def sample_video(
             target_sample_list.append(target_samples)
             partial_frame_list.append([])
 
-        logging.info(f"Size of target sample list for {video}: {len(target_sample_list)}")
+        logging.info(
+            f"Size of target sample list for {video}: {len(target_sample_list)}"
+        )
         logging.debug(f"Dataframe for {video} about to be prepared(1)")
 
         dataframe["counts"] = ""
@@ -76,7 +78,10 @@ def sample_video(
                 logging.info(f"Frame {count} read from video {video}")
             spc = 0
             for index, row in dataframe.iterrows():
-                if target_sample_list[index][0] > count or target_sample_list[index][-1] < count:
+                if (
+                    target_sample_list[index][0] > count
+                    or target_sample_list[index][-1] < count
+                ):
                     continue
                 logging.debug(
                     f"length of target sample sample list: {len(target_sample_list)} \n index: {index}"
@@ -98,12 +103,19 @@ def sample_video(
                     )
                     partial_frame_list[index].append(in_frame)
                     dataframe.at[index, "counts"].append(str(count))
-                    
+
                     # read one sample as an image
-                    if int(row["frame_of_sample"]) == int(frames_per_sample) - 1: # -1 because we start at 0
+                    if (
+                        int(row["frame_of_sample"]) == int(frames_per_sample) - 1
+                    ):  # -1 because we start at 0
                         spc += 1
                         save_sample(
-                            row, partial_frame_list[index], video, frames_per_sample, count, spc
+                            row,
+                            partial_frame_list[index],
+                            video,
+                            frames_per_sample,
+                            count,
+                            spc,
                         )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
@@ -136,10 +148,8 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
 
         if frames_per_sample == 1:
             t = partial_frames[0]
-            pt_name = (
-                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
-                    "\x00", ""
-                )
+            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
+                "\x00", ""
             )
             s_c_file = open(
                 f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
@@ -156,10 +166,8 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
         else:
             t = torch.cat(partial_frames)
             logging.info(f"Concatenated multiple frames, shape: {t.shape}")
-            pt_name = (
-                f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
-                    "\x00", ""
-                )
+            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
+                "\x00", ""
             )
             s_c_file = open(
                 f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
@@ -218,18 +226,6 @@ def apply_video_transformations(
 
 
 def getVideoInfo(video: str):
-    """
-    Get the total frames in a video.
-
-    Arguments:
-        video (str): The path to the video file.
-    Returns:
-        int: Width
-        int: Height
-        int: The total number of frames.
-    """
-    # Following advice from https://kkroening.github.io/ffmpeg-python/index.html
-    # First find the size, then set up a stream.
     try:
         cap = cv2.VideoCapture(video)
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
