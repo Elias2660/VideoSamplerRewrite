@@ -29,9 +29,11 @@ def write_to_dataset(
             if file.endswith(".txt"):
                 continue
             frame = torch.load(os.path.join(directory, file))
-            s_c_file = open(os.path.join(directory + "txt", file.replace(".pt", ".txt")), "r")
+            s_c_file = open(
+                os.path.join(directory + "txt", file.replace(".pt", ".txt")), "r"
+            )
             s = file.replace(".pt", "").split("/")[-1].split("_")
-            if len(s) != 2:
+            if len(s) != 4:
                 logging.error(
                     f"Unexpected format in file name: {file}, split result: {s}"
                 )
@@ -82,17 +84,17 @@ def write_to_dataset(
                         img = transforms.ToPILImage()(frame[i] / 255.0).convert("RGB")
                     else:
                         img = transforms.ToPILImage()(frame[i] / 255.0).convert("L")
-                        
+
                     buffers.append(io.BytesIO())
                     img.save(fp=buffers[-1], format="png")
 
-                    sample = {
-                        "__key__": "_".join((base_name, "_".join(frame_num))),
-                        "cls": str(sample_class).encode("utf-8"),
-                        "metadata.txt": metadata.encode("utf-8"),
-                    }
-                    for i in range(frames_per_sample):
-                        sample[f"{i}.png"] = buffers[i].getbuffer()
+                sample = {
+                    "__key__": "_".join((base_name, "_".join(frame_num))),
+                    "cls": str(sample_class).encode("utf-8"),
+                    "metadata.txt": metadata.encode("utf-8"),
+                }
+                for i in range(frames_per_sample):
+                    sample[f"{i}.png"] = buffers[i].getbuffer()
 
                 logging.info(f"Writing sample to dataset tar file")
                 tar_writer.write(sample)
