@@ -18,17 +18,39 @@ def sample_video(
     bg_subtract,
     sample_span: int,
 ):
-    start_time = time.time()
+    """
+    Samples frames from a video based on the provided parameters, writing the samples to folders
+
+    Args:
+        video (str): The path to the video file.
+        old_df (pd.DataFrame): The original DataFrame containing information about the video frames.
+        number_of_samples_max (int): The maximum number of samples to be taken from the video.
+        frames_per_sample (int): The number of frames to be included in each sample.
+        normalize (bool): Flag indicating whether to normalize the sampled frames.
+        out_channels (int): The number of output channels for the sampled frames.
+        bg_subtract: Background subtraction method to be applied to the frames.
+        sample_span (int): The span between each sample.
+
+    Returns:
+        None
+    """
+    start_time = (
+        time.time()
+    )  # start the timer to determine how long it takes to sample the video
     cap = None
     count = 0
     try:
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
-        target_sample_list = []
+        target_sample_list = (
+            []
+        )  # list of lists, these don't work well the the dataframe
         partial_frame_list = []
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
         width, height = getVideoInfo(video)
+
+        # 49-81 setups up the dataset
         for index, row in dataframe.iterrows():
             begin_frame = row.iloc[2]
             end_frame = row.iloc[3]
@@ -69,10 +91,10 @@ def sample_video(
             return
 
         while True:
-            ret, frame = cap.read()
+            ret, frame = cap.read()  # read a frame
             if not ret:
                 break
-            count += 1
+            count += 1  # count the frame
             logging.debug(f"Frame {count} read from video {video}")
             if count % 10000 == 0:
                 logging.info(f"Frame {count} read from video {video}")
@@ -82,15 +104,18 @@ def sample_video(
                     target_sample_list[index][0] > count
                     or target_sample_list[index][-1] < count
                 ):
+                    # skip if the frame is not in the target sample list
                     continue
                 logging.debug(
                     f"length of target sample sample list: {len(target_sample_list)} \n index: {index}"
                 )
                 if count in target_sample_list[index]:
+                    # start recoding samples
                     logging.debug(f"Frame {count} triggered samples_recorded")
                     dataframe.at[index, "samples_recorded"] = True
 
                 if row["samples_recorded"]:
+
                     dataframe.at[index, "frame_of_sample"] += 1
                     in_frame = apply_video_transformations(
                         frame,
@@ -104,11 +129,13 @@ def sample_video(
                     partial_frame_list[index].append(in_frame)
                     dataframe.at[index, "counts"].append(str(count))
 
-                    # read one sample as an image
                     if (
                         int(row["frame_of_sample"]) == int(frames_per_sample) - 1
                     ):  # -1 because we start at 0
-                        spc += 1
+                        spc += (
+                            1  # scramble to make sure every saved .pt sample is unique
+                        )
+
                         save_sample(
                             row,
                             partial_frame_list[index],
@@ -119,6 +146,8 @@ def sample_video(
                         )
 
                         logging.info(f"Saved sample at frame {count} for {video}")
+
+                        # reset the dataframe row
                         dataframe.at[index, "frame_of_sample"] = 0
                         dataframe.at[index, "counts"] = []
                         partial_frame_list[index] = []
@@ -141,6 +170,23 @@ def sample_video(
 
 
 def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
+    """
+    Save a sample of frames to disk.
+
+    Args:
+        row (pandas.Series): The row containing information about the sample.
+        partial_frames (list): List of partial frames to be saved.
+        video (str): The name of the video.
+        frames_per_sample (int): The number of frames per sample.
+        count (int): The count of the sample.
+        spc (int): The spc of the sample.
+
+    Raises:
+        Exception: If there is an error saving the sample.
+
+    Returns:
+        None
+    """
     try:
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
@@ -197,6 +243,21 @@ def apply_video_transformations(
     width: int,
     bg_subtract,
 ):
+    """
+    Apply transformations to a video frame.
+
+    Args:
+        frame: The input video frame.
+        count (int): The frame count.
+        normalize (bool): Flag indicating whether to normalize the frame.
+        out_channels (int): The number of output channels.
+        height (int): The desired height of the frame.
+        width (int): The desired width of the frame.
+        bg_subtract: Background subtraction parameter.
+
+    Returns:
+        torch.Tensor: The transformed video frame as a tensor.
+    """
     if normalize:
         frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
@@ -226,6 +287,16 @@ def apply_video_transformations(
 
 
 def getVideoInfo(video: str):
+    """
+    Retrieves the width and height of a video.
+
+    Parameters:
+    video (str): The path to the video file.
+
+    Returns:
+    tuple: A tuple containing the width and height of the video.
+    """
+
     try:
         cap = cv2.VideoCapture(video)
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
