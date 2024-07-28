@@ -1,5 +1,4 @@
 import webdataset as wds
-import pandas as pd
 import os
 import logging
 import time
@@ -7,7 +6,6 @@ import torch
 from torchvision import transforms
 import io
 import time
-import random
 
 
 def write_to_dataset(
@@ -16,6 +14,22 @@ def write_to_dataset(
     frames_per_sample: int = 1,
     out_channels: int = 1,
 ):
+    """
+    Writes samples from a directory to a dataset tar file.
+
+    Args:
+        directory (str): The directory containing the samples.
+        tar_file (str): The path to the output tar file.
+        frames_per_sample (int, optional): The number of frames per sample. Defaults to 1.
+        out_channels (int, optional): The number of output channels. Defaults to 1.
+
+    Raises:
+        Exception: If there is an error writing to the dataset.
+
+    Returns:
+        None
+    """
+
     try:
         tar_writer = wds.TarWriter(tar_file, encoder=False)
         start_time = time.time()
@@ -76,7 +90,6 @@ def write_to_dataset(
                 logging.info(f"Writing sample to dataset tar file")
                 tar_writer.write(sample)
             else:
-                # Save multiple pngs
                 buffers = []
 
                 for i in range(frames_per_sample):
