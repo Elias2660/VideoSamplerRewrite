@@ -108,11 +108,8 @@ def main():
             )
 
         data_frame_list = [group for _, group in total_dataframe.groupby("file")]
-        logging.info(len(data_frame_list))
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
-        for i in range(3):
-            logging.info(data_frame_list[i].head())
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
@@ -132,7 +129,6 @@ def main():
             ]
             concurrent.futures.wait(futures)
             logging.info(f"Submitted {len(futures)} tasks to the executor")
-            logging.info(f"Executor mapped")
             
         result = subprocess.run("ls *temporary", shell=True, capture_output=True, text=True)
         text = ansi_escape.sub(result.stdout).split()
@@ -152,7 +148,6 @@ def main():
             ]
             concurrent.futures.wait(futures)
             logging.info(f"Submitted {len(futures)} tasks to the executor")
-            logging.info(f"Executor mapped")
 
         end = time.time()
         logging.info(f"Time taken to run the the script: {end - start} seconds")
