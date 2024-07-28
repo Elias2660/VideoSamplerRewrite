@@ -129,10 +129,13 @@ def main():
             ]
             concurrent.futures.wait(futures)
             logging.info(f"Submitted {len(futures)} tasks to the executor")
-            
-        result = subprocess.run("ls *temporary", shell=True, capture_output=True, text=True)
-        text = ansi_escape.sub(result.stdout).split()
-        logging.info(f"Samples sampled: {text}")
+        try:    
+            result = subprocess.run("ls *temporary", shell=True, capture_output=True, text=True)
+            text = ansi_escape.sub('', result.stdout).split()
+            logging.info(f"Samples sampled: {text}")
+        except Exception as e:
+            logging.error(f"An error occured in subprocess: {e}")
+            raise e   
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
