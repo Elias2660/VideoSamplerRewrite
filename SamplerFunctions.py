@@ -39,6 +39,7 @@ def sample_video(
     )  # start the timer to determine how long it takes to sample the video
     cap = None
     count = 0
+    sample_count = 0
     try:
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
@@ -144,9 +145,10 @@ def sample_video(
                             count,
                             spc,
                         )
+                        if sample_count % 100 == 0:
+                            logging.info(f"Saved sample at frame {count} for {video}")
 
-                        logging.info(f"Saved sample at frame {count} for {video}")
-
+                        sample_count += 1
                         # reset the dataframe row
                         dataframe.at[index, "frame_of_sample"] = 0
                         dataframe.at[index, "counts"] = []
@@ -162,7 +164,6 @@ def sample_video(
         raise
 
     finally:
-        logging.info(f"Releasing video capture for {video}")
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video}")
@@ -211,7 +212,6 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
             torch.save(t, pt_name)
         else:
             t = torch.cat(partial_frames)
-            logging.info(f"Concatenated multiple frames, shape: {t.shape}")
             pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
                 "\x00", ""
             )

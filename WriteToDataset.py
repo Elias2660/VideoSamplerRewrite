@@ -39,6 +39,7 @@ def write_to_dataset(
             f"Reading in the samples from {directory}, finding {len(file_list)} files"
         )
 
+        sample_count = 0  # for logging purposes
         for file in file_list:
             if file.endswith(".txt"):
                 continue
@@ -56,14 +57,17 @@ def write_to_dataset(
             sample_class = d_name
             frame_num = s_c_file.read().split("-")
             s_c_file.close()
+
+            # remove the s_c file and pt file
+            os.remove(os.path.join(directory, file))
+            os.remove(os.path.join(directory + "txt", file.replace(".pt", ".txt")))
+
             logging.info(
                 f"video_path: {video_path}, sample_class: {sample_class}, frame_num: {frame_num}"
             )
-            logging.debug(f"Writing sample to dataset")
-            logging.debug(f"Frame shape: {frame.shape}")
-            logging.debug(f"Frame number: {frame_num}")
-            logging.debug(f"Video path: {video_path}")
-            logging.debug(f"frame type: {type(frame)}")
+            logging.debug(
+                f"Writing sample to dataset; Frame shape: {frame.shape}, Frame number: {frame_num[0]}, Video path: {video_path}, frame type: {type(frame)}"
+            )
 
             base_name = os.path.basename(video_path).replace(" ", "_").replace(".", "_")
             video_time = os.path.basename(video_path).split(".")[0]
@@ -109,8 +113,11 @@ def write_to_dataset(
                 for i in range(frames_per_sample):
                     sample[f"{i}.png"] = buffers[i].getbuffer()
 
-                logging.info(f"Writing sample to dataset tar file")
                 tar_writer.write(sample)
+
+            if sample_count % 100 == 0:
+                logging.info(f"Writing sample to dataset tar file")
+            sample_count += 1
 
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
