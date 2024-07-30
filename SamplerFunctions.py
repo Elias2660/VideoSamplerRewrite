@@ -227,7 +227,7 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
                 logging.error(f"Overwriting {pt_name}")
             torch.save(t, pt_name)
         logging.info(
-            f"Saved sample {s_c} for {video}, with name {directory_name}/{pt_name}"
+            f"Saved sample {s_c} for {video}, with name {pt_name}"
         )
     except Exception as e:
         logging.error(f"Error saving sample: {e}")
@@ -241,7 +241,7 @@ def apply_video_transformations(
     out_channels: int,
     height: int,
     width: int,
-    bg_subtract,
+    bg_subtract,  # TODO  Background subtraction parameter,  not used RM
 ):
     """
     Apply transformations to a video frame.
