@@ -110,8 +110,8 @@ def main():
         parser.add_argument(
             "--debug",
             type=bool,
-            help="Debug mode", 
-            default=False"
+            help="Debug mode, default false", 
+            default=False,
         )
         
         format = "%(asctime)s: %(message)s"
