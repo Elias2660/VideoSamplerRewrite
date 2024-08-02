@@ -1,3 +1,41 @@
+"""
+WriteToDataset.py
+
+This module provides functionality to write samples from a directory to a dataset tar file.
+
+Functions:
+    write_to_dataset(directory: str, tar_file: str, frames_per_sample: int = 1, out_channels: int = 1) -> None:
+        Writes samples from a directory to a dataset tar file.
+
+Usage:
+    To use this module, call the `write_to_dataset` function with the appropriate arguments.
+
+Example:
+    from WriteToDataset import write_to_dataset
+
+    write_to_dataset(
+        directory="path/to/sample/directory",
+        tar_file="output/dataset.tar",
+        frames_per_sample=5,
+        out_channels=3
+    )
+
+Dependencies:
+    - webdataset
+    - os
+    - logging
+    - time
+    - torch
+    - torchvision
+    - io
+
+Raises:
+    Exception: If there is an error writing to the dataset.
+
+License:
+    This project is licensed under the MIT License - see the LICENSE file for details.
+"""
+
 import webdataset as wds
 import os
 import logging
