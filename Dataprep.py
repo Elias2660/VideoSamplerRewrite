@@ -1,3 +1,35 @@
+"""
+Dataprep.py
+
+This script prepares datasets for Deep Neural Network (DNN) training using video data. It performs the following tasks:
+1. Clears the existing log file or creates a new one if it doesn't exist.
+2. Parses command-line arguments to configure the data preparation process.
+3. Uses a thread pool to concurrently process video files and write the processed data to a dataset.
+4. Logs the progress and execution time of the data preparation process.
+5. Cleans up temporary files created during the process.
+
+Functions:
+- main(): The main function that orchestrates the data preparation process.
+
+Usage:
+    python Dataprep.py --dataset_path <path-to-dataset> --dataset_name <dataset-name> --number_of_samples_max <max-samples> --max_workers <number-of-workers> --frames_per_sample <frames-per-sample>
+
+Dependencies:
+- pandas
+- argparse
+- subprocess
+- multiprocessing
+- concurrent.futures
+- re
+- os
+- logging
+- SamplerFunctions.sample_video
+- WriteToDataset.write_to_dataset
+
+Example:
+    python Dataprep.py --dataset_path ./data --dataset_name my_dataset --number_of_samples_max 1000 --max_workers 4 --frames_per_sample 10
+"""
+
 import time
 import pandas as pd
 import logging
@@ -11,8 +43,6 @@ import concurrent
 import re
 import os
 
-format = "%(asctime)s: %(message)s"
-logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
 
 def main():
@@ -77,8 +107,23 @@ def main():
             help="The background subtraction method to use, defaults to None [EXPERIMENTIAL, not implemented yet]",
             default=None,
         )
+        parser.add_argument(
+            "--debug",
+            type=bool,
+            help="Debug mode", 
+            default=False"
+        )
+        
+        format = "%(asctime)s: %(message)s"
+        logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+        
 
         args = parser.parse_args()
+        
+        if args.debug:
+            logging.getLogger().setLevel(logging.DEBUG)
+            logging.debug("Debug mode activated")
+        
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")

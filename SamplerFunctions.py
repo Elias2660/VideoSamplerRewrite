@@ -1,3 +1,29 @@
+"""
+TODO: Add way to crop the files to a specific size
+
+
+SamplerFunctions.py
+
+This module contains functions for sampling frames from videos and processing them for dataset preparation.
+
+Functions:
+    sample_video(video: str, old_df: pd.DataFrame, number_of_samples_max: int, frames_per_sample: int, normalize: bool, out_channels: int, bg_subtract, sample_span: int):
+        Samples frames from a video based on the provided parameters, writing the samples to folders.
+
+    save_sample(row, partial_frames, video, frames_per_sample, count, spc):
+        Saves the sampled frames to disk in the specified format.
+
+    apply_video_transformations(frame, count, normalize, out_channels, height, width, bg_subtract):
+        Applies transformations to the video frames such as normalization and background subtraction.
+
+    getVideoInfo(video: str):
+        Retrieves information about the video such as frame count, width, and height.
+
+Constants:
+    target_sample_list: List of target samples for each frame.
+    target_samples: List of samples to be targeted.
+"""
+
 import logging
 import cv2
 import pandas as pd
