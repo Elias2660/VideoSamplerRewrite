@@ -44,7 +44,6 @@ import re
 import os
 
 
-
 def main():
     file_list = []
     try:
@@ -101,29 +100,56 @@ def main():
             default=1,
         )
         parser.add_argument(
-            "--bg-subtract",
-            type=str,
-            choices=["mog2", "knn"],
-            help="The background subtraction method to use, defaults to None [EXPERIMENTIAL, not implemented yet]",
-            default=None,
-        )
-        parser.add_argument(
             "--debug",
             type=bool,
-            help="Debug mode, default false", 
+            help="Debug mode, default false",
             default=False,
         )
-        
+        parser.add_argument(
+            "--crop",
+            help="Crop the image, default=False",
+            default=False,
+            action="store_true",
+        )
+        parser.add_argument(
+            "--x-offset",
+            type=int,
+            help="The x offset for the crop, default=0",
+            default=0,
+        )
+        parser.add_argument(
+            "--y-offset",
+            type=int,
+            help="The y offset for the crop, default=0",
+            default=0,
+        )
+        parser.add_argument(
+            "--out-width",
+            type=int,
+            help="The width of the output image, default=400",
+            default=400,
+        )
+        parser.add_argument(
+            "--out-height",
+            type=int,
+            help="The height of the output image, default=400",
+            default=400,
+        )
+
         format = "%(asctime)s: %(message)s"
         logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
-        
 
         args = parser.parse_args()
         
         if args.debug:
             logging.getLogger().setLevel(logging.DEBUG)
             logging.debug("Debug mode activated")
-        
+
+        logging.info(
+            f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}"
+        )
+        logging.info(f"Crop has been set as {args.crop}")
+
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
@@ -167,20 +193,21 @@ def main():
                     args.frames_per_sample,
                     args.normalize,
                     args.out_channels,
-                    args.bg_subtract,
                     args.frames_per_sample,
                 )
                 for dataset in data_frame_list
             ]
             concurrent.futures.wait(futures)
             logging.info(f"Submitted {len(futures)} tasks to the executor")
-        try:    
-            result = subprocess.run("ls *temporary", shell=True, capture_output=True, text=True)
-            text = ansi_escape.sub('', result.stdout).split()
+        try:
+            result = subprocess.run(
+                "ls *temporary", shell=True, capture_output=True, text=True
+            )
+            text = ansi_escape.sub("", result.stdout).split()
             logging.info(f"Samples sampled: {text}")
         except Exception as e:
             logging.error(f"An error occured in subprocess: {e}")
-            raise e   
+            raise e
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(args.max_workers, multiprocessing.cpu_count())
         ) as executor:
@@ -203,10 +230,9 @@ def main():
     except Exception as e:
         logging.error(f"An error occured in main function: {e}")
         raise e
-    
 
     finally:
-        
+
         for file in file_list:
             subprocess.run(
                 f"rm -rf {file.replace('.csv', '')}_samplestemporary", shell=True
