@@ -1,20 +1,19 @@
+# TODO: ADD SCALING?
+
 """
-TODO: Add way to crop the files to a specific size
-
-
 SamplerFunctions.py
 
 This module contains functions for sampling frames from videos and processing them for dataset preparation.
 
 Functions:
-    sample_video(video: str, old_df: pd.DataFrame, number_of_samples_max: int, frames_per_sample: int, normalize: bool, out_channels: int, bg_subtract, sample_span: int):
+    sample_video(video: str, old_df: pd.DataFrame, number_of_samples_max: int, frames_per_sample: int, normalize: bool, out_channels: int, sample_span: int):
         Samples frames from a video based on the provided parameters, writing the samples to folders.
 
     save_sample(row, partial_frames, video, frames_per_sample, count, spc):
         Saves the sampled frames to disk in the specified format.
 
-    apply_video_transformations(frame, count, normalize, out_channels, height, width, bg_subtract):
-        Applies transformations to the video frames such as normalization and background subtraction.
+    apply_video_transformations(frame, count, normalize, out_channels, height, width):
+        Applies transformations to the video frames such as normalization.
 
     getVideoInfo(video: str):
         Retrieves information about the video such as frame count, width, and height.
@@ -30,6 +29,7 @@ import pandas as pd
 import numpy as np
 import os
 import time
+import math
 import random
 import torch
 
@@ -41,8 +41,12 @@ def sample_video(
     frames_per_sample: int,
     normalize: bool,
     out_channels: int,
-    bg_subtract,
     sample_span: int,
+    out_height: int = None,
+    out_width: int = None,
+    x_offset: int = 0,
+    y_offset: int = 0,
+    crop: bool = False,
 ):
     """
     Samples frames from a video based on the provided parameters, writing the samples to folders
@@ -54,7 +58,6 @@ def sample_video(
         frames_per_sample (int): The number of frames to be included in each sample.
         normalize (bool): Flag indicating whether to normalize the sampled frames.
         out_channels (int): The number of output channels for the sampled frames.
-        bg_subtract: Background subtraction method to be applied to the frames.
         sample_span (int): The span between each sample.
 
     Returns:
@@ -93,13 +96,13 @@ def sample_video(
                 )
             ]
             logging.info(
-                f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, frames per sample: {frames_per_sample}"
+                f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, number of samples {len(target_samples)}, frames per sample: {frames_per_sample}"
             )
             logging.debug(f"Target samples for {video}: {target_samples}")
             target_sample_list.append(target_samples)
             partial_frame_list.append([])
 
-        logging.info(
+        logging.debug(
             f"Size of target sample list for {video}: {len(target_sample_list)}"
         )
         logging.debug(f"Dataframe for {video} about to be prepared(1)")
@@ -151,7 +154,11 @@ def sample_video(
                         out_channels,
                         height,
                         width,
-                        bg_subtract=bg_subtract,
+                        crop,
+                        x_offset,
+                        y_offset,
+                        out_width,
+                        out_height,
                     )
                     partial_frame_list[index].append(in_frame)
                     dataframe.at[index, "counts"].append(str(count))
@@ -172,7 +179,9 @@ def sample_video(
                             spc,
                         )
                         if sample_count % 100 == 0:
-                            logging.info(f"Saved sample at frame {count} for {video}")
+                            logging.info(
+                                f"Saved sample {sample_count} at frame {count} for {video}"
+                            )
 
                         sample_count += 1
                         # reset the dataframe row
@@ -252,9 +261,7 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
             if pt_name in os.listdir(directory_name):
                 logging.error(f"Overwriting {pt_name}")
             torch.save(t, pt_name)
-        logging.info(
-            f"Saved sample {s_c} for {video}, with name {pt_name}"
-        )
+        logging.debug(f"Saved sample {s_c} for {video}, with name {pt_name}")
     except Exception as e:
         logging.error(f"Error saving sample: {e}")
         raise
@@ -267,7 +274,11 @@ def apply_video_transformations(
     out_channels: int,
     height: int,
     width: int,
-    bg_subtract,  # TODO  Background subtraction parameter,  not used RM
+    crop: bool = False,
+    x_offset: int = 0,
+    y_offset: int = 0,
+    out_width: int = 400,
+    out_height: int = 400,
 ):
     """
     Apply transformations to a video frame.
@@ -279,11 +290,11 @@ def apply_video_transformations(
         out_channels (int): The number of output channels.
         height (int): The desired height of the frame.
         width (int): The desired width of the frame.
-        bg_subtract: Background subtraction parameter.
 
     Returns:
         torch.Tensor: The transformed video frame as a tensor.
     """
+
     if normalize:
         frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
@@ -303,10 +314,19 @@ def apply_video_transformations(
 
     logging.debug(f"Frame shape: {frame.shape}, converting to a tensor")
     np_frame = np.array(frame)
+
     in_frame = torch.tensor(
         data=np_frame,
         dtype=torch.uint8,
     ).reshape([1, height, width, out_channels])
+
+    if crop:
+        out_width, out_height, crop_x, crop_y = vidSamplingCommonCrop(
+            height, width, out_height, out_width, 1, x_offset, y_offset
+        )
+        in_frame = in_frame[
+            :, crop_y : crop_y + out_height, crop_x : crop_x + out_width, :
+        ]
 
     in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
     return in_frame
@@ -331,3 +351,32 @@ def getVideoInfo(video: str):
         cap.release()
 
     return width, height
+
+
+def vidSamplingCommonCrop(
+    height, width, out_height, out_width, scale, x_offset, y_offset
+):
+    """
+    Return the common cropping parameters used in dataprep and annotations.
+
+    Arguments:
+        height     (int): Height of the video
+        width      (int): Width of the video
+        out_height (int): Height of the output patch
+        out_width  (int): Width of the output patch
+        scale    (float): Scale applied to the original video
+        x_offset   (int): x offset of the crop (after scaling)
+        y_offset   (int): y offset of the crop (after scaling)
+    Returns:
+        out_width, out_height, crop_x, crop_y
+    """
+
+    if out_width is None:
+        out_width = math.floor(width * scale)
+    if out_height is None:
+        out_height = math.floor(height * scale)
+
+    crop_x = math.floor((width * scale - out_width) / 2 + x_offset)
+    crop_y = math.floor((height * scale - out_height) / 2 + y_offset)
+
+    return out_width, out_height, crop_x, crop_y
