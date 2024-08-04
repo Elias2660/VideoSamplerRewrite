@@ -204,7 +204,6 @@ def sample_video(
                                 count,
                                 spc,
                             ),
-                            callback=postprocess,
                         )
                         if sample_count % 100 == 0:
                             logging.info(
@@ -406,5 +405,3 @@ def vidSamplingCommonCrop(
     return out_width, out_height, crop_x, crop_y
 
 
-def postprocess(result):
-    logging.info(f"finished: {result}")
