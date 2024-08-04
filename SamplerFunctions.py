@@ -132,7 +132,7 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
-        with ThreadPoolExecutor(max_workers=40) as executor:
+        with ThreadPoolExecutor() as executor:
             while True:
                 ret, frame = cap.read()  # read a frame
                 if not ret:
@@ -211,11 +211,12 @@ def sample_video(
                             dataframe.at[index, "counts"] = []
                             partial_frame_list[index] = []
                             dataframe.at[index, "samples_recorded"] = False
-
+                            
+                
             logging.info(f"Capture to {video} has been released, writing samples")
             end_time = time.time()
             logging.info("Time taken to sample video: " + str(end_time - start_time))
-
+            executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
         raise
