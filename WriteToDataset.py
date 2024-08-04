@@ -43,7 +43,68 @@ import time
 import torch
 from torchvision import transforms
 import io
-import time
+from concurrent.futures import ThreadPoolExecutor
+
+
+def process_sample(file, directory, frames_per_sample, out_channels):
+    try:
+        frame = torch.load(os.path.join(directory, file))
+        s_c_file_path = os.path.join(directory + "txt", file.replace(".pt", ".txt"))
+        with open(s_c_file_path, "r") as s_c_file:
+            s = file.replace(".pt", "").split("/")[-1].split("_")
+            if len(s) != 4:
+                logging.error(
+                    f"Unexpected format in file name: {file}, split result: {s}"
+                )
+                return None
+            filename, d_name, _, _ = s
+            video_path = filename.replace("SPACE", " ")
+            sample_class = d_name
+            frame_num = s_c_file.read().split("-")
+
+        os.remove(os.path.join(directory, file))
+        os.remove(s_c_file_path)
+
+        base_name = os.path.basename(video_path).replace(" ", "_").replace(".", "_")
+        video_time = os.path.basename(video_path).split(".")[0]
+        time_sec = time.mktime(time.strptime(video_time, "%Y-%m-%d %H:%M:%S"))
+        time_struct = time.localtime(time_sec + int(frame_num[0]) // 3)
+        curtime = time.strftime("%Y-%m-%d %H:%M:%S", time_struct)
+        metadata = f"{video_path},{frame_num[0]},{curtime}"
+
+        if frames_per_sample == 1:
+            img = transforms.ToPILImage()(frame[0] / 255.0).convert(
+                "RGB" if out_channels == 3 else "L"
+            )
+            buf = io.BytesIO()
+            img.save(fp=buf, format="png")
+            sample = {
+                "__key__": "_".join((base_name, "_".join(frame_num))),
+                "0.png": buf.getbuffer(),
+                "cls": str(sample_class).encode("utf-8"),
+                "metadata.txt": metadata.encode("utf-8"),
+            }
+        else:
+            buffers = []
+            for i in range(frames_per_sample):
+                img = transforms.ToPILImage()(frame[i] / 255.0).convert(
+                    "RGB" if out_channels == 3 else "L"
+                )
+                buf = io.BytesIO()
+                img.save(fp=buf, format="png")
+                buffers.append(buf)
+            sample = {
+                "__key__": "_".join((base_name, "_".join(frame_num))),
+                "cls": str(sample_class).encode("utf-8"),
+                "metadata.txt": metadata.encode("utf-8"),
+            }
+            for i in range(frames_per_sample):
+                sample[f"{i}.png"] = buffers[i].getbuffer()
+
+        return sample
+    except Exception as e:
+        logging.error(f"Error processing sample {file}: {e}")
+        return None
 
 
 def write_to_dataset(
@@ -51,6 +112,8 @@ def write_to_dataset(
     tar_file: str,
     frames_per_sample: int = 1,
     out_channels: int = 1,
+    batch_size: int = 10,
+    num_workers: int = 4,
 ):
     """
     Writes samples from a directory to a dataset tar file.
@@ -60,101 +123,42 @@ def write_to_dataset(
         tar_file (str): The path to the output tar file.
         frames_per_sample (int, optional): The number of frames per sample. Defaults to 1.
         out_channels (int, optional): The number of output channels. Defaults to 1.
+        batch_size (int, optional): The number of samples to process in a batch. Defaults to 10.
+        num_workers (int, optional): The number of worker threads to use. Defaults to 4.
 
     Raises:
         Exception: If there is an error writing to the dataset.
-
-    Returns:
-        None
     """
-
     try:
         tar_writer = wds.TarWriter(tar_file, encoder=False)
         start_time = time.time()
 
-        file_list = os.listdir(directory)
+        file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
         logging.info(
             f"Reading in the samples from {directory}, finding {len(file_list)} files"
         )
 
         sample_count = 0  # for logging purposes
-        for file in file_list:
-            if file.endswith(".txt"):
-                continue
-            frame = torch.load(os.path.join(directory, file))
-            s_c_file = open(
-                os.path.join(directory + "txt", file.replace(".pt", ".txt")), "r"
-            )
-            s = file.replace(".pt", "").split("/")[-1].split("_")
-            if len(s) != 4:
-                logging.error(
-                    f"Unexpected format in file name: {file}, split result: {s}"
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            for i in range(0, len(file_list), batch_size):
+                batch = file_list[i : i + batch_size]
+                results = list(
+                    executor.map(
+                        process_sample,
+                        batch,
+                        [directory] * len(batch),
+                        [frames_per_sample] * len(batch),
+                        [out_channels] * len(batch),
+                    )
                 )
-            filename, d_name, _, _ = s
-            video_path = filename.replace("SPACE", " ")
-            sample_class = d_name
-            frame_num = s_c_file.read().split("-")
-            s_c_file.close()
-
-            # remove the s_c file and pt file
-            os.remove(os.path.join(directory, file))
-            os.remove(os.path.join(directory + "txt", file.replace(".pt", ".txt")))
-
-            logging.info(
-                f"video_path: {video_path}, sample_class: {sample_class}, frame_num: {frame_num}"
-            )
-            logging.debug(
-                f"Writing sample to dataset; Frame shape: {frame.shape}, Frame number: {frame_num[0]}, Video path: {video_path}, frame type: {type(frame)}"
-            )
-
-            base_name = os.path.basename(video_path).replace(" ", "_").replace(".", "_")
-            video_time = os.path.basename(video_path).split(".")[0]
-            time_sec = time.mktime(time.strptime(video_time, "%Y-%m-%d %H:%M:%S"))
-            time_struct = time.localtime(time_sec + int(frame_num[0]) // 3)
-            curtime = time.strftime("%Y-%m-%d %H:%M:%S", time_struct)
-            metadata = f"{video_path},{frame_num[0]},{curtime}"
-
-            if 1 == frames_per_sample:
-                if 3 == out_channels:
-                    img = transforms.ToPILImage()(frame[0] / 255.0).convert("RGB")
-                else:
-                    img = transforms.ToPILImage()(frame[0] / 255.0).convert("L")
-
-                with img:
-                    buf = io.BytesIO()
-                    img.save(fp=buf, format="png")
-                sample = {
-                    "__key__": "_".join((base_name, "_".join(frame_num))),
-                    "0.png": buf.getbuffer(),
-                    "cls": str(sample_class).encode("utf-8"),
-                    "metadata.txt": metadata.encode("utf-8"),
-                }
-                tar_writer.write(sample)
-            else:
-                buffers = []
-
-                for i in range(frames_per_sample):
-                    if 3 == out_channels:
-                        img = transforms.ToPILImage()(frame[i] / 255.0).convert("RGB")
-                    else:
-                        img = transforms.ToPILImage()(frame[i] / 255.0).convert("L")
-
-                    buffers.append(io.BytesIO())
-                    img.save(fp=buffers[-1], format="png")
-
-                sample = {
-                    "__key__": "_".join((base_name, "_".join(frame_num))),
-                    "cls": str(sample_class).encode("utf-8"),
-                    "metadata.txt": metadata.encode("utf-8"),
-                }
-                for i in range(frames_per_sample):
-                    sample[f"{i}.png"] = buffers[i].getbuffer()
-
-                tar_writer.write(sample)
-
-            if sample_count % 100 == 0:
-                logging.info(f"Writing sample {sample_count} to dataset tar file")
-            sample_count += 1
+                for sample in results:
+                    if sample:
+                        tar_writer.write(sample)
+                        if sample_count % 100 == 0:
+                            logging.info(
+                                f"Writing sample {sample_count} to dataset tar file"
+                            )
+                        sample_count += 1
 
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
@@ -163,8 +167,6 @@ def write_to_dataset(
     finally:
         logging.info(f"Closing tar file {tar_file}")
         tar_writer.close()
-        for buffer in buffers:
-            buffer.close()
 
     end_time = time.time()
     logging.info("Time taken to write to dataset: " + str(end_time - start_time))
