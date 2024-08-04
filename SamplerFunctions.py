@@ -70,7 +70,7 @@ def sample_video(
     cap = None
     count = 0
     sample_count = 0
-    pool = Pool(5)
+    pool = Pool(20)
     try:
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
