@@ -299,7 +299,6 @@ def apply_video_transformations(
     Returns:
         torch.Tensor: The transformed video frame as a tensor.
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if normalize:
         frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
@@ -326,7 +325,6 @@ def apply_video_transformations(
             dtype=torch.uint8,
         )
         .reshape([1, height, width, out_channels])
-        .to(device)
     )
 
     if crop:
