@@ -28,6 +28,7 @@ import cv2
 import pandas as pd
 import numpy as np
 import os
+import datetime
 import time
 import math
 import random
@@ -108,7 +109,7 @@ def sample_video(
         # Log and append results
         for target_samples in target_samples_list:
             if target_samples:
-                logging.info(
+                logging.debug(
                     f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, number of samples {len(target_samples)}, frames per sample: {frames_per_sample}"
                 )
                 logging.debug(f"Target samples for {video}: {target_samples}")
@@ -132,7 +133,7 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=os.cpu_count()//4) as executor:
             while True:
                 ret, frame = cap.read()  # read a frame
                 if not ret:
@@ -215,7 +216,7 @@ def sample_video(
                 
             logging.info(f"Capture to {video} has been released, writing samples")
             end_time = time.time()
-            logging.info("Time taken to sample video: " + str(end_time - start_time))
+            logging.info("Time taken to sample video: " + str(datetime.timedelta(seconds=(end_time - start_time))))
             executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
