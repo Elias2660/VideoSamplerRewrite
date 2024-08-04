@@ -32,7 +32,7 @@ import time
 import math
 import random
 import torch
-from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
 
 
 def sample_video(
@@ -70,7 +70,6 @@ def sample_video(
     cap = None
     count = 0
     sample_count = 0
-    pool = Pool(20)
     try:
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
@@ -133,93 +132,89 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
+        with ThreadPoolExecutor(max_workers=40) as executor:
+            while True:
+                ret, frame = cap.read()  # read a frame
+                if not ret:
+                    break
+                count += 1  # count the frame
+                logging.debug(f"Frame {count} read from video {video}")
+                if count % 10000 == 0:
+                    logging.info(f"Frame {count} read from video {video}")
+                spc = 0
 
-        while True:
-            ret, frame = cap.read()  # read a frame
-            if not ret:
-                break
-            count += 1  # count the frame
-            logging.debug(f"Frame {count} read from video {video}")
-            if count % 10000 == 0:
-                logging.info(f"Frame {count} read from video {video}")
-            spc = 0
-
-            relevant_rows = dataframe[
-                (
-                    dataframe.index.map(
-                        lambda idx: target_sample_list[idx][0]
-                        <= count
-                        <= target_sample_list[idx][-1]
-                    )
-                )
-            ]
-
-            for index, row in relevant_rows.iterrows():
-                if (
-                    target_sample_list[index][0] > count
-                    or target_sample_list[index][-1] < count
-                ):
-                    # skip if the frame is not in the target sample list
-                    continue
-                logging.debug(
-                    f"length of target sample sample list: {len(target_sample_list)} \n index: {index}"
-                )
-                if count in target_sample_list[index]:
-                    # start recoding samples
-                    logging.debug(f"Frame {count} triggered samples_recorded")
-                    dataframe.at[index, "samples_recorded"] = True
-
-                if row["samples_recorded"]:
-
-                    dataframe.at[index, "frame_of_sample"] += 1
-                    in_frame = apply_video_transformations(
-                        frame,
-                        count,
-                        normalize,
-                        out_channels,
-                        height,
-                        width,
-                        crop,
-                        x_offset,
-                        y_offset,
-                        out_width,
-                        out_height,
-                    )
-                    partial_frame_list[index].append(in_frame)
-                    dataframe.at[index, "counts"].append(str(count))
-
-                    if (
-                        int(row["frame_of_sample"]) == int(frames_per_sample) - 1
-                    ):  # -1 because we start at 0
-                        spc += (
-                            1  # scramble to make sure every saved .pt sample is unique
+                relevant_rows = dataframe[
+                    (
+                        dataframe.index.map(
+                            lambda idx: target_sample_list[idx][0]
+                            <= count
+                            <= target_sample_list[idx][-1]
                         )
-                        pool.apply_async(
-                            save_sample,
-                            args=(
+                    )
+                ]
+
+                for index, row in relevant_rows.iterrows():
+                    if (
+                        target_sample_list[index][0] > count
+                        or target_sample_list[index][-1] < count
+                    ):
+                        # skip if the frame is not in the target sample list
+                        continue
+                    logging.debug(
+                        f"length of target sample sample list: {len(target_sample_list)} \n index: {index}"
+                    )
+                    if count in target_sample_list[index]:
+                        # start recoding samples
+                        logging.debug(f"Frame {count} triggered samples_recorded")
+                        dataframe.at[index, "samples_recorded"] = True
+
+                    if row["samples_recorded"]:
+
+                        dataframe.at[index, "frame_of_sample"] += 1
+                        in_frame = apply_video_transformations(
+                            frame,
+                            count,
+                            normalize,
+                            out_channels,
+                            height,
+                            width,
+                            crop,
+                            x_offset,
+                            y_offset,
+                            out_width,
+                            out_height,
+                        )
+                        partial_frame_list[index].append(in_frame)
+                        dataframe.at[index, "counts"].append(str(count))
+
+                        if (
+                            int(row["frame_of_sample"]) == int(frames_per_sample) - 1
+                        ):  # -1 because we start at 0
+                            spc += 1  # scramble to make sure every saved .pt sample is unique
+                            executor.submit(
+                                save_sample,
                                 row,
                                 partial_frame_list[index],
                                 video,
                                 frames_per_sample,
                                 count,
                                 spc,
-                            ),
-                        )
-                        if sample_count % 100 == 0:
-                            logging.info(
-                                f"Saved sample {sample_count} at frame {count} for {video}"
                             )
+                            if sample_count % 100 == 0:
+                                logging.info(
+                                    f"Saved sample {sample_count} at frame {count} for {video}"
+                                )
 
-                        sample_count += 1
-                        # reset the dataframe row
-                        dataframe.at[index, "frame_of_sample"] = 0
-                        dataframe.at[index, "counts"] = []
-                        partial_frame_list[index] = []
-                        dataframe.at[index, "samples_recorded"] = False
+                            sample_count += 1
+                            # reset the dataframe row
+                            dataframe.at[index, "frame_of_sample"] = 0
+                            dataframe.at[index, "counts"] = []
+                            partial_frame_list[index] = []
+                            dataframe.at[index, "samples_recorded"] = False
 
-        logging.info(f"Capture to {video} has been released, writing samples")
-        end_time = time.time()
-        logging.info("Time taken to sample video: " + str(end_time - start_time))
+            logging.info(f"Capture to {video} has been released, writing samples")
+            end_time = time.time()
+            logging.info("Time taken to sample video: " + str(end_time - start_time))
 
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
@@ -403,5 +398,3 @@ def vidSamplingCommonCrop(
     crop_y = math.floor((height * scale - out_height) / 2 + y_offset)
 
     return out_width, out_height, crop_x, crop_y
-
-
