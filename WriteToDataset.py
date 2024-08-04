@@ -128,7 +128,7 @@ def write_to_dataset(
         )
 
         sample_count = 0  # for logging purposes
-        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        with ThreadPoolExecutor() as executor:
             for i in range(0, len(file_list), batch_size):
                 batch = file_list[i : i + batch_size]
                 results = list(
@@ -149,6 +149,7 @@ def write_to_dataset(
                                 f"Writing sample {sample_count} to dataset tar file"
                             )
 
+        executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
         raise
