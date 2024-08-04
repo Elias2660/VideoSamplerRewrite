@@ -129,7 +129,6 @@ def write_to_dataset(
                     "cls": str(sample_class).encode("utf-8"),
                     "metadata.txt": metadata.encode("utf-8"),
                 }
-                logging.info(f"Writing sample to dataset tar file")
                 tar_writer.write(sample)
             else:
                 buffers = []
@@ -154,7 +153,7 @@ def write_to_dataset(
                 tar_writer.write(sample)
 
             if sample_count % 100 == 0:
-                logging.info(f"Writing sample to dataset tar file")
+                logging.info(f"Writing sample {sample_count} to dataset tar file")
             sample_count += 1
 
     except Exception as e:
