@@ -32,6 +32,7 @@ import time
 import math
 import random
 import torch
+from multiprocessing import Pool
 
 
 def sample_video(
@@ -69,6 +70,7 @@ def sample_video(
     cap = None
     count = 0
     sample_count = 0
+    pool = Pool(5)
     try:
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
@@ -169,14 +171,17 @@ def sample_video(
                         spc += (
                             1  # scramble to make sure every saved .pt sample is unique
                         )
-
-                        save_sample(
-                            row,
-                            partial_frame_list[index],
-                            video,
-                            frames_per_sample,
-                            count,
-                            spc,
+                        pool.apply_async(
+                            save_sample,
+                            args=(
+                                row,
+                                partial_frame_list[index],
+                                video,
+                                frames_per_sample,
+                                count,
+                                spc,
+                            ),
+                            callback=postprocess,
                         )
                         if sample_count % 100 == 0:
                             logging.info(
@@ -315,10 +320,14 @@ def apply_video_transformations(
     logging.debug(f"Frame shape: {frame.shape}, converting to a tensor")
     np_frame = np.array(frame)
 
-    in_frame = torch.tensor(
-        data=np_frame,
-        dtype=torch.uint8,
-    ).reshape([1, height, width, out_channels]).to(device)
+    in_frame = (
+        torch.tensor(
+            data=np_frame,
+            dtype=torch.uint8,
+        )
+        .reshape([1, height, width, out_channels])
+        .to(device)
+    )
 
     if crop:
         out_width, out_height, crop_x, crop_y = vidSamplingCommonCrop(
@@ -380,3 +389,7 @@ def vidSamplingCommonCrop(
     crop_y = math.floor((height * scale - out_height) / 2 + y_offset)
 
     return out_width, out_height, crop_x, crop_y
+
+
+def postprocess(result):
+    logging.info(f"finished: {result}")
