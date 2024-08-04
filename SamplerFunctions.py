@@ -82,25 +82,37 @@ def sample_video(
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
         width, height = getVideoInfo(video)
 
-        # 49-81 setups up the dataset
-        for index, row in dataframe.iterrows():
-            begin_frame = row.iloc[2]
-            end_frame = row.iloc[3]
-            available_samples = (
-                end_frame - (sample_span - frames_per_sample) - begin_frame
-            ) // sample_span
-            num_samples = min(available_samples, number_of_samples_max)
+        # Extract necessary columns
+        begin_frames = dataframe.iloc[:, 2].values
+        end_frames = dataframe.iloc[:, 3].values
 
-            target_samples = [
-                (begin_frame) + x * sample_span
-                for x in sorted(
-                    random.sample(population=range(available_samples), k=num_samples)
+        # Calculate available samples
+        available_samples = (
+            end_frames - (sample_span - frames_per_sample) - begin_frames
+        ) // sample_span
+
+        # Determine the number of samples
+        num_samples = np.minimum(available_samples, number_of_samples_max)
+
+        # Generate target samples
+        target_samples_list = [
+            sorted(random.sample(range(avail), num)) if avail > 0 else []
+            for avail, num in zip(available_samples, num_samples)
+        ]
+
+        # Adjust target samples to start from begin_frame
+        target_samples_list = [
+            [begin_frame + x * sample_span for x in target_samples]
+            for begin_frame, target_samples in zip(begin_frames, target_samples_list)
+        ]
+
+        # Log and append results
+        for target_samples in target_samples_list:
+            if target_samples:
+                logging.info(
+                    f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, number of samples {len(target_samples)}, frames per sample: {frames_per_sample}"
                 )
-            ]
-            logging.info(
-                f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, number of samples {len(target_samples)}, frames per sample: {frames_per_sample}"
-            )
-            logging.debug(f"Target samples for {video}: {target_samples}")
+                logging.debug(f"Target samples for {video}: {target_samples}")
             target_sample_list.append(target_samples)
             partial_frame_list.append([])
 
@@ -131,7 +143,18 @@ def sample_video(
             if count % 10000 == 0:
                 logging.info(f"Frame {count} read from video {video}")
             spc = 0
-            for index, row in dataframe.iterrows():
+
+            relevant_rows = dataframe[
+                (
+                    dataframe.index.map(
+                        lambda idx: target_sample_list[idx][0]
+                        <= count
+                        <= target_sample_list[idx][-1]
+                    )
+                )
+            ]
+
+            for index, row in relevant_rows.iterrows():
                 if (
                     target_sample_list[index][0] > count
                     or target_sample_list[index][-1] < count
@@ -210,6 +233,11 @@ def sample_video(
     return
 
 
+import os
+import torch
+import logging
+
+
 def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
     """
     Save a sample of frames to disk.
@@ -232,41 +260,34 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
         directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
         s_c = "-".join([str(x) for x in row["counts"]])
         d_name = row.iloc[1]
+        video_name = video.replace(" ", "SPACE")
+        base_name = f"{directory_name}/{video_name}_{d_name}_{count}_{spc}".replace(
+            "\x00", ""
+        )
+        pt_name = f"{base_name}.pt"
+        txt_name = (
+            f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(
+                "\x00", ""
+            )
+        )
 
+        # Save the sample counts to a text file
+        with open(txt_name, "w+") as s_c_file:
+            s_c_file.write(s_c)
+
+        # Check for overwriting
+        if pt_name in os.listdir(directory_name):
+            logging.error(f"Overwriting {pt_name}")
+
+        # Save the tensor
         if frames_per_sample == 1:
             t = partial_frames[0]
-            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
-                "\x00", ""
-            )
-            s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
-                    "\x00", ""
-                ),
-                "w+",
-            )
-            s_c_file.write(s_c)
-            s_c_file.close()
-            # check for overwriting
-            if pt_name in os.listdir(directory_name):
-                logging.error(f"Overwriting {pt_name}")
-            torch.save(t, pt_name)
         else:
             t = torch.cat(partial_frames)
-            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
-                "\x00", ""
-            )
-            s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
-                    "\x00", ""
-                ),
-                "w+",
-            )
-            s_c_file.write(s_c)
-            s_c_file.close()
-            if pt_name in os.listdir(directory_name):
-                logging.error(f"Overwriting {pt_name}")
-            torch.save(t, pt_name)
+
+        torch.save(t, pt_name)
         logging.debug(f"Saved sample {s_c} for {video}, with name {pt_name}")
+
     except Exception as e:
         logging.error(f"Error saving sample: {e}")
         raise
@@ -312,30 +333,26 @@ def apply_video_transformations(
     brightness = 10  # Simple brightness control [0-100]
     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
 
-    if out_channels == 1:
-        logging.debug(f"Converting frame {count} to greyscale")
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
     logging.debug(f"Frame shape: {frame.shape}, converting to a tensor")
     np_frame = np.array(frame)
 
     in_frame = (
         torch.tensor(
             data=np_frame,
-            dtype=torch.uint8,
+            dtype=torch.float32,
         )
-        .reshape([1, height, width, out_channels])
-    )
+        .permute(2, 0, 1)
+        .unsqueeze(0)
+    )  # Shape: [1, C, H, W]
 
     if crop:
         out_width, out_height, crop_x, crop_y = vidSamplingCommonCrop(
             height, width, out_height, out_width, 1, x_offset, y_offset
         )
         in_frame = in_frame[
-            :, crop_y : crop_y + out_height, crop_x : crop_x + out_width, :
+            :, :, crop_y : crop_y + out_height, crop_x : crop_x + out_width
         ]
 
-    in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
     return in_frame
 
 
