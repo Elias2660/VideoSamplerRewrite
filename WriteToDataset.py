@@ -72,34 +72,23 @@ def process_sample(file, directory, frames_per_sample, out_channels):
         curtime = time.strftime("%Y-%m-%d %H:%M:%S", time_struct)
         metadata = f"{video_path},{frame_num[0]},{curtime}"
 
-        if frames_per_sample == 1:
-            img = transforms.ToPILImage()(frame[0] / 255.0).convert(
+        sample = {
+            "__key__": "_".join((base_name, "_".join(frame_num))),
+            "cls": str(sample_class).encode("utf-8"),
+            "metadata.txt": metadata.encode("utf-8"),
+        }
+
+        buffers = []
+        for i in range(frames_per_sample):
+            img = transforms.ToPILImage()(frame[i] / 255.0).convert(
                 "RGB" if out_channels == 3 else "L"
             )
             buf = io.BytesIO()
             img.save(fp=buf, format="png")
-            sample = {
-                "__key__": "_".join((base_name, "_".join(frame_num))),
-                "0.png": buf.getbuffer(),
-                "cls": str(sample_class).encode("utf-8"),
-                "metadata.txt": metadata.encode("utf-8"),
-            }
-        else:
-            buffers = []
-            for i in range(frames_per_sample):
-                img = transforms.ToPILImage()(frame[i] / 255.0).convert(
-                    "RGB" if out_channels == 3 else "L"
-                )
-                buf = io.BytesIO()
-                img.save(fp=buf, format="png")
-                buffers.append(buf)
-            sample = {
-                "__key__": "_".join((base_name, "_".join(frame_num))),
-                "cls": str(sample_class).encode("utf-8"),
-                "metadata.txt": metadata.encode("utf-8"),
-            }
-            for i in range(frames_per_sample):
-                sample[f"{i}.png"] = buffers[i].getbuffer()
+            buffers.append(buf.getbuffer())
+
+        for i, buffer in enumerate(buffers):
+            sample[f"{i}.png"] = buffer
 
         return sample
     except Exception as e:
@@ -154,11 +143,11 @@ def write_to_dataset(
                 for sample in results:
                     if sample:
                         tar_writer.write(sample)
+                        sample_count += 1
                         if sample_count % 100 == 0:
                             logging.info(
                                 f"Writing sample {sample_count} to dataset tar file"
                             )
-                        sample_count += 1
 
     except Exception as e:
         logging.error(f"Error writing to dataset: {e}")
