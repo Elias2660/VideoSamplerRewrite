@@ -41,6 +41,7 @@ import os
 import logging
 import time
 import torch
+import datetime
 from torchvision import transforms
 import io
 from concurrent.futures import ThreadPoolExecutor
@@ -157,5 +158,5 @@ def write_to_dataset(
         tar_writer.close()
 
     end_time = time.time()
-    logging.info("Time taken to write to dataset: " + str(end_time - start_time))
+    logging.info("Time taken to write to dataset: " + str(datetime.timedelta(seconds=int(end_time - start_time))))
     return

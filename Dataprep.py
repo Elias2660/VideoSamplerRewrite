@@ -36,6 +36,7 @@ import time
 import logging
 import argparse
 import pandas as pd
+import datetime
 import subprocess
 import concurrent.futures
 from multiprocessing import freeze_support
@@ -196,7 +197,7 @@ def main():
                 "ls *temporary", shell=True, capture_output=True, text=True
             )
             text = ansi_escape.sub("", result.stdout).split()
-            logging.info(f"Samples sampled: {text}")
+            logging.debug(f"Samples sampled: {text}")
         except Exception as e:
             logging.error(f"An error occurred in subprocess: {e}")
             raise e
@@ -217,7 +218,7 @@ def main():
             concurrent.futures.wait(futures)
 
         end = time.time()
-        logging.info(f"Time taken to run the script: {end - start} seconds")
+        logging.info(f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds")
 
     except Exception as e:
         logging.error(f"An error occurred in main function: {e}")
