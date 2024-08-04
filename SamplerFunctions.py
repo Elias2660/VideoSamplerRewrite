@@ -133,7 +133,7 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
-        with ThreadPoolExecutor(max_workers=15) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
             while True:
                 ret, frame = cap.read()  # read a frame
                 if not ret:
