@@ -102,7 +102,7 @@ def write_to_dataset(
     frames_per_sample: int = 1,
     out_channels: int = 1,
     batch_size: int = 10,
-    num_workers: int = 15,
+    num_workers: int = 20,
 ):
     """
     Writes samples from a directory to a dataset tar file.
