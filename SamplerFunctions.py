@@ -49,6 +49,7 @@ def sample_video(
     x_offset: int = 0,
     y_offset: int = 0,
     crop: bool = False,
+    max_batch_size: int = 5,
 ):
     """
     Samples frames from a video based on the provided parameters, writing the samples to folders
@@ -134,6 +135,7 @@ def sample_video(
             logging.error(f"Failed to open video {video}")
             return
         with ProcessPoolExecutor(max_workers=2) as executor:
+            batch = []
             while True:
                 ret, frame = cap.read()  # read a frame
                 if not ret:
@@ -192,15 +194,21 @@ def sample_video(
                             int(row["frame_of_sample"]) == int(frames_per_sample) - 1
                         ):  # -1 because we start at 0
                             spc += 1  # scramble to make sure every saved .pt sample is unique
-                            executor.submit(
-                                save_sample,
-                                row,
-                                partial_frame_list[index],
-                                video,
-                                frames_per_sample,
-                                count,
-                                spc,
+                            batch.append(
+                                [
+                                    row,
+                                    partial_frame_list[index],
+                                    video,
+                                    frames_per_sample,
+                                    count,
+                                    spc,
+                                ]
                             )
+                            if len(batch) >= max_batch_size:
+                                executor.submit(
+                                    save_sample,
+                                    batch,
+                                )
                             if sample_count % 100 == 0:
                                 logging.info(
                                     f"Saved sample {sample_count} at frame {count} for {video}"
@@ -212,11 +220,17 @@ def sample_video(
                             dataframe.at[index, "counts"] = []
                             partial_frame_list[index] = []
                             dataframe.at[index, "samples_recorded"] = False
-                            
-                
+
             logging.info(f"Capture to {video} has been released, writing samples")
             end_time = time.time()
-            logging.info("Time taken to sample video: " + str(datetime.timedelta(seconds=(end_time - start_time))))
+            logging.info(
+                "Time taken to sample video: "
+                + str(datetime.timedelta(seconds=(end_time - start_time)))
+            )
+            
+            if len(batch) > 0:
+                save_sample(batch)
+            
             executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
@@ -233,8 +247,8 @@ import os
 import torch
 import logging
 
-
-def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
+# row, partial_frames, video, frames_per_sample, count, spc
+def save_sample(batch):
     """
     Save a sample of frames to disk.
 
@@ -252,41 +266,43 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
     Returns:
         None
     """
-    try:
-        directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
-        s_c = "-".join([str(x) for x in row["counts"]])
-        d_name = row.iloc[1]
-        video_name = video.replace(" ", "SPACE")
-        base_name = f"{directory_name}/{video_name}_{d_name}_{count}_{spc}".replace(
-            "\x00", ""
-        )
-        pt_name = f"{base_name}.pt"
-        txt_name = (
-            f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(
+    for sample in batch:
+        row, partial_frames, video, frames_per_sample, count, spc = sample
+        try:
+            directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
+            s_c = "-".join([str(x) for x in row["counts"]])
+            d_name = row.iloc[1]
+            video_name = video.replace(" ", "SPACE")
+            base_name = f"{directory_name}/{video_name}_{d_name}_{count}_{spc}".replace(
                 "\x00", ""
             )
-        )
+            pt_name = f"{base_name}.pt"
+            txt_name = (
+                f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(
+                    "\x00", ""
+                )
+            )
 
-        # Save the sample counts to a text file
-        with open(txt_name, "w+") as s_c_file:
-            s_c_file.write(s_c)
+            # Save the sample counts to a text file
+            with open(txt_name, "w+") as s_c_file:
+                s_c_file.write(s_c)
 
-        # Check for overwriting
-        if pt_name in os.listdir(directory_name):
-            logging.error(f"Overwriting {pt_name}")
+            # Check for overwriting
+            if pt_name in os.listdir(directory_name):
+                logging.error(f"Overwriting {pt_name}")
 
-        # Save the tensor
-        if frames_per_sample == 1:
-            t = partial_frames[0]
-        else:
-            t = torch.cat(partial_frames)
+            # Save the tensor
+            if frames_per_sample == 1:
+                t = partial_frames[0]
+            else:
+                t = torch.cat(partial_frames)
 
-        torch.save(t, pt_name)
-        logging.debug(f"Saved sample {s_c} for {video}, with name {pt_name}")
+            torch.save(t, pt_name)
+            logging.debug(f"Saved sample {s_c} for {video}, with name {pt_name}")
 
-    except Exception as e:
-        logging.error(f"Error saving sample: {e}")
-        raise
+        except Exception as e:
+            logging.error(f"Error saving sample: {e}")
+            raise
 
 
 def apply_video_transformations(
