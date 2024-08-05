@@ -33,7 +33,7 @@ import time
 import math
 import random
 import torch
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 
 
 def sample_video(
@@ -133,7 +133,7 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ProcessPoolExecutor(max_workers=2) as executor:
             while True:
                 ret, frame = cap.read()  # read a frame
                 if not ret:
