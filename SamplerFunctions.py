@@ -49,7 +49,7 @@ def sample_video(
     x_offset: int = 0,
     y_offset: int = 0,
     crop: bool = False,
-    max_batch_size: int = 5,
+    max_batch_size: int = 10,
 ):
     """
     Samples frames from a video based on the provided parameters, writing the samples to folders
@@ -134,7 +134,7 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
-        with ProcessPoolExecutor(max_workers=1) as executor:
+        with ProcessPoolExecutor(max_workers=2) as executor:
             batch = []
             while True:
                 ret, frame = cap.read()  # read a frame

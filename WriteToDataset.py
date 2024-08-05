@@ -128,7 +128,7 @@ def write_to_dataset(
         )
 
         sample_count = 0  # for logging purposes
-        with ThreadPoolExecutor(max_workers=15) as executor:
+        with ThreadPoolExecutor(max_workers=8) as executor:
             for i in range(0, len(file_list), batch_size):
                 batch = file_list[i : i + batch_size]
                 results = list(
