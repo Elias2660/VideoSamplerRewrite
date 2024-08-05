@@ -28,10 +28,12 @@ import cv2
 import pandas as pd
 import numpy as np
 import os
+import datetime
 import time
 import math
 import random
 import torch
+from concurrent.futures import ThreadPoolExecutor
 
 
 def sample_video(
@@ -47,6 +49,7 @@ def sample_video(
     x_offset: int = 0,
     y_offset: int = 0,
     crop: bool = False,
+    max_batch_size: int = 10,
 ):
     """
     Samples frames from a video based on the provided parameters, writing the samples to folders
@@ -80,25 +83,37 @@ def sample_video(
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
         width, height = getVideoInfo(video)
 
-        # 49-81 setups up the dataset
-        for index, row in dataframe.iterrows():
-            begin_frame = row.iloc[2]
-            end_frame = row.iloc[3]
-            available_samples = (
-                end_frame - (sample_span - frames_per_sample) - begin_frame
-            ) // sample_span
-            num_samples = min(available_samples, number_of_samples_max)
+        # Extract necessary columns
+        begin_frames = dataframe.iloc[:, 2].values
+        end_frames = dataframe.iloc[:, 3].values
 
-            target_samples = [
-                (begin_frame) + x * sample_span
-                for x in sorted(
-                    random.sample(population=range(available_samples), k=num_samples)
+        # Calculate available samples
+        available_samples = (
+            end_frames - (sample_span - frames_per_sample) - begin_frames
+        ) // sample_span
+
+        # Determine the number of samples
+        num_samples = np.minimum(available_samples, number_of_samples_max)
+
+        # Generate target samples
+        target_samples_list = [
+            sorted(random.sample(range(avail), num)) if avail > 0 else []
+            for avail, num in zip(available_samples, num_samples)
+        ]
+
+        # Adjust target samples to start from begin_frame
+        target_samples_list = [
+            [begin_frame + x * sample_span for x in target_samples]
+            for begin_frame, target_samples in zip(begin_frames, target_samples_list)
+        ]
+
+        # Log and append results
+        for target_samples in target_samples_list:
+            if target_samples:
+                logging.debug(
+                    f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, number of samples {len(target_samples)}, frames per sample: {frames_per_sample}"
                 )
-            ]
-            logging.info(
-                f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, number of samples {len(target_samples)}, frames per sample: {frames_per_sample}"
-            )
-            logging.debug(f"Target samples for {video}: {target_samples}")
+                logging.debug(f"Target samples for {video}: {target_samples}")
             target_sample_list.append(target_samples)
             partial_frame_list.append([])
 
@@ -119,81 +134,105 @@ def sample_video(
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            batch = []
+            while True:
+                ret, frame = cap.read()  # read a frame
+                if not ret:
+                    break
+                count += 1  # count the frame
+                logging.debug(f"Frame {count} read from video {video}")
+                if count % 10000 == 0:
+                    logging.info(f"Frame {count} read from video {video}")
+                spc = 0
 
-        while True:
-            ret, frame = cap.read()  # read a frame
-            if not ret:
-                break
-            count += 1  # count the frame
-            logging.debug(f"Frame {count} read from video {video}")
-            if count % 10000 == 0:
-                logging.info(f"Frame {count} read from video {video}")
-            spc = 0
-            for index, row in dataframe.iterrows():
-                if (
-                    target_sample_list[index][0] > count
-                    or target_sample_list[index][-1] < count
-                ):
-                    # skip if the frame is not in the target sample list
-                    continue
-                logging.debug(
-                    f"length of target sample sample list: {len(target_sample_list)} \n index: {index}"
-                )
-                if count in target_sample_list[index]:
-                    # start recoding samples
-                    logging.debug(f"Frame {count} triggered samples_recorded")
-                    dataframe.at[index, "samples_recorded"] = True
-
-                if row["samples_recorded"]:
-
-                    dataframe.at[index, "frame_of_sample"] += 1
-                    in_frame = apply_video_transformations(
-                        frame,
-                        count,
-                        normalize,
-                        out_channels,
-                        height,
-                        width,
-                        crop,
-                        x_offset,
-                        y_offset,
-                        out_width,
-                        out_height,
+                relevant_rows = dataframe[
+                    (
+                        dataframe.index.map(
+                            lambda idx: target_sample_list[idx][0]
+                            <= count
+                            <= target_sample_list[idx][-1]
+                        )
                     )
-                    partial_frame_list[index].append(in_frame)
-                    dataframe.at[index, "counts"].append(str(count))
+                ]
 
+                for index, row in relevant_rows.iterrows():
                     if (
-                        int(row["frame_of_sample"]) == int(frames_per_sample) - 1
-                    ):  # -1 because we start at 0
-                        spc += (
-                            1  # scramble to make sure every saved .pt sample is unique
-                        )
+                        target_sample_list[index][0] > count
+                        or target_sample_list[index][-1] < count
+                    ):
+                        # skip if the frame is not in the target sample list
+                        continue
+                    logging.debug(
+                        f"length of target sample sample list: {len(target_sample_list)} \n index: {index}"
+                    )
+                    if count in target_sample_list[index]:
+                        # start recoding samples
+                        logging.debug(f"Frame {count} triggered samples_recorded")
+                        dataframe.at[index, "samples_recorded"] = True
 
-                        save_sample(
-                            row,
-                            partial_frame_list[index],
-                            video,
-                            frames_per_sample,
+                    if row["samples_recorded"]:
+
+                        dataframe.at[index, "frame_of_sample"] += 1
+                        in_frame = apply_video_transformations(
+                            frame,
                             count,
-                            spc,
+                            normalize,
+                            out_channels,
+                            height,
+                            width,
+                            crop,
+                            x_offset,
+                            y_offset,
+                            out_width,
+                            out_height,
                         )
-                        if sample_count % 100 == 0:
-                            logging.info(
-                                f"Saved sample {sample_count} at frame {count} for {video}"
+                        partial_frame_list[index].append(in_frame)
+                        dataframe.at[index, "counts"].append(str(count))
+
+                        if (
+                            int(row["frame_of_sample"]) == int(frames_per_sample) - 1
+                        ):  # -1 because we start at 0
+                            spc += 1  # scramble to make sure every saved .pt sample is unique
+                            batch.append(
+                                [
+                                    row,
+                                    partial_frame_list[index],
+                                    video,
+                                    frames_per_sample,
+                                    count,
+                                    spc,
+                                ]
                             )
+                            if len(batch) >= max_batch_size:
+                                executor.submit(
+                                    save_sample,
+                                    batch,
+                                )
+                                batch = []
+                            if sample_count % 100 == 0:
+                                logging.info(
+                                    f"Saved sample {sample_count} at frame {count} for {video}"
+                                )
 
-                        sample_count += 1
-                        # reset the dataframe row
-                        dataframe.at[index, "frame_of_sample"] = 0
-                        dataframe.at[index, "counts"] = []
-                        partial_frame_list[index] = []
-                        dataframe.at[index, "samples_recorded"] = False
+                            sample_count += 1
+                            # reset the dataframe row
+                            dataframe.at[index, "frame_of_sample"] = 0
+                            dataframe.at[index, "counts"] = []
+                            partial_frame_list[index] = []
+                            dataframe.at[index, "samples_recorded"] = False
 
-        logging.info(f"Capture to {video} has been released, writing samples")
-        end_time = time.time()
-        logging.info("Time taken to sample video: " + str(end_time - start_time))
-
+            logging.info(f"Capture to {video} has been released, writing samples")
+            end_time = time.time()
+            logging.info(
+                "Time taken to sample video: "
+                + str(datetime.timedelta(seconds=(end_time - start_time)))
+            )
+            
+            if len(batch) > 0:
+                save_sample(batch)
+            
+            executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
         raise
@@ -205,7 +244,12 @@ def sample_video(
     return
 
 
-def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
+import os
+import torch
+import logging
+
+# row, partial_frames, video, frames_per_sample, count, spc
+def save_sample(batch):
     """
     Save a sample of frames to disk.
 
@@ -223,48 +267,43 @@ def save_sample(row, partial_frames, video, frames_per_sample, count, spc):
     Returns:
         None
     """
-    try:
-        directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
-        s_c = "-".join([str(x) for x in row["counts"]])
-        d_name = row.iloc[1]
+    for sample in batch:
+        row, partial_frames, video, frames_per_sample, count, spc = sample
+        try:
+            directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
+            s_c = "-".join([str(x) for x in row["counts"]])
+            d_name = row.iloc[1]
+            video_name = video.replace(" ", "SPACE")
+            base_name = f"{directory_name}/{video_name}_{d_name}_{count}_{spc}".replace(
+                "\x00", ""
+            )
+            pt_name = f"{base_name}.pt"
+            txt_name = (
+                f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(
+                    "\x00", ""
+                )
+            )
 
-        if frames_per_sample == 1:
-            t = partial_frames[0]
-            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
-                "\x00", ""
-            )
-            s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
-                    "\x00", ""
-                ),
-                "w+",
-            )
-            s_c_file.write(s_c)
-            s_c_file.close()
-            # check for overwriting
+            # Save the sample counts to a text file
+            with open(txt_name, "w+") as s_c_file:
+                s_c_file.write(s_c)
+
+            # Check for overwriting
             if pt_name in os.listdir(directory_name):
                 logging.error(f"Overwriting {pt_name}")
+
+            # Save the tensor
+            if frames_per_sample == 1:
+                t = partial_frames[0]
+            else:
+                t = torch.cat(partial_frames)
+
             torch.save(t, pt_name)
-        else:
-            t = torch.cat(partial_frames)
-            pt_name = f"{directory_name}/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.pt".replace(
-                "\x00", ""
-            )
-            s_c_file = open(
-                f"{directory_name}txt/{video.replace(' ', 'SPACE')}_{d_name}_{count}_{spc}.txt".replace(
-                    "\x00", ""
-                ),
-                "w+",
-            )
-            s_c_file.write(s_c)
-            s_c_file.close()
-            if pt_name in os.listdir(directory_name):
-                logging.error(f"Overwriting {pt_name}")
-            torch.save(t, pt_name)
-        logging.debug(f"Saved sample {s_c} for {video}, with name {pt_name}")
-    except Exception as e:
-        logging.error(f"Error saving sample: {e}")
-        raise
+            logging.debug(f"Saved sample {s_c} for {video}, with name {pt_name}")
+
+        except Exception as e:
+            logging.error(f"Error saving sample: {e}")
+            raise
 
 
 def apply_video_transformations(
@@ -294,7 +333,6 @@ def apply_video_transformations(
     Returns:
         torch.Tensor: The transformed video frame as a tensor.
     """
-
     if normalize:
         frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
@@ -308,27 +346,26 @@ def apply_video_transformations(
     brightness = 10  # Simple brightness control [0-100]
     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
 
-    if out_channels == 1:
-        logging.debug(f"Converting frame {count} to greyscale")
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
     logging.debug(f"Frame shape: {frame.shape}, converting to a tensor")
     np_frame = np.array(frame)
 
-    in_frame = torch.tensor(
-        data=np_frame,
-        dtype=torch.uint8,
-    ).reshape([1, height, width, out_channels])
+    in_frame = (
+        torch.tensor(
+            data=np_frame,
+            dtype=torch.float32,
+        )
+        .permute(2, 0, 1)
+        .unsqueeze(0)
+    )  # Shape: [1, C, H, W]
 
     if crop:
         out_width, out_height, crop_x, crop_y = vidSamplingCommonCrop(
             height, width, out_height, out_width, 1, x_offset, y_offset
         )
         in_frame = in_frame[
-            :, crop_y : crop_y + out_height, crop_x : crop_x + out_width, :
+            :, :, crop_y : crop_y + out_height, crop_x : crop_x + out_width
         ]
 
-    in_frame = in_frame.permute(0, 3, 1, 2).to(dtype=torch.float)
     return in_frame
 
 
