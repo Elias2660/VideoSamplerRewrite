@@ -209,6 +209,7 @@ def sample_video(
                                     save_sample,
                                     batch,
                                 )
+                                batch = []
                             if sample_count % 100 == 0:
                                 logging.info(
                                     f"Saved sample {sample_count} at frame {count} for {video}"
