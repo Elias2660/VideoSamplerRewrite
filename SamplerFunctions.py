@@ -228,16 +228,16 @@ def sample_video(
                 "Time taken to sample video: "
                 + str(datetime.timedelta(seconds=(end_time - start_time)))
             )
-            
+
             if len(batch) > 0:
                 save_sample(batch)
-            
-            executor.shutdown(wait=True)
+
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
         raise
 
     finally:
+        executor.shutdown(wait=True)
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video}")
@@ -247,6 +247,7 @@ def sample_video(
 import os
 import torch
 import logging
+
 
 # row, partial_frames, video, frames_per_sample, count, spc
 def save_sample(batch):
@@ -270,7 +271,9 @@ def save_sample(batch):
     for sample in batch:
         row, partial_frames, video, frames_per_sample, count, spc = sample
         try:
-            directory_name = row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
+            directory_name = (
+                row.loc["data_file"].replace(".csv", "") + "_samplestemporary"
+            )
             s_c = "-".join([str(x) for x in row["counts"]])
             d_name = row.iloc[1]
             video_name = video.replace(" ", "SPACE")
