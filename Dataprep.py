@@ -218,7 +218,9 @@ def main():
             concurrent.futures.wait(futures)
 
         end = time.time()
-        logging.info(f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds")
+        logging.info(
+            f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
+        )
 
     except Exception as e:
         logging.error(f"An error occurred in main function: {e}")
