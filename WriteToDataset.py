@@ -4,7 +4,7 @@ WriteToDataset.py
 This module provides functionality to write samples from a directory to a dataset tar file.
 
 Functions:
-    write_to_dataset(directory: str, tar_file: str, frames_per_sample: int = 1, out_channels: int = 1) -> None:
+    write_to_dataset(directory: str, tar_file: str, frames_per_sample: int = 1, out_channels: int = 1, batch_size: int = 10) -> None:
         Writes samples from a directory to a dataset tar file.
 
 Usage:
@@ -17,7 +17,8 @@ Example:
         directory="path/to/sample/directory",
         tar_file="output/dataset.tar",
         frames_per_sample=5,
-        out_channels=3
+        out_channels=3,
+        batch_size=10
     )
 
 Dependencies:
@@ -28,6 +29,7 @@ Dependencies:
     - torch
     - torchvision
     - io
+    - concurrent.futures
 
 Raises:
     Exception: If there is an error writing to the dataset.
@@ -149,14 +151,19 @@ def write_to_dataset(
                                 f"Writing sample {sample_count} to dataset tar file"
                             )
 
+        executor.shutdown(wait=True)
     except Exception as e:
+        executor.shutdown(wait=False)
         logging.error(f"Error writing to dataset: {e}")
-        raise
+        raise e
 
     finally:
         logging.info(f"Closing tar file {tar_file}")
         tar_writer.close()
 
     end_time = time.time()
-    logging.info("Time taken to write to dataset: " + str(datetime.timedelta(seconds=int(end_time - start_time))))
+    logging.info(
+        "Time taken to write to dataset: "
+        + str(datetime.timedelta(seconds=int(end_time - start_time)))
+    )
     return
