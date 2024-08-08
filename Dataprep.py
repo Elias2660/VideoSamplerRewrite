@@ -28,7 +28,14 @@ Dependencies:
 
 Example:
     python Dataprep.py --dataset_path ./data --dataset_name my_dataset --number_of_samples_max 1000 --max_workers 4 --frames_per_sample 10
+
+Raises:
+    Exception: If there is an error in the data preparation process.
+
+License:
+    This project is licensed under the MIT License - see the LICENSE file for details.
 """
+
 
 import os
 import re
@@ -173,24 +180,30 @@ def main():
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
 
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=min(args.max_workers, os.cpu_count())
-        ) as executor:
-            futures = [
-                executor.submit(
-                    sample_video,
-                    dataset.loc[0, "file"],
-                    dataset,
-                    number_of_samples,
-                    args.frames_per_sample,
-                    args.normalize,
-                    args.out_channels,
-                    args.frames_per_sample,
-                )
-                for dataset in data_frame_list
-            ]
-            concurrent.futures.wait(futures)
-            logging.info(f"Submitted {len(futures)} tasks to the executor")
+        try:
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=min(args.max_workers, os.cpu_count())
+            ) as executor:
+                futures = [
+                    executor.submit(
+                        sample_video,
+                        dataset.loc[0, "file"],
+                        dataset,
+                        number_of_samples,
+                        args.frames_per_sample,
+                        args.normalize,
+                        args.out_channels,
+                        args.frames_per_sample,
+                    )
+                    for dataset in data_frame_list
+                ]
+                concurrent.futures.wait(futures)
+                logging.info(f"Submitted {len(futures)} tasks to the executor")
+            executor.shutdown(wait=True)
+        except Exception as e:
+            logging.error(f"An error occurred in the executor: {e}")
+            executor.shutdown(wait=False)
+            raise e
 
         try:
             result = subprocess.run(
@@ -202,25 +215,31 @@ def main():
             logging.error(f"An error occurred in subprocess: {e}")
             raise e
 
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=min(args.max_workers, os.cpu_count())
-        ) as executor:
-            futures = [
-                executor.submit(
-                    write_to_dataset,
-                    file.replace(".csv", "") + "_samplestemporary",
-                    file.replace(".csv", ".tar"),
-                    args.frames_per_sample,
-                    args.out_channels,
-                )
-                for file in file_list
-            ]
-            concurrent.futures.wait(futures)
+        try:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(args.max_workers, os.cpu_count())
+            ) as executor:
+                futures = [
+                    executor.submit(
+                        write_to_dataset,
+                        file.replace(".csv", "") + "_samplestemporary",
+                        file.replace(".csv", ".tar"),
+                        args.frames_per_sample,
+                        args.out_channels,
+                    )
+                    for file in file_list
+                ]
+                concurrent.futures.wait(futures)
 
-        end = time.time()
-        logging.info(
-            f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
-        )
+            end = time.time()
+            logging.info(
+                f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
+            )
+            executor.shutdown(wait=True)
+        except Exception as e:
+            logging.error(f"An error occurred in the executor: {e}")
+            executor.shutdown(wait=False)
+            raise e
 
     except Exception as e:
         logging.error(f"An error occurred in main function: {e}")

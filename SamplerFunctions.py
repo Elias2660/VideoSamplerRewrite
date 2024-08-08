@@ -6,10 +6,24 @@ SamplerFunctions.py
 This module contains functions for sampling frames from videos and processing them for dataset preparation.
 
 Functions:
-    sample_video(video: str, old_df: pd.DataFrame, number_of_samples_max: int, frames_per_sample: int, normalize: bool, out_channels: int, sample_span: int):
+    sample_video(
+        video: str,
+        old_df: pd.DataFrame,
+        number_of_samples_max: int,
+        frames_per_sample: int,
+        normalize: bool,
+        out_channels: int,
+        sample_span: int,
+        out_height: int = None,
+        out_width: int = None,
+        x_offset: int = 0,
+        y_offset: int = 0,
+        crop: bool = False,
+        max_batch_size: int = 10,
+    ):
         Samples frames from a video based on the provided parameters, writing the samples to folders.
 
-    save_sample(row, partial_frames, video, frames_per_sample, count, spc):
+    save_sample(batch):
         Saves the sampled frames to disk in the specified format.
 
     apply_video_transformations(frame, count, normalize, out_channels, height, width):
@@ -232,12 +246,13 @@ def sample_video(
             if len(batch) > 0:
                 save_sample(batch)
 
+        executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
-        raise
+        executor.shutdown(wait=False)
+        raise e
 
     finally:
-        executor.shutdown(wait=True)
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video}")
@@ -306,7 +321,7 @@ def save_sample(batch):
 
         except Exception as e:
             logging.error(f"Error saving sample: {e}")
-            raise
+            raise e
 
 
 def apply_video_transformations(
