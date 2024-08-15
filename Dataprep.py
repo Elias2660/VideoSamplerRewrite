@@ -153,7 +153,8 @@ def main():
             f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}"
         )
         logging.info(f"Crop has been set as {args.crop}")
-
+        
+        # find all dataset_*.csv files
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
@@ -163,7 +164,8 @@ def main():
         )
 
         logging.info(f"File List: {file_list}")
-
+        
+        # combines the dataframes
         total_dataframe = pd.DataFrame()
         for file in file_list:
             df = pd.read_csv(file)
@@ -181,6 +183,7 @@ def main():
             dataset.reset_index(drop=True, inplace=True)
 
         try:
+            # for each dataset which has the samples to gather from the video, sample the video
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=min(args.max_workers, os.cpu_count())
             ) as executor:
