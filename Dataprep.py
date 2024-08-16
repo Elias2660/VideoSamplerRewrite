@@ -193,12 +193,12 @@ def main():
                     executor.submit(
                         write_to_dataset,
                         file.replace(".csv", "") + "_samplestemporary",
-                        file.replace(".csv", ".tar"),
+                        file.replace(".csv", ".zip"),
                         args.frames_per_sample,
                         args.out_channels,
                         communicationQueues[index],
                     )
-                    for file, index in file_list
+                    for index, file in enumerate(file_list)
                 ]
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
