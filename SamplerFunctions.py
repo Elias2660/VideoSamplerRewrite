@@ -59,7 +59,7 @@ def sample_video(
     normalize: bool,
     out_channels: int,
     sample_span: int,
-    queues: list[multiprocessing.Queue],
+    queues: list,
     out_height: int = None,
     out_width: int = None,
     x_offset: int = 0,
