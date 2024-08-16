@@ -193,7 +193,7 @@ def main():
                     executor.submit(
                         write_to_dataset,
                         file.replace(".csv", "") + "_samplestemporary",
-                        file.replace(".csv", ".zip"),
+                        file.replace(".csv", ".tar"),
                         args.frames_per_sample,
                         args.out_channels,
                         communicationQueues[index],
