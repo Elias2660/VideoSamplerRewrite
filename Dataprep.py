@@ -188,9 +188,9 @@ def main():
         try:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=min(args.max_workers, os.cpu_count())
-            ) as executor:
-                futures = [
-                    executor.submit(
+            ) as dataset_executor:
+                for index, file in enumerate(file_list):
+                    dataset_executor.submit(
                         write_to_dataset,
                         file.replace(".csv", "") + "_samplestemporary",
                         file.replace(".csv", ".tar"),
@@ -198,19 +198,12 @@ def main():
                         args.out_channels,
                         communicationQueues[index],
                     )
-                    for index, file in enumerate(file_list)
-                ]
-        except Exception as e:
-            logging.error(f"An error occurred in the executor: {e}")
-            raise e
-
-        try:
             # for each dataset which has the samples to gather from the video, sample the video
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=min(args.max_workers, os.cpu_count())
-            ) as executor:
+            ) as process_executor:
                 futures = [
-                    executor.submit(
+                    process_executor.submit(
                         sample_video,
                         dataset.loc[0, "file"],
                         dataset,
@@ -225,12 +218,14 @@ def main():
                 ]
                 concurrent.futures.wait(futures)
                 logging.info(f"Submitted {len(futures)} tasks to the executor")
-            executor.shutdown(wait=True)
+            process_executor.shutdown(wait=True)
             for queue in communicationQueues:
                 queue.put("STOP")
+            dataset_executor.shutdown(wait=True)
         except Exception as e:
+            dataset_executor.shutdown(wait=False)
+            process_executor.shutdown(wait=False)
             logging.error(f"An error occurred in the executor: {e}")
-            executor.shutdown(wait=False)
             raise e
 
         end = time.time()
