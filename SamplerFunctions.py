@@ -38,6 +38,7 @@ Constants:
 """
 
 import logging
+import multiprocessing
 import cv2
 import pandas as pd
 import numpy as np
@@ -58,6 +59,7 @@ def sample_video(
     normalize: bool,
     out_channels: int,
     sample_span: int,
+    queues: list[multiprocessing.Queue],
     out_height: int = None,
     out_width: int = None,
     x_offset: int = 0,
@@ -222,6 +224,7 @@ def sample_video(
                                 executor.submit(
                                     save_sample,
                                     batch,
+                                    queues,
                                 )
                                 batch = []
                             if sample_count % 100 == 0:
@@ -265,7 +268,7 @@ import logging
 
 
 # row, partial_frames, video, frames_per_sample, count, spc
-def save_sample(batch):
+def save_sample(batch, queues):
     """
     Save a sample of frames to disk.
 
@@ -283,6 +286,7 @@ def save_sample(batch):
     Returns:
         None
     """
+    finished_samples = []
     for sample in batch:
         row, partial_frames, video, frames_per_sample, count, spc = sample
         try:
@@ -318,10 +322,14 @@ def save_sample(batch):
 
             torch.save(t, pt_name)
             logging.debug(f"Saved sample {s_c} for {video}, with name {pt_name}")
-
+            finished_samples.append(pt_name)
+            
         except Exception as e:
             logging.error(f"Error saving sample: {e}")
             raise e
+    for sample in finished_samples:
+        for queue in queues:
+            queue.put(sample)
 
 
 def apply_video_transformations(

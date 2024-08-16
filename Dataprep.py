@@ -36,7 +36,6 @@ License:
     This project is licensed under the MIT License - see the LICENSE file for details.
 """
 
-
 import os
 import re
 import time
@@ -47,6 +46,7 @@ import datetime
 import subprocess
 import concurrent.futures
 from multiprocessing import freeze_support
+import multiprocessing
 from SamplerFunctions import sample_video
 from WriteToDataset import write_to_dataset
 
@@ -153,7 +153,7 @@ def main():
             f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}"
         )
         logging.info(f"Crop has been set as {args.crop}")
-        
+
         # find all dataset_*.csv files
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
@@ -164,7 +164,7 @@ def main():
         )
 
         logging.info(f"File List: {file_list}")
-        
+
         # combines the dataframes
         total_dataframe = pd.DataFrame()
         for file in file_list:
@@ -182,6 +182,28 @@ def main():
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
 
+        communicationQueues =  [multiprocessing.Queue() for _ in range(len(file_list))]
+
+
+        try:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(args.max_workers, os.cpu_count())
+            ) as executor:
+                futures = [
+                    executor.submit(
+                        write_to_dataset,
+                        file.replace(".csv", "") + "_samplestemporary",
+                        file.replace(".csv", ".tar"),
+                        args.frames_per_sample,
+                        args.out_channels,
+                        communicationQueues[index],
+                    )
+                    for file, index in file_list
+                ]
+        except Exception as e:
+            logging.error(f"An error occurred in the executor: {e}")
+            raise e
+
         try:
             # for each dataset which has the samples to gather from the video, sample the video
             with concurrent.futures.ProcessPoolExecutor(
@@ -197,52 +219,24 @@ def main():
                         args.normalize,
                         args.out_channels,
                         args.frames_per_sample,
+                        communicationQueues,
                     )
                     for dataset in data_frame_list
                 ]
                 concurrent.futures.wait(futures)
                 logging.info(f"Submitted {len(futures)} tasks to the executor")
             executor.shutdown(wait=True)
+            for queue in communicationQueues:
+                queue.put("STOP")
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
             raise e
 
-        try:
-            result = subprocess.run(
-                "ls *temporary", shell=True, capture_output=True, text=True
-            )
-            text = ansi_escape.sub("", result.stdout).split()
-            logging.debug(f"Samples sampled: {text}")
-        except Exception as e:
-            logging.error(f"An error occurred in subprocess: {e}")
-            raise e
-
-        try:
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=min(args.max_workers, os.cpu_count())
-            ) as executor:
-                futures = [
-                    executor.submit(
-                        write_to_dataset,
-                        file.replace(".csv", "") + "_samplestemporary",
-                        file.replace(".csv", ".tar"),
-                        args.frames_per_sample,
-                        args.out_channels,
-                    )
-                    for file in file_list
-                ]
-                concurrent.futures.wait(futures)
-
-            end = time.time()
-            logging.info(
-                f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
-            )
-            executor.shutdown(wait=True)
-        except Exception as e:
-            logging.error(f"An error occurred in the executor: {e}")
-            executor.shutdown(wait=False)
-            raise e
+        end = time.time()
+        logging.info(
+            f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
+        )
 
     except Exception as e:
         logging.error(f"An error occurred in main function: {e}")
@@ -253,7 +247,6 @@ def main():
             base_name = file.replace(".csv", "")
             os.rmdir(f"{base_name}_samplestemporary")
             os.rmdir(f"{base_name}_samplestemporarytxt")
-
 
 if __name__ == "__main__":
     freeze_support()

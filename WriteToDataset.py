@@ -46,6 +46,7 @@ import torch
 import datetime
 from torchvision import transforms
 import io
+import multiprocessing
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -104,7 +105,7 @@ def write_to_dataset(
     tar_file: str,
     frames_per_sample: int = 1,
     out_channels: int = 1,
-    batch_size: int = 10,
+    queue: multiprocessing.Queue = None,
 ):
     """
     Writes samples from a directory to a dataset tar file.
@@ -124,25 +125,16 @@ def write_to_dataset(
         tar_writer = wds.TarWriter(tar_file, encoder=False)
         start_time = time.time()
 
-        file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
-        logging.info(
-            f"Reading in the samples from {directory}, finding {len(file_list)} files"
-        )
-
         sample_count = 0  # for logging purposes
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            for i in range(0, len(file_list), batch_size):
-                batch = file_list[i : i + batch_size]
-                results = list(
-                    executor.map(
-                        process_sample,
-                        batch,
-                        [directory] * len(batch),
-                        [frames_per_sample] * len(batch),
-                        [out_channels] * len(batch),
+        while True:
+            if queue is not None and not queue.empty():
+                message = queue.get()
+                if message == "STOP":
+                    break
+                if message.split("/")[0].strip() == directory.strip():
+                    sample = process_sample(
+                        message, directory, frames_per_sample, out_channels
                     )
-                )
-                for sample in results:
                     if sample:
                         tar_writer.write(sample)
                         sample_count += 1
@@ -150,10 +142,7 @@ def write_to_dataset(
                             logging.info(
                                 f"Writing sample {sample_count} to dataset tar file"
                             )
-
-        executor.shutdown(wait=True)
     except Exception as e:
-        executor.shutdown(wait=False)
         logging.error(f"Error writing to dataset: {e}")
         raise e
 
