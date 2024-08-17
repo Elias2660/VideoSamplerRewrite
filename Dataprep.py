@@ -181,6 +181,11 @@ def main():
         data_frame_list = [group for _, group in total_dataframe.groupby("file")]
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
+        
+                    
+        # change the permissions for the directories so that everybody can determine progress for the files
+        subprocess.run("chmod 777 *temporary*", shell=True);
+        subprocess.run("chmod 777 dataprep.log", shell=True);
 
         try:
             # for each dataset which has the samples to gather from the video, sample the video
