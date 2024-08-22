@@ -36,7 +36,6 @@ License:
     This project is licensed under the MIT License - see the LICENSE file for details.
 """
 
-
 import os
 import re
 import time
@@ -107,7 +106,7 @@ def main():
             help="The number of output channels, default=1",
         )
         parser.add_argument(
-            "--debug", type=bool, default=False, help="Debug mode, default false"
+            "--debug", action="store_true", help="Debug mode, default false"
         )
         parser.add_argument(
             "--crop",
@@ -153,7 +152,7 @@ def main():
             f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}"
         )
         logging.info(f"Crop has been set as {args.crop}")
-        
+
         # find all dataset_*.csv files
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
@@ -164,7 +163,7 @@ def main():
         )
 
         logging.info(f"File List: {file_list}")
-        
+
         # combines the dataframes
         total_dataframe = pd.DataFrame()
         for file in file_list:
@@ -181,11 +180,10 @@ def main():
         data_frame_list = [group for _, group in total_dataframe.groupby("file")]
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
-        
-                    
+
         # change the permissions for the directories so that everybody can determine progress for the files
-        subprocess.run("chmod 777 *temporary*", shell=True);
-        subprocess.run("chmod 777 dataprep.log", shell=True);
+        subprocess.run("chmod 777 *temporary*", shell=True)
+        subprocess.run("chmod 777 dataprep.log", shell=True)
 
         try:
             # for each dataset which has the samples to gather from the video, sample the video
