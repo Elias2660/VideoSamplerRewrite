@@ -83,10 +83,12 @@ def process_sample(file, directory, frames_per_sample, out_channels):
 
         buffers = []
         for i in range(frames_per_sample):
-            img = transforms.ToPILImage()(frame[i] / 255.0).convert(
+            img = transforms.ToPILImage()(
+                frame[i] / 255.0
+            ).convert(  # tar files are written as pngs
                 "RGB" if out_channels == 3 else "L"
             )
-            buf = io.BytesIO()
+            buf = io.BytesIO()  # saving the images to memory
             img.save(fp=buf, format="png")
             buffers.append(buf.getbuffer())
 
@@ -135,7 +137,7 @@ def write_to_dataset(
                 batch = file_list[i : i + batch_size]
                 results = list(
                     executor.map(
-                        process_sample,
+                        process_sample,  # use batching here too, to speed up the process
                         batch,
                         [directory] * len(batch),
                         [frames_per_sample] * len(batch),
