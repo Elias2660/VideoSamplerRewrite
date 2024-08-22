@@ -53,7 +53,9 @@ from WriteToDataset import write_to_dataset
 def main():
     file_list = []
     try:
-        with open("dataprep.log", "w") as prep_file:
+        with open(
+            "dataprep.log", "w"
+        ) as prep_file:  # clear any existing log file; TODO may just move the preexisting dataprep file
             prep_file.truncate(0)
     except FileNotFoundError:
         logging.info("prep file not found")
@@ -205,7 +207,9 @@ def main():
                 ]
                 concurrent.futures.wait(futures)
                 logging.info(f"Submitted {len(futures)} tasks to the executor")
-            executor.shutdown(wait=True)
+            executor.shutdown(
+                wait=True
+            )  # make sure all the sampling finishes; don't want half written samples
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
@@ -241,7 +245,7 @@ def main():
             logging.info(
                 f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
             )
-            executor.shutdown(wait=True)
+            executor.shutdown(wait=True)  # make sure all of the writing is done
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
@@ -252,6 +256,7 @@ def main():
         raise e
 
     finally:
+        # deconstruct all resources
         for file in file_list:
             base_name = file.replace(".csv", "")
             os.rmdir(f"{base_name}_samplestemporary")
@@ -259,5 +264,5 @@ def main():
 
 
 if __name__ == "__main__":
-    freeze_support()
+    freeze_support()  # needed for windows
     main()

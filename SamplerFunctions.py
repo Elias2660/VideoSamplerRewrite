@@ -149,7 +149,7 @@ def sample_video(
             logging.error(f"Failed to open video {video}")
             return
         with ThreadPoolExecutor(max_workers=7) as executor:
-            batch = []
+            batch = [] # using batching to optimize theading
             while True:
                 ret, frame = cap.read()  # read a frame
                 if not ret:
@@ -223,7 +223,7 @@ def sample_video(
                                     save_sample,
                                     batch,
                                 )
-                                batch = []
+                                batch = [] # reset the batch
                             if sample_count % 100 == 0:
                                 logging.info(
                                     f"Saved sample {sample_count} at frame {count} for {video}"
@@ -238,7 +238,7 @@ def sample_video(
 
             logging.info(f"Capture to {video} has been released, writing samples")
             end_time = time.time()
-            logging.info(
+            logging.info( # log the time taken to sample the video
                 "Time taken to sample video: "
                 + str(datetime.timedelta(seconds=(end_time - start_time)))
             )
@@ -249,7 +249,7 @@ def sample_video(
         executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
-        executor.shutdown(wait=False)
+        executor.shutdown(wait=False) # the threads are shut down if error
         raise e
 
     finally:
@@ -257,12 +257,6 @@ def sample_video(
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video}")
     return
-
-
-import os
-import torch
-import logging
-
 
 # row, partial_frames, video, frames_per_sample, count, spc
 def save_sample(batch):
@@ -296,13 +290,14 @@ def save_sample(batch):
                 "\x00", ""
             )
             pt_name = f"{base_name}.pt"
-            txt_name = (
+            txt_name = ( # Save the sample counts to a text file; stucture consistent across code (as in finding samples)
                 f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(
                     "\x00", ""
                 )
             )
 
             # Save the sample counts to a text file
+            # saving the counts to a text file instead of the s_c file because we don't want overly long file names
             with open(txt_name, "w+") as s_c_file:
                 s_c_file.write(s_c)
 
@@ -322,7 +317,6 @@ def save_sample(batch):
         except Exception as e:
             logging.error(f"Error saving sample: {e}")
             raise e
-
 
 def apply_video_transformations(
     frame,
