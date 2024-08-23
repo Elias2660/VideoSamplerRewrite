@@ -96,10 +96,16 @@ def process_sample(file, directory, frames_per_sample, out_channels):
             sample[f"{i}.png"] = buffer
 
         return sample
+    except RuntimeError as e:
+        if "PytorchStreamReader" in str(e):
+            # this is where the file is corrupted becase the tensor wasn't read properly
+            logging.error(f"PytorchStreamReader error processing sample {file}: {e}")
+        else:
+            logging.error(f"RuntimeError processing sample {file}: {e}")
+        return None
     except Exception as e:
         logging.error(f"Error processing sample {file}: {e}")
         return None
-
 
 def write_to_dataset(
     directory: str,
