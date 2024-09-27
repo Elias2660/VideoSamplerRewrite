@@ -52,13 +52,10 @@ from WriteToDataset import write_to_dataset
 
 def main():
     file_list = []
-    try:
-        with open(
-            "dataprep.log", "w"
-        ) as prep_file:  # clear any existing log file; TODO may just move the preexisting dataprep file
-            prep_file.truncate(0)
-    except FileNotFoundError:
-        logging.info("prep file not found")
+    files = os.listdir()
+    if "dataprep.log" not in files:
+        with open("dataprep.log", "w") as f:
+            f.write("---- Data Preparation Log ----\n")
 
     try:
         start = time.time()
@@ -250,11 +247,7 @@ def main():
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
             raise e
-
-    except Exception as e:
-        logging.error(f"An error occurred in main function: {e}")
-        raise e
-
+        
     finally:
         # deconstruct all resources
         for file in file_list:
