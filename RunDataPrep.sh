@@ -36,4 +36,4 @@ comment
 
 
 # This script is used to prepare the data for the model training
-python VideoSamplerRewrite/Dataprep.py --max-workers 5 >> dataprep.log 2>&1
+python3 VideoSamplerRewrite/Dataprep.py --max-workers 5 >> dataprep.log 2>&1
