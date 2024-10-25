@@ -154,7 +154,7 @@ def write_to_dataset(
                     if sample:
                         tar_writer.write(sample)
                         sample_count += 1
-                        if sample_count % 100 == 0:
+                        if sample_count % 10000 == 0:
                             logging.info(
                                 f"Writing sample {sample_count} to dataset tar file"
                             )
