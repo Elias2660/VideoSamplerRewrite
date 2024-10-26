@@ -51,7 +51,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 def process_sample(file, directory, frames_per_sample, out_channels):
     try:
-        frame = torch.load(os.path.join(directory, file))
+        frame = torch.load(os.path.join(directory, file), weights_only=False)
         s_c_file_path = os.path.join(directory + "txt", file.replace(".pt", ".txt"))
         with open(s_c_file_path, "r") as s_c_file:
             s = file.replace(".pt", "").split("/")[-1].split("_")
