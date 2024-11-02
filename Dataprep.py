@@ -137,10 +137,11 @@ def main():
             default=400,
             help="The height of the output image, default=400",
         )
-
-        format = "%(asctime)s: %(message)s"
-        logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
-
+        logging.basicConfig(
+            format="%(asctime)s: %(message)s",
+            level=logging.INFO,
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
         args = parser.parse_args()
 
         if args.debug:
