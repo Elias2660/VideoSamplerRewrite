@@ -156,7 +156,7 @@ def sample_video(
                     break
                 count += 1  # count the frame
                 logging.debug(f"Frame {count} read from video {video}")
-                if count % 10000 == 0:
+                if count % 10000 == 0 and count != 0:
                     logging.info(f"Frame {count} read from video {video}")
                 spc = 0
 
@@ -224,7 +224,7 @@ def sample_video(
                                     batch,
                                 )
                                 batch = [] # reset the batch
-                            if sample_count % 10000 == 0:
+                            if sample_count % 10000 == 0 and sample_count != 0:
                                 logging.info(
                                     f"Saved sample {sample_count} at frame {count} for {video}"
                                 )
