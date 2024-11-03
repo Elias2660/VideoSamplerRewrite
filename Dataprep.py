@@ -139,9 +139,9 @@ def main():
         )
         parser.add_argument(
             "--equalize-samples",
-            type=bool,
-            store_action=True,
+            action="store_true",
             default=False,
+            help="Equalize the samples so that each class has the same number of samples, default=False",
         )
         logging.basicConfig(
             format="%(asctime)s: %(message)s",
