@@ -47,6 +47,7 @@ import datetime
 from torchvision import transforms
 import io
 from concurrent.futures import ThreadPoolExecutor
+import random
 
 
 def process_sample(file, directory, frames_per_sample, out_channels):
@@ -113,6 +114,7 @@ def write_to_dataset(
     frames_per_sample: int = 1,
     out_channels: int = 1,
     batch_size: int = 10,
+    equalize_samples: bool = False,
 ):
     """
     Writes samples from a directory to a dataset tar file.
@@ -133,9 +135,33 @@ def write_to_dataset(
         start_time = time.time()
 
         file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
+        
+        if equalize_samples:
+            logging.info(f"Equalizing samples for {directory}")
+            sample_dict = {}
+            # first find the class with the least number of samples
+            # then for each class, delete samples until the number of samples is equal to the minimum
+            for file in file_list:
+                s = file.replace(".pt", "").split("/")[-1].split("_")
+                _, sample_class, _, _ = s
+                if sample_class in sample_dict:
+                    sample_dict[sample_class] = [].append(file)
+                else:
+                    sample_dict[sample_class].append(file)
+            min_samples = min([len(samples) for samples in sample_dict.values()])
+            logging.info(f"Minimum number of samples for directory {directory}: {min_samples}")
+            for samples in sample_dict.values():
+                random.shuffle(samples)
+                for sample in samples[min_samples:]:
+                    os.remove(os.path.join(directory, sample))
+                    os.remove(os.path.join(directory + "txt", sample.replace(".pt", ".txt")))
+            logging.info(f"Equalized samples for {directory} and {directory + 'txt'}")
+            
+        
         logging.info(
             f"Reading in the samples from {directory}, finding {len(file_list)} files"
         )
+        
 
         sample_count = 0  # for logging purposes
         with ThreadPoolExecutor(max_workers=4) as executor:
