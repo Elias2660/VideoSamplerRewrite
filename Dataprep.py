@@ -141,6 +141,7 @@ def main():
             "--equalize-samples",
             type=bool,
             store_action=True,
+            default=False,
         )
         logging.basicConfig(
             format="%(asctime)s: %(message)s",
