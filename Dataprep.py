@@ -137,6 +137,11 @@ def main():
             default=400,
             help="The height of the output image, default=400",
         )
+        parser.add_argument(
+            "--equalize-samples",
+            type=bool,
+            store_action=True,
+        )
         logging.basicConfig(
             format="%(asctime)s: %(message)s",
             level=logging.INFO,
@@ -234,6 +239,7 @@ def main():
                         file.replace(".csv", ".tar"),
                         args.frames_per_sample,
                         args.out_channels,
+                        args.equalize_samples,
                     )
                     for file in file_list
                 ]
