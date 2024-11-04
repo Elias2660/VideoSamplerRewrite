@@ -240,6 +240,7 @@ def main():
                         file.replace(".csv", ".tar"),
                         args.frames_per_sample,
                         args.out_channels,
+                        10, # batch size
                         args.equalize_samples,
                     )
                     for file in file_list
