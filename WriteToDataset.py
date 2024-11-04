@@ -156,7 +156,8 @@ def write_to_dataset(
                     os.remove(os.path.join(directory, sample))
                     os.remove(os.path.join(directory + "txt", sample.replace(".pt", ".txt")))
             logging.info(f"Equalized samples for {directory} and {directory + 'txt'}")
-            
+        
+        file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
         
         logging.info(
             f"Reading in the samples from {directory}, finding {len(file_list)} files"
