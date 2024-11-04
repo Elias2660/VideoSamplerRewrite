@@ -145,9 +145,9 @@ def write_to_dataset(
                 s = file.replace(".pt", "").split("/")[-1].split("_")
                 _, sample_class, _, _ = s
                 if sample_class in sample_dict:
-                    sample_dict[sample_class] = [].append(file)
-                else:
                     sample_dict[sample_class].append(file)
+                else:
+                    sample_dict[sample_class] = [file]
             min_samples = min([len(samples) for samples in sample_dict.values()])
             logging.info(f"Minimum number of samples for directory {directory}: {min_samples}")
             for samples in sample_dict.values():
@@ -156,7 +156,7 @@ def write_to_dataset(
                     os.remove(os.path.join(directory, sample))
                     os.remove(os.path.join(directory + "txt", sample.replace(".pt", ".txt")))
             logging.info(f"Equalized samples for {directory} and {directory + 'txt'}")
-        
+            
         file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
         
         logging.info(
