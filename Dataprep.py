@@ -155,7 +155,7 @@ def main():
             logging.debug("Debug mode activated")
 
         logging.info(
-            f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}"
+            f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}, equalize samples: {args.equalize_samples}"
         )
         logging.info(f"Crop has been set as {args.crop}")
 
