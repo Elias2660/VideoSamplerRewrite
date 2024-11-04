@@ -115,6 +115,7 @@ def write_to_dataset(
     out_channels: int = 1,
     batch_size: int = 10,
     equalize_samples: bool = False,
+    max_workers_tar_writing: int = 4,
 ):
     """
     Writes samples from a directory to a dataset tar file.
@@ -165,7 +166,7 @@ def write_to_dataset(
         
 
         sample_count = 0  # for logging purposes
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=max_workers_tar_writing) as executor:
             for i in range(0, len(file_list), batch_size):
                 batch = file_list[i : i + batch_size]
                 results = list(

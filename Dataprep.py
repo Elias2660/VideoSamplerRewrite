@@ -128,20 +128,44 @@ def main():
         parser.add_argument(
             "--out-width",
             type=int,
-            default=400,
-            help="The width of the output image, default=400",
+            default=None,
+            help="The width of the output image, default=None NOTE: if you set crop to true you cannot set these to none",
         )
         parser.add_argument(
             "--out-height",
             type=int,
-            default=400,
-            help="The height of the output image, default=400",
+            default=None,
+            help="The height of the output image, default=None NOTE: if you set crop to true you cannot set these to none",
         )
         parser.add_argument(
             "--equalize-samples",
             action="store_true",
             default=False,
             help="Equalize the samples so that each class has the same number of samples, default=False",
+        )
+        parser.add_argument(
+            "--dataset-writing-batch-size",
+            type=int,
+            default=10,
+            help="The batch size for writing to the dataset, default=10",
+        )
+        parser.add_argument(
+            "--max-batch-size-sampling",
+            type=int,
+            default=50,
+            help="The maximum batch size for sampling the video, default=50",
+        )
+        parser.add_argument(
+            "--max-threads-pic-saving",
+            type=int,
+            default=10,
+            help="The maximum number of threads to use for saving the pictures, default=10",
+        )
+        parser.add_argument(
+            "--max-workers-tar-writing",
+            type=int,
+            default=4,
+            help="The maximum number of workers to use for writing to the tar file, default=4",    
         )
         logging.basicConfig(
             format="%(asctime)s: %(message)s",
@@ -206,6 +230,13 @@ def main():
                         args.normalize,
                         args.out_channels,
                         args.frames_per_sample,
+                        args.out_height,
+                        args.out_width,
+                        args.x_offset,
+                        args.y_offset,
+                        args.crop,
+                        args.max_batch_size_sampling,
+                        args.max_threads_pic_saving,
                     )
                     for dataset in data_frame_list
                 ]
@@ -240,8 +271,9 @@ def main():
                         file.replace(".csv", ".tar"),
                         args.frames_per_sample,
                         args.out_channels,
-                        10, # batch size
+                        args.dataset_writing_batch_size,
                         args.equalize_samples,
+                        args.max_workers_tar_writing,
                     )
                     for file in file_list
                 ]
@@ -256,7 +288,7 @@ def main():
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
             raise e
-        
+
     finally:
         # deconstruct all resources
         for file in file_list:
