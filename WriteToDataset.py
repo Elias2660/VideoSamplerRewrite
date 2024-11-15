@@ -7,20 +7,6 @@ Functions:
     write_to_dataset(directory: str, tar_file: str, frames_per_sample: int = 1, out_channels: int = 1, batch_size: int = 10) -> None:
         Writes samples from a directory to a dataset tar file.
 
-Usage:
-    To use this module, call the `write_to_dataset` function with the appropriate arguments.
-
-Example:
-    from WriteToDataset import write_to_dataset
-
-    write_to_dataset(
-        directory="path/to/sample/directory",
-        tar_file="output/dataset.tar",
-        frames_per_sample=5,
-        out_channels=3,
-        batch_size=10
-    )
-
 Dependencies:
     - webdataset
     - os
@@ -159,13 +145,14 @@ def write_to_dataset(
             logging.info(f"Equalized samples for {directory} and {directory + 'txt'}")
             
         file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
-        
+        file_size = len(file_list)
         logging.info(
             f"Reading in the samples from {directory}, finding {len(file_list)} files"
         )
         
 
         sample_count = 0  # for logging purposes
+        old_time = time.time()
         with ThreadPoolExecutor(max_workers=max_workers_tar_writing) as executor:
             for i in range(0, len(file_list), batch_size):
                 batch = file_list[i : i + batch_size]
@@ -182,10 +169,12 @@ def write_to_dataset(
                     if sample:
                         tar_writer.write(sample)
                         sample_count += 1
-                        if sample_count % 10000 == 0 and sample_count != 0:
+                        if sample_count % 30000 == 0 and sample_count != 0:
+                            new_time = time.time()
                             logging.info(
-                                f"Writing sample {sample_count} to dataset tar file"
+                                f"Writing sample {sample_count} to dataset tar file {tar_file}; time to write 30,000 samples: {((new_time - old_time)/30000):.2f} seconds"
                             )
+                            old_time = new_time
 
         executor.shutdown(wait=True)
     except Exception as e:
@@ -199,7 +188,10 @@ def write_to_dataset(
 
     end_time = time.time()
     logging.info(
-        "Time taken to write to dataset: "
-        + str(datetime.timedelta(seconds=int(end_time - start_time)))
+        f"Time taken to write to {tar_file}: {str(datetime.timedelta(seconds=int(end_time - start_time)))}"
     )
+    logging.info(
+        f"The number of samples in {tar_file}: {file_size}"
+    )
+    
     return
