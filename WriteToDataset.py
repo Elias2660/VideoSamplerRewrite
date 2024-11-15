@@ -113,7 +113,7 @@ def write_to_dataset(
     tar_file: str,
     frames_per_sample: int = 1,
     out_channels: int = 1,
-    batch_size: int = 10,
+    batch_size: int = 60,
     equalize_samples: bool = False,
     max_workers_tar_writing: int = 4,
 ):
