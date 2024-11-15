@@ -158,8 +158,8 @@ def main():
         parser.add_argument(
             "--max-threads-pic-saving",
             type=int,
-            default=10,
-            help="The maximum number of threads to use for saving the pictures, default=10",
+            default=60,
+            help="The maximum number of threads to use for saving the pictures, default=60",
         )
         parser.add_argument(
             "--max-workers-tar-writing",
