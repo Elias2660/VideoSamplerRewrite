@@ -161,6 +161,12 @@ def main():
             default=4,
             help="The maximum number of workers to use for writing to the tar file, default=4",    
         )
+        parser.add_argument(
+            "--max-batch-size-sampling",
+            type=int,
+            default=50,
+            help="The maximum batch size for sampling the video, default=50",
+        )
         logging.basicConfig(
             format="%(asctime)s: %(message)s",
             level=logging.INFO,
