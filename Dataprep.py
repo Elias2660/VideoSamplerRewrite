@@ -177,10 +177,22 @@ def main():
         if args.debug:
             logging.getLogger().setLevel(logging.DEBUG)
             logging.debug("Debug mode activated")
-
+        
         logging.info(
             f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}, equalize samples: {args.equalize_samples}"
         )
+        logging.info(f"Normalize: {args.normalize}")
+        logging.info(f"Output channels: {args.out_channels}")
+        logging.info(f"Debug mode: {args.debug}")
+        logging.info(f"X offset: {args.x_offset}")
+        logging.info(f"Y offset: {args.y_offset}")
+        logging.info(f"Output width: {args.out_width}")
+        logging.info(f"Output height: {args.out_height}")
+        logging.info(f"Equalize samples: {args.equalize_samples}")
+        logging.info(f"Dataset writing batch size: {args.dataset_writing_batch_size}")
+        logging.info(f"Max threads for picture saving: {args.max_threads_pic_saving}")
+        logging.info(f"Max workers for tar writing: {args.max_workers_tar_writing}")
+        logging.info(f"Max batch size for sampling: {args.max_batch_size_sampling}")
         logging.info(f"Crop has been set as {args.crop}")
 
         # find all dataset_*.csv files
@@ -242,9 +254,9 @@ def main():
                 ]
                 concurrent.futures.wait(futures)
                 logging.info(f"Submitted {len(futures)} tasks to the executor")
-            executor.shutdown(
-                wait=True
-            )  # make sure all the sampling finishes; don't want half written samples
+                executor.shutdown(
+                    wait=True
+                )  # make sure all the sampling finishes; don't want half written samples
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
