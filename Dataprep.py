@@ -146,14 +146,14 @@ def main():
         parser.add_argument(
             "--dataset-writing-batch-size",
             type=int,
-            default=50,
-            help="The batch size for writing to the dataset, default=50",
+            default=20,
+            help="The batch size for writing to the dataset, default=20",
         )
         parser.add_argument(
             "--max-threads-pic-saving",
             type=int,
-            default=50,
-            help="The maximum number of threads to use for saving the pictures, default=60",
+            default=20,
+            help="The maximum number of threads to use for saving the pictures, default=20",
         )
         parser.add_argument(
             "--max-workers-tar-writing",
@@ -164,8 +164,8 @@ def main():
         parser.add_argument(
             "--max-batch-size-sampling",
             type=int,
-            default=50,
-            help="The maximum batch size for sampling the video, default=50",
+            default=20,
+            help="The maximum batch size for sampling the video, default=20",
         )
         logging.basicConfig(
             format="%(asctime)s: %(message)s",
