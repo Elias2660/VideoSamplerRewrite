@@ -240,8 +240,8 @@ def sample_video(
             logging.info(f"Capture to {video} has been released, writing samples")
             end_time = time.time()
             logging.info( # log the time taken to sample the video
-                "Time taken to sample video: "
-                + str(datetime.timedelta(seconds=(end_time - start_time)))
+                f"Time taken to sample video: {str(datetime.timedelta(seconds=(end_time - start_time)))}"
+                f" wrote {sample_count} samples, {str(datetime.timedelta(seconds=((end_time - start_time)/sample_count)))} per sample"
             )
 
             if len(batch) > 0:
