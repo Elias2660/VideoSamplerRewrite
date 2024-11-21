@@ -48,6 +48,7 @@ import math
 import random
 import torch
 from concurrent.futures import ThreadPoolExecutor
+import gc
 
 
 def sample_video(
@@ -225,6 +226,7 @@ def sample_video(
                                     batch,
                                 )
                                 batch = [] # reset the batch
+                                gc.collect()
                             if sample_count % 10000 == 0 and sample_count != 0:
                                 logging.info(
                                     f"Saved sample {sample_count} at frame {count} for {video}"
@@ -257,6 +259,7 @@ def sample_video(
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video}")
+        gc.collect()  
     return
 
 # row, partial_frames, video, frames_per_sample, count, spc
