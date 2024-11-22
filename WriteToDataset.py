@@ -117,6 +117,8 @@ def write_to_dataset(
     Raises:
         Exception: If there is an error writing to the dataset.
     """
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
     try:
         tar_writer = wds.TarWriter(tar_file, encoder=False)
         start_time = time.time()
