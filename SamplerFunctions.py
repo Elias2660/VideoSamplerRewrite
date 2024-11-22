@@ -85,6 +85,12 @@ def sample_video(
     start_time = (
         time.time()
     )  # start the timer to determine how long it takes to sample the video
+
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
+
+    cv2.setNumThreads(1)
+
     cap = None
     count = 0
     sample_count = 0
@@ -151,7 +157,7 @@ def sample_video(
             logging.error(f"Failed to open video {video}")
             return
         with ThreadPoolExecutor(max_workers=max_threads_pic_saving) as executor:
-            batch = [] # using batching to optimize theading
+            batch = []  # using batching to optimize theading
             while True:
                 ret, frame = cap.read()  # read a frame
                 if not ret:
@@ -225,7 +231,7 @@ def sample_video(
                                     save_sample,
                                     batch,
                                 )
-                                batch = [] # reset the batch
+                                batch = []  # reset the batch
                                 gc.collect()
                             if sample_count % 10000 == 0 and sample_count != 0:
                                 logging.info(
@@ -241,7 +247,7 @@ def sample_video(
 
             logging.info(f"Capture to {video} has been released, writing samples")
             end_time = time.time()
-            logging.info( # log the time taken to sample the video
+            logging.info(  # log the time taken to sample the video
                 f"Time taken to sample video: {str(datetime.timedelta(seconds=(end_time - start_time)))}"
                 f" wrote {sample_count} samples, {str(datetime.timedelta(seconds=((end_time - start_time)/sample_count)))} per sample"
             )
@@ -252,15 +258,16 @@ def sample_video(
         executor.shutdown(wait=True)
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
-        executor.shutdown(wait=False) # the threads are shut down if error
+        executor.shutdown(wait=False)  # the threads are shut down if error
         raise e
 
     finally:
         cap.release()
         cv2.destroyAllWindows()
         logging.info(f"Released video capture for {video}")
-        gc.collect()  
+        gc.collect()
     return
+
 
 # row, partial_frames, video, frames_per_sample, count, spc
 def save_sample(batch):
@@ -294,10 +301,8 @@ def save_sample(batch):
                 "\x00", ""
             )
             pt_name = f"{base_name}.pt"
-            txt_name = ( # Save the sample counts to a text file; stucture consistent across code (as in finding samples)
-                f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(
-                    "\x00", ""
-                )
+            txt_name = f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(  # Save the sample counts to a text file; stucture consistent across code (as in finding samples)
+                "\x00", ""
             )
 
             # Save the sample counts to a text file
@@ -321,6 +326,7 @@ def save_sample(batch):
         except Exception as e:
             logging.error(f"Error saving sample: {e}")
             raise e
+
 
 def apply_video_transformations(
     frame,
