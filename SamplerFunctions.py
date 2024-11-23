@@ -87,10 +87,6 @@ def sample_video(
     )  # start the timer to determine how long it takes to sample the video
     logging.info(f"Capture to {video} about to be established")
 
-    torch.set_num_threads(1)
-    torch.set_num_interop_threads(1)
-
-    cv2.setNumThreads(1)
 
     cap = None
     count = 0
