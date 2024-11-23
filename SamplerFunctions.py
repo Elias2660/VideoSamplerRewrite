@@ -85,6 +85,7 @@ def sample_video(
     start_time = (
         time.time()
     )  # start the timer to determine how long it takes to sample the video
+    logging.info(f"Capture to {video} about to be established")
 
     torch.set_num_threads(1)
     torch.set_num_interop_threads(1)
@@ -151,7 +152,6 @@ def sample_video(
 
         logging.debug(dataframe.head())
 
-        logging.info(f"Capture to {video} about to be established")
         cap = cv2.VideoCapture(video)
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
@@ -245,17 +245,17 @@ def sample_video(
                             partial_frame_list[index] = []
                             dataframe.at[index, "samples_recorded"] = False
 
-            logging.info(f"Capture to {video} has been released, writing samples")
             end_time = time.time()
-            logging.info(  # log the time taken to sample the video
-                f"Time taken to sample video: {str(datetime.timedelta(seconds=(end_time - start_time)))}"
-                f" wrote {sample_count} samples, {str(datetime.timedelta(seconds=((end_time - start_time)/sample_count)))} per sample"
-            )
 
             if len(batch) > 0:
                 save_sample(batch)
 
         executor.shutdown(wait=True)
+        logging.info(f"Capture to {video} has been released, writing samples")
+        logging.info(  # log the time taken to sample the video
+            f"Time taken to sample video: {str(datetime.timedelta(seconds=(end_time - start_time)))}"
+            f" wrote {sample_count} samples, {str(datetime.timedelta(seconds=((end_time - start_time)/sample_count)))} per sample"
+        )
     except Exception as e:
         logging.error(f"Error sampling video {video}: {e}")
         executor.shutdown(wait=False)  # the threads are shut down if error
