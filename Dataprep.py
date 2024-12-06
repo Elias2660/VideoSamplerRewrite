@@ -273,7 +273,7 @@ def main():
             raise e
 
         try:
-            with concurrent.futures.ThreadPoolExecutor(
+            with concurrent.futures.ProcessPoolExecutor(
                 max_workers=min(args.max_workers, os.cpu_count())
             ) as executor:
                 futures = [
