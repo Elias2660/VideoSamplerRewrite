@@ -159,7 +159,7 @@ def main():
             "--max-workers-tar-writing",
             type=int,
             default=4,
-            help="The maximum number of workers to use for writing to the tar file, default=4",    
+            help="The maximum number of workers to use for writing to the tar file, default=4",
         )
         parser.add_argument(
             "--max-batch-size-sampling",
@@ -177,7 +177,7 @@ def main():
         if args.debug:
             logging.getLogger().setLevel(logging.DEBUG)
             logging.debug("Debug mode activated")
-        
+
         logging.info(
             f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}, equalize samples: {args.equalize_samples}"
         )
@@ -273,9 +273,7 @@ def main():
             raise e
 
         try:
-            with concurrent.futures.ProcessPoolExecutor(
-                max_workers=min(args.max_workers, os.cpu_count())
-            ) as executor:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = [
                     executor.submit(
                         write_to_dataset,
