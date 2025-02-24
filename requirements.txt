@@ -4,7 +4,7 @@ braceexpand==0.1.7
 cloudpickle==3.1.1
 comm==0.2.2
 debugpy==1.8.12
-decorator==5.1.1
+decorator==5.2.0
 dill==0.3.9
 executing==2.2.0
 filelock==3.17.0
@@ -43,7 +43,7 @@ pyzmq==26.2.1
 setuptools==75.8.0
 six==1.17.0
 stack-data==0.6.3
-sympy==1.13.1
+sympy==1.13.3
 torch==2.6.0
 torchvision==0.21.0
 tornado==6.4.2
