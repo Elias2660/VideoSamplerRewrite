@@ -4,7 +4,7 @@ braceexpand==0.1.7
 cloudpickle==3.1.1
 comm==0.2.2
 debugpy==1.8.12
-decorator==5.1.1
+decorator==5.2.0
 dill==0.3.9
 executing==2.2.0
 filelock==3.17.0
