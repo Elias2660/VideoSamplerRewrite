@@ -3,13 +3,12 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "deps"
-    open-pull-requests-limit: 1
-    pull-request-branch-name:
-      separator: "-"
-    groups:
-      all-dependencies:
-        patterns:
-          - "*"
+      interval: "daily"
+    assignees:
+      - "Elias2660" # Assigns the pull request to your GitHub username
+    labels:
+      - "dependencies" # Adds a "dependencies" label to the pull requests
+    ignore:
+      # only update on big new versions
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
