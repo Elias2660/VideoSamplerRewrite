@@ -193,5 +193,8 @@ def write_to_dataset(
     logging.info(
         f"The number of samples in {tar_file}: {file_size}"
     )
+    # logging into the RUN_DESCRIPTION
+    with open(os.path.join(directory, "RUN_DESCRIPTION.txt"), "w+") as rd:
+        rd.write(f"{file_size} samples collected by tar file {tar_file}")
     
     return

@@ -271,6 +271,11 @@ def main():
         except Exception as e:
             logging.error(f"An error occurred in subprocess: {e}")
             raise e
+        
+        # log header which will be filled out by the write_to_dataset functions
+        with open(os.path.join(args.dataset_path, "RUN_DESCRIPTION.txt"), "w+") as rd:
+            rd.write("\n-- Sample Collection Results --\n")
+    
 
         try:
             with concurrent.futures.ThreadPoolExecutor() as executor:
