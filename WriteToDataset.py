@@ -97,6 +97,7 @@ def process_sample(file, directory, frames_per_sample, out_channels):
 def write_to_dataset(
     directory: str,
     tar_file: str,
+    dataset_path: str,
     frames_per_sample: int = 1,
     out_channels: int = 1,
     batch_size: int = 60,
@@ -194,7 +195,7 @@ def write_to_dataset(
         f"The number of samples in {tar_file}: {file_size}"
     )
     # logging into the RUN_DESCRIPTION
-    with open(os.path.join(directory, "RUN_DESCRIPTION.txt"), "a+") as rd:
+    with open(os.path.join(dataset_path, "RUN_DESCRIPTION.txt"), "a+") as rd:
         rd.write(f"{file_size} samples collected by tar file {tar_file}\n")
     
     return
