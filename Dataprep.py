@@ -284,6 +284,7 @@ def main():
                         write_to_dataset,
                         file.replace(".csv", "") + "_samplestemporary",
                         file.replace(".csv", ".tar"),
+                        args.dataset_path,
                         args.frames_per_sample,
                         args.out_channels,
                         args.dataset_writing_batch_size,
