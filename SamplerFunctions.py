@@ -303,7 +303,7 @@ def save_sample(batch):
 
             # Save the sample counts to a text file
             # saving the counts to a text file instead of the s_c file because we don't want overly long file names
-            with open(txt_name, "w+") as s_c_file:
+            with open(txt_name, "a+") as s_c_file:
                 s_c_file.write(s_c)
 
             # Check for overwriting
