@@ -273,7 +273,7 @@ def main():
             raise e
         
         # log header which will be filled out by the write_to_dataset functions
-        with open(os.path.join(args.dataset_path, "RUN_DESCRIPTION.txt"), "a+") as rd:
+        with open(os.path.join(args.dataset_path, "RUN_DESCRIPTION.log"), "a+") as rd:
             rd.write("\n-- Sample Collection Results --\n")
     
 
