@@ -300,6 +300,7 @@ def main():
                 f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
             )
             executor.shutdown(wait=True)  # make sure all of the writing is done
+            subprocess.run("chmod -R 777 *.tar", shell=True)
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
