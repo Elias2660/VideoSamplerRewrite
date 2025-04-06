@@ -1,4 +1,4 @@
-""" 
+"""
 WriteToDataset.py
 
 This module provides functionality to write samples from a directory to a dataset tar file.
@@ -40,10 +40,10 @@ from torchvision import transforms
 def process_sample(file, directory, frames_per_sample, out_channels):
     """
 
-    :param file: 
-    :param directory: 
-    :param frames_per_sample: 
-    :param out_channels: 
+    :param file:
+    :param directory:
+    :param frames_per_sample:
+    :param out_channels:
 
     """
     # convert the sample into something that can be read into the tar files
@@ -128,10 +128,10 @@ def write_to_dataset(
     :param out_channels: int
     :param batch_size: int
     :param num_workers: int
-    :param Raises: 
-    :param directory: str: 
-    :param tar_file: str: 
-    :param dataset_path: str: 
+    :param Raises:
+    :param directory: str:
+    :param tar_file: str:
+    :param dataset_path: str:
     :param frames_per_sample: int:  (Default value = 1)
     :param out_channels: int:  (Default value = 1)
     :param batch_size: int:  (Default value = 60)

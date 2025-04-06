@@ -3,7 +3,7 @@
 SamplerFunctions.py
 
 This module contains functions for sampling frames from videos and processing them for dataset preparation.
- 
+
 Functions:
     sample_video(
         video: str,
@@ -82,13 +82,13 @@ def sample_video(
     :type out_channels: int
     :param sample_span: The span between each sample.
     :type sample_span: int
-    :param video: str: 
-    :param old_df: pd.DataFrame: 
-    :param number_of_samples_max: int: 
-    :param frames_per_sample: int: 
-    :param normalize: bool: 
-    :param out_channels: int: 
-    :param sample_span: int: 
+    :param video: str:
+    :param old_df: pd.DataFrame:
+    :param number_of_samples_max: int:
+    :param frames_per_sample: int:
+    :param normalize: bool:
+    :param out_channels: int:
+    :param sample_span: int:
     :param out_height: int:  (Default value = None)
     :param out_width: int:  (Default value = None)
     :param x_offset: int:  (Default value = 0)
@@ -290,8 +290,8 @@ def save_sample(batch):
     :param frames_per_sample: int
     :param count: int
     :param spc: int
-    :param Raises: 
-    :param batch: 
+    :param Raises:
+    :param batch:
     :returns: None
 
     """
@@ -365,11 +365,11 @@ def apply_video_transformations(
     :type height: int
     :param width: The desired width of the frame.
     :type width: int
-    :param count: int: 
-    :param normalize: bool: 
-    :param out_channels: int: 
-    :param height: int: 
-    :param width: int: 
+    :param count: int:
+    :param normalize: bool:
+    :param out_channels: int:
+    :param height: int:
+    :param width: int:
     :param crop: bool:  (Default value = False)
     :param x_offset: int:  (Default value = 0)
     :param y_offset: int:  (Default value = 0)
@@ -420,7 +420,7 @@ def getVideoInfo(video: str):
     """Retrieves the width and height of a video.
 
     :param video: str
-    :param video: str: 
+    :param video: str:
     :returns: tuple: A tuple containing the width and height of the video.
 
     """
