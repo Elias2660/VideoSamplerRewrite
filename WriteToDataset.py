@@ -52,7 +52,8 @@ def process_sample(file, directory, frames_per_sample, out_channels):
         np_tensor = data["tensor"]
         frame = torch.from_numpy(np_tensor)
 
-        s_c_file_path = os.path.join(directory + "txt", file.replace(".npz", ".txt"))
+        s_c_file_path = os.path.join(directory + "txt",
+                                     file.replace(".npz", ".txt"))
         with open(s_c_file_path, "r") as s_c_file:
             s = file.replace(".npz", "").split("/")[-1].split("_")
             if len(s) != 4:
@@ -69,7 +70,8 @@ def process_sample(file, directory, frames_per_sample, out_channels):
         os.remove(os.path.join(directory, file))
         os.remove(s_c_file_path)
 
-        base_name = os.path.basename(video_path).replace(" ", "_").replace(".", "_")
+        base_name = os.path.basename(video_path).replace(" ", "_").replace(
+            ".", "_")
         video_time = os.path.basename(video_path).split(".")[0]
         time_sec = time.mktime(time.strptime(video_time, "%Y-%m-%d %H:%M:%S"))
         time_struct = time.localtime(time_sec + int(frame_num[0]) // 3)
@@ -86,10 +88,8 @@ def process_sample(file, directory, frames_per_sample, out_channels):
         buffers = []
         for i in range(frames_per_sample):
             img = transforms.ToPILImage()(
-                frame[i] / 255.0
-            ).convert(  # tar files are written as pngs
-                "RGB" if out_channels == 3 else "L"
-            )
+                frame[i] / 255.0).convert(  # tar files are written as pngs
+                    "RGB" if out_channels == 3 else "L")
             buf = io.BytesIO()  # saving the images to memory
             img.save(fp=buf, format="png")
             buffers.append(buf.getbuffer())
@@ -101,7 +101,8 @@ def process_sample(file, directory, frames_per_sample, out_channels):
     except RuntimeError as e:
         if "PytorchStreamReader" in str(e):
             # this is where the file is corrupted because the tensor wasn't read properly
-            logging.error(f"PytorchStreamReader error processing sample {file}: {e}")
+            logging.error(
+                f"PytorchStreamReader error processing sample {file}: {e}")
         else:
             logging.error(f"RuntimeError processing sample {file}: {e}")
         return None
@@ -174,7 +175,9 @@ def write_to_dataset(
         tar_writer = wds.TarWriter(tar_file, encoder=False)
         start_time = time.time()
 
-        file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
+        file_list = [
+            f for f in os.listdir(directory) if not f.endswith(".txt")
+        ]
 
         # equalization to ensure the number of samples per class in each sample is
         # equal to each other (BUT NOT EQUALIZING SAMPLES ACROSS TAR FILES, THOSE
@@ -192,7 +195,8 @@ def write_to_dataset(
                     sample_dict[sample_class].append(file)
                 else:
                     sample_dict[sample_class] = [file]
-            min_samples = min([len(samples) for samples in sample_dict.values()])
+            min_samples = min(
+                [len(samples) for samples in sample_dict.values()])
             logging.info(
                 f"Minimum number of samples for directory {directory}: {min_samples}"
             )
@@ -201,11 +205,14 @@ def write_to_dataset(
                 for sample in samples[min_samples:]:
                     os.remove(os.path.join(directory, sample))
                     os.remove(
-                        os.path.join(directory + "txt", sample.replace(".npz", ".txt"))
-                    )
-            logging.info(f"Equalized samples for {directory} and {directory + 'txt'}")
+                        os.path.join(directory + "txt",
+                                     sample.replace(".npz", ".txt")))
+            logging.info(
+                f"Equalized samples for {directory} and {directory + 'txt'}")
 
-        file_list = [f for f in os.listdir(directory) if not f.endswith(".txt")]
+        file_list = [
+            f for f in os.listdir(directory) if not f.endswith(".txt")
+        ]
         file_size = len(file_list)
         logging.info(
             f"Reading in the samples from {directory}, finding {len(file_list)} files"
@@ -215,9 +222,10 @@ def write_to_dataset(
         old_time = time.time()
         # using threadpool because ilab is stingy with multiple processes
         # yes, I know about GIL lock
-        with ThreadPoolExecutor(max_workers=max_workers_tar_writing) as executor:
+        with ThreadPoolExecutor(
+                max_workers=max_workers_tar_writing) as executor:
             for i in range(0, len(file_list), batch_size):
-                batch = file_list[i : i + batch_size]
+                batch = file_list[i:i + batch_size]
                 results = list(
                     executor.map(
                         # use batching here too, to speed up the process
@@ -226,8 +234,7 @@ def write_to_dataset(
                         [directory] * len(batch),
                         [frames_per_sample] * len(batch),
                         [out_channels] * len(batch),
-                    )
-                )
+                    ))
                 for sample in results:
                     if sample:
                         tar_writer.write(sample)
