@@ -1,6 +1,6 @@
 # .github/workflows/restyled.yml
 
-name: Restyled
+name: Restyled 
 
 on:
   pull_request:

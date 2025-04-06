@@ -4,7 +4,7 @@
 SamplerFunctions.py
 
 This module contains functions for sampling frames from videos and processing them for dataset preparation.
-
+ 
 Functions:
     sample_video(
         video: str,

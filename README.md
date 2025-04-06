@@ -5,7 +5,7 @@ This project works in conjunction with the [Unified-bee-Runner](https://github.c
 ## Installation
 
 1. Clone the repository:
-   ```sh
+   ```sh 
    git clone https://github.com/Elias2660/VideoSamplerRewrite.git
    cd VideoSamplerRewrite
    ```

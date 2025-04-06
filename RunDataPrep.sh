@@ -2,6 +2,8 @@
 export OMP_NUM_THREADS=1
 
 <<comment
+(not usually used / updated, preferred for one to use the Unified-bee-Runner to run this)
+
 RunDataPrep.sh
 
 This script prepares the data for model training by executing the Dataprep.py script with specified options.
@@ -36,4 +38,4 @@ comment
 
 
 # This script is used to prepare the data for the model training
-python3 VideoSamplerRewrite/Dataprep.py --max-workers 5 >> dataprep.log 2>&1
+python3 VideoSamplerRewrite/Dataprep.py --max-workers 5 >> dataprep.log 2>&1 

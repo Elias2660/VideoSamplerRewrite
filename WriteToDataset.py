@@ -1,4 +1,4 @@
-"""
+""" 
 WriteToDataset.py
 
 This module provides functionality to write samples from a directory to a dataset tar file.
