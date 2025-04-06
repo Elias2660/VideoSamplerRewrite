@@ -184,8 +184,7 @@ def sample_video(
                     )
                     if count in target_sample_list[index]:
                         # start recoding samples
-                        logging.debug(
-                            f"Frame {count} triggered samples_recorded")
+                        logging.debug(f"Frame {count} triggered samples_recorded")
                         dataframe.at[index, "samples_recorded"] = True
 
                     if row["samples_recorded"]:
@@ -208,8 +207,7 @@ def sample_video(
                         dataframe.at[index, "counts"].append(str(count))
 
                         if (
-                            int(row["frame_of_sample"]) == int(
-                                frames_per_sample) - 1
+                            int(row["frame_of_sample"]) == int(frames_per_sample) - 1
                         ):  # -1 because we start at 0
                             # scramble to make sure every saved .npz sample is unique
                             spc += 1
@@ -321,8 +319,7 @@ def save_sample(batch):
             np_t = t.cpu().numpy().astype(np.float16)
             np.savez_compressed(file=npz_name, tensor=np_t)
 
-            logging.debug(
-                f"Saved sample {s_c} for {video}, with name {npz_name}")
+            logging.debug(f"Saved sample {s_c} for {video}, with name {npz_name}")
 
         except Exception as e:
             logging.error(f"Error saving sample: {e}")
@@ -358,17 +355,14 @@ def apply_video_transformations(
     """
     # history: pulled, with minimal edits, from the code from bee_analysis
     if normalize:
-        frame = cv2.normalize(frame, None, alpha=0,
-                              beta=255, norm_type=cv2.NORM_MINMAX)
+        frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
     if out_channels == 1:
-        logging.debug(
-            f"Converting frame {count} to grayscale since out_channels is 1")
+        logging.debug(f"Converting frame {count} to grayscale since out_channels is 1")
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
-    logging.debug(
-        f"Frame shape: {frame.shape}, adding contrast to partial sample")
+    logging.debug(f"Frame shape: {frame.shape}, adding contrast to partial sample")
     contrast = 1.9  # Simple contrast control [1.0-3.0]
     brightness = 10  # Simple brightness control [0-100]
     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
@@ -390,7 +384,7 @@ def apply_video_transformations(
             height, width, out_height, out_width, 1, x_offset, y_offset
         )
         in_frame = in_frame[
-            :, :, crop_y: crop_y + out_height, crop_x: crop_x + out_width
+            :, :, crop_y : crop_y + out_height, crop_x : crop_x + out_width
         ]
 
     return in_frame

@@ -193,25 +193,19 @@ def main():
         logging.info(f"Output width: {args.out_width}")
         logging.info(f"Output height: {args.out_height}")
         logging.info(f"Equalize samples: {args.equalize_samples}")
-        logging.info(
-            f"Dataset writing batch size: {args.dataset_writing_batch_size}")
-        logging.info(
-            f"Max threads for picture saving: {args.max_threads_pic_saving}")
-        logging.info(
-            f"Max workers for tar writing: {args.max_workers_tar_writing}")
-        logging.info(
-            f"Max batch size for sampling: {args.max_batch_size_sampling}")
+        logging.info(f"Dataset writing batch size: {args.dataset_writing_batch_size}")
+        logging.info(f"Max threads for picture saving: {args.max_threads_pic_saving}")
+        logging.info(f"Max workers for tar writing: {args.max_workers_tar_writing}")
+        logging.info(f"Max batch size for sampling: {args.max_batch_size_sampling}")
         logging.info(f"Crop has been set as {args.crop}")
 
         # find all dataset_*.csv files
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
-        result = subprocess.run(command, shell=True,
-                                capture_output=True, text=True)
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
         file_list = sorted(
-            [ansi_escape.sub("", line).strip()
-             for line in result.stdout.splitlines()]
+            [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
         )
 
         logging.info(f"File List: {file_list}")
@@ -229,8 +223,7 @@ def main():
             os.makedirs(f"{base_name}_samplestemporary", exist_ok=True)
             os.makedirs(f"{base_name}_samplestemporarytxt", exist_ok=True)
 
-        data_frame_list = [group for _,
-                           group in total_dataframe.groupby("file")]
+        data_frame_list = [group for _, group in total_dataframe.groupby("file")]
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
 
