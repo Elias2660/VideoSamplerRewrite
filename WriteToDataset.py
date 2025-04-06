@@ -23,7 +23,6 @@ Raises:
 License:
     This project is licensed under the MIT License - see the LICENSE file for details.
 """
-
 import datetime
 import io
 import logging
