@@ -124,13 +124,13 @@ def sample_video(
     :param crop: bool:  (Default value = False)
     :param max_batch_size: int:  (Default value = 50)
     :param max_threads_pic_saving: int:  (Default value = 10)
-    :param video: str: 
-    :param old_df: pd.DataFrame: 
-    :param number_of_samples_max: int: 
-    :param frames_per_sample: int: 
-    :param normalize: bool: 
-    :param out_channels: int: 
-    :param sample_span: int: 
+    :param video: str:
+    :param old_df: pd.DataFrame:
+    :param number_of_samples_max: int:
+    :param frames_per_sample: int:
+    :param normalize: bool:
+    :param out_channels: int:
+    :param sample_span: int:
     :param out_height: int:  (Default value = None)
     :param out_width: int:  (Default value = None)
     :param x_offset: int:  (Default value = 0)
@@ -437,11 +437,11 @@ def apply_video_transformations(
     :param y_offset: int:  (Default value = 0)
     :param out_width: int:  (Default value = 400)
     :param out_height: int:  (Default value = 400)
-    :param count: int: 
-    :param normalize: bool: 
-    :param out_channels: int: 
-    :param height: int: 
-    :param width: int: 
+    :param count: int:
+    :param normalize: bool:
+    :param out_channels: int:
+    :param height: int:
+    :param width: int:
     :param crop: bool:  (Default value = False)
     :param x_offset: int:  (Default value = 0)
     :param y_offset: int:  (Default value = 0)
@@ -495,7 +495,7 @@ def getVideoInfo(video: str):
     :param video: str:
     :param video: str:
     :param video: str:
-    :param video: str: 
+    :param video: str:
     :returns: tuple: A tuple containing the width and height of the video.
 
     """
