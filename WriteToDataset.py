@@ -39,6 +39,14 @@ from torchvision import transforms
 
 
 def process_sample(file, directory, frames_per_sample, out_channels):
+    """
+
+    :param file: 
+    :param directory: 
+    :param frames_per_sample: 
+    :param out_channels: 
+
+    """
     # convert the sample into something that can be read into the tar files
     try:
         data = np.load(os.path.join(directory, file))
@@ -113,19 +121,24 @@ def write_to_dataset(
     equalize_samples: bool = False,
     max_workers_tar_writing: int = 4,
 ):
-    """
-    Writes samples from a directory to a dataset tar file.
+    """Writes samples from a directory to a dataset tar file.
 
-    Args:
-        directory (str): The directory containing the samples.
-        tar_file (str): The path to the output tar file.
-        frames_per_sample (int, optional): The number of frames per sample. Defaults to 1.
-        out_channels (int, optional): The number of output channels. Defaults to 1.
-        batch_size (int, optional): The number of samples to process in a batch. Defaults to 10.
-        num_workers (int, optional): The number of worker threads to use. Defaults to 4.
+    :param directory: str
+    :param tar_file: str
+    :param frames_per_sample: int
+    :param out_channels: int
+    :param batch_size: int
+    :param num_workers: int
+    :param Raises: 
+    :param directory: str: 
+    :param tar_file: str: 
+    :param dataset_path: str: 
+    :param frames_per_sample: int:  (Default value = 1)
+    :param out_channels: int:  (Default value = 1)
+    :param batch_size: int:  (Default value = 60)
+    :param equalize_samples: bool:  (Default value = False)
+    :param max_workers_tar_writing: int:  (Default value = 4)
 
-    Raises:
-        Exception: If there is an error writing to the dataset.
     """
     try:
         tar_writer = wds.TarWriter(tar_file, encoder=False)

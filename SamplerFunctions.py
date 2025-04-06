@@ -68,20 +68,38 @@ def sample_video(
     max_batch_size: int = 50,
     max_threads_pic_saving: int = 10,
 ):
-    """
-    Samples frames from a video based on the provided parameters, writing the samples to folders
+    """Samples frames from a video based on the provided parameters, writing the samples to folders
 
-    Args:
-        video (str): The path to the video file.
-        old_df (pd.DataFrame): The original DataFrame containing information about the video frames.
-        number_of_samples_max (int): The maximum number of samples to be taken from the video.
-        frames_per_sample (int): The number of frames to be included in each sample.
-        normalize (bool): Flag indicating whether to normalize the sampled frames.
-        out_channels (int): The number of output channels for the sampled frames.
-        sample_span (int): The span between each sample.
+    :param video: The path to the video file.
+    :type video: str
+    :param old_df: The original DataFrame containing information about the video frames.
+    :type old_df: pd.DataFrame
+    :param number_of_samples_max: The maximum number of samples to be taken from the video.
+    :type number_of_samples_max: int
+    :param frames_per_sample: The number of frames to be included in each sample.
+    :type frames_per_sample: int
+    :param normalize: Flag indicating whether to normalize the sampled frames.
+    :type normalize: bool
+    :param out_channels: The number of output channels for the sampled frames.
+    :type out_channels: int
+    :param sample_span: The span between each sample.
+    :type sample_span: int
+    :param video: str: 
+    :param old_df: pd.DataFrame: 
+    :param number_of_samples_max: int: 
+    :param frames_per_sample: int: 
+    :param normalize: bool: 
+    :param out_channels: int: 
+    :param sample_span: int: 
+    :param out_height: int:  (Default value = None)
+    :param out_width: int:  (Default value = None)
+    :param x_offset: int:  (Default value = 0)
+    :param y_offset: int:  (Default value = 0)
+    :param crop: bool:  (Default value = False)
+    :param max_batch_size: int:  (Default value = 50)
+    :param max_threads_pic_saving: int:  (Default value = 10)
+    :returns: None
 
-    Returns:
-        None
     """
     start_time = (
         time.time()
@@ -266,22 +284,18 @@ def sample_video(
 
 # row, partial_frames, video, frames_per_sample, count, spc
 def save_sample(batch):
-    """
-    Save a sample of frames to disk.
+    """Save a sample of frames to disk.
 
-    Args:
-        row (pandas.Series): The row containing information about the sample.
-        partial_frames (list): List of partial frames to be saved.
-        video (str): The name of the video.
-        frames_per_sample (int): The number of frames per sample.
-        count (int): The count of the sample.
-        spc (int): The spc of the sample.
+    :param row: pandas
+    :param partial_frames: list
+    :param video: str
+    :param frames_per_sample: int
+    :param count: int
+    :param spc: int
+    :param Raises: 
+    :param batch: 
+    :returns: None
 
-    Raises:
-        Exception: If there is an error saving the sample.
-
-    Returns:
-        None
     """
     for sample in batch:
         row, partial_frames, video, frames_per_sample, count, spc = sample
@@ -340,19 +354,32 @@ def apply_video_transformations(
     out_width: int = 400,
     out_height: int = 400,
 ):
-    """
-    Apply transformations to a video frame.
+    """Apply transformations to a video frame.
 
-    Args:
-        frame: The input video frame.
-        count (int): The frame count.
-        normalize (bool): Flag indicating whether to normalize the frame.
-        out_channels (int): The number of output channels.
-        height (int): The desired height of the frame.
-        width (int): The desired width of the frame.
+    :param frame: The input video frame.
+    :param count: The frame count.
+    :type count: int
+    :param normalize: Flag indicating whether to normalize the frame.
+    :type normalize: bool
+    :param out_channels: The number of output channels.
+    :type out_channels: int
+    :param height: The desired height of the frame.
+    :type height: int
+    :param width: The desired width of the frame.
+    :type width: int
+    :param count: int: 
+    :param normalize: bool: 
+    :param out_channels: int: 
+    :param height: int: 
+    :param width: int: 
+    :param crop: bool:  (Default value = False)
+    :param x_offset: int:  (Default value = 0)
+    :param y_offset: int:  (Default value = 0)
+    :param out_width: int:  (Default value = 400)
+    :param out_height: int:  (Default value = 400)
+    :returns: The transformed video frame as a tensor.
+    :rtype: torch.Tensor
 
-    Returns:
-        torch.Tensor: The transformed video frame as a tensor.
     """
     # history: pulled, with minimal edits, from the code from bee_analysis
     if normalize:
@@ -392,14 +419,12 @@ def apply_video_transformations(
 
 
 def getVideoInfo(video: str):
-    """
-    Retrieves the width and height of a video.
+    """Retrieves the width and height of a video.
 
-    Parameters:
-    video (str): The path to the video file.
+    :param video: str
+    :param video: str: 
+    :returns: tuple: A tuple containing the width and height of the video.
 
-    Returns:
-    tuple: A tuple containing the width and height of the video.
     """
 
     try:
@@ -415,19 +440,17 @@ def getVideoInfo(video: str):
 def vidSamplingCommonCrop(
     height, width, out_height, out_width, scale, x_offset, y_offset
 ):
-    """
-    Return the common cropping parameters used in dataprep and annotations.
+    """Return the common cropping parameters used in dataprep and annotations.
 
-    Arguments:
-        height     (int): Height of the video
-        width      (int): Width of the video
-        out_height (int): Height of the output patch
-        out_width  (int): Width of the output patch
-        scale    (float): Scale applied to the original video
-        x_offset   (int): x offset of the crop (after scaling)
-        y_offset   (int): y offset of the crop (after scaling)
-    Returns:
-        out_width, out_height, crop_x, crop_y
+    :param height: int
+    :param width: int
+    :param out_height: int
+    :param out_width: int
+    :param scale: float
+    :param x_offset: int
+    :param y_offset: int
+    :returns: out_width, out_height, crop_x, crop_y
+
     """
 
     if out_width is None:

@@ -53,6 +53,7 @@ from WriteToDataset import write_to_dataset
 
 
 def main():
+    """ """
     file_list = []
     files = os.listdir()
 
