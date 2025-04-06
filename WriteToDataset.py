@@ -43,8 +43,8 @@ def process_sample(file, directory, frames_per_sample, out_channels):
 
     :param file: param directory:
     :param frames_per_sample: param out_channels:
-    :param directory:
-    :param out_channels:
+    :param directory: param out_channels:
+    :param out_channels: 
 
     """
     # convert the sample into something that can be read into the tar files
@@ -140,6 +140,14 @@ def write_to_dataset(
     :param directory: str:
     :param tar_file: str:
     :param dataset_path: str:
+    :param frames_per_sample: int:  (Default value = 1)
+    :param out_channels: int:  (Default value = 1)
+    :param batch_size: int:  (Default value = 60)
+    :param equalize_samples: bool:  (Default value = False)
+    :param max_workers_tar_writing: int:  (Default value = 4)
+    :param directory: str: 
+    :param tar_file: str: 
+    :param dataset_path: str: 
     :param frames_per_sample: int:  (Default value = 1)
     :param out_channels: int:  (Default value = 1)
     :param batch_size: int:  (Default value = 60)
