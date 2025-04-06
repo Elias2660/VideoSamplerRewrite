@@ -24,17 +24,18 @@ License:
     This project is licensed under the MIT License - see the LICENSE file for details.
 """
 
-import webdataset as wds
-import os
-import logging
-import time
-import torch
 import datetime
-import numpy as np
-from torchvision import transforms
 import io
-from concurrent.futures import ThreadPoolExecutor
+import logging
+import os
 import random
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+import numpy as np
+import torch
+import webdataset as wds
+from torchvision import transforms
 
 
 def process_sample(file, directory, frames_per_sample, out_channels):

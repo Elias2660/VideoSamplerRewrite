@@ -36,16 +36,18 @@ License:
     This project is licensed under the MIT License - see the LICENSE file for details.
 """
 
+import argparse
+import concurrent.futures
+import datetime
+import logging
 import os
 import re
-import time
-import logging
-import argparse
-import pandas as pd
-import datetime
 import subprocess
-import concurrent.futures
+import time
 from multiprocessing import freeze_support
+
+import pandas as pd
+
 from SamplerFunctions import sample_video
 from WriteToDataset import write_to_dataset
 

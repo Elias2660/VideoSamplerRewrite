@@ -37,18 +37,19 @@ Constants:
     target_samples: List of samples to be targeted.
 """
 
-import logging
-import cv2
-import pandas as pd
-import numpy as np
-import os
 import datetime
-import time
-import math
-import random
-import torch
-from concurrent.futures import ThreadPoolExecutor
 import gc
+import logging
+import math
+import os
+import random
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+import cv2
+import numpy as np
+import pandas as pd
+import torch
 
 
 def sample_video(
