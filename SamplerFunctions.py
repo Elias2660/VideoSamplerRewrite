@@ -1,5 +1,4 @@
 # TODO: ADD SCALING?
-
 """
 SamplerFunctions.py
 
@@ -36,7 +35,6 @@ Constants:
     target_sample_list: List of target samples for each frame.
     target_samples: List of samples to be targeted.
 """
-
 import datetime
 import gc
 import logging
