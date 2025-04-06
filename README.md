@@ -5,7 +5,8 @@ This project works in conjunction with the [Unified-bee-Runner](https://github.c
 ## Installation
 
 1. Clone the repository:
-   ```sh 
+
+   ```sh
    git clone https://github.com/Elias2660/VideoSamplerRewrite.git
    cd VideoSamplerRewrite
    ```
@@ -18,21 +19,28 @@ This project works in conjunction with the [Unified-bee-Runner](https://github.c
 ## Usage
 
 ### Prepare Dataset
+
 To sample video data and prepare the dataset, run:
+
 ```sh
 cd ..  # change to the working directory
 python Dataprep.py --dataset_path <path-to-dataset> --dataset_name <dataset-name> --number_of_samples_max <max-samples> --max_workers <number-of-workers> --frames_per_sample <frames-per-sample> [--crop] [--normalize]
 ```
-*Optional parameters such as --crop and --normalize can be added as needed.*
+
+_Optional parameters such as --crop and --normalize can be added as needed._
 
 ### Write Data
+
 To write data to the dataset, run:
+
 ```sh
 python WriteToDataset.py
 ```
 
 ### Using sbatch
+
 For sbatch execution, edit the provided settings in the script and run from the data directory:
+
 ```sh
 sbatch -x /[servers-currently-active] VideoSamplerRewrite/RunDataPrep.sh
 ```

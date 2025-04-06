@@ -36,6 +36,5 @@ Notes:
     - The script should be executed from the directory containing the VideoSamplerRewrite folder.
 comment
 
-
 # This script is used to prepare the data for the model training
-python3 VideoSamplerRewrite/Dataprep.py --max-workers 5 >> dataprep.log 2>&1 
+python3 VideoSamplerRewrite/Dataprep.py --max-workers 5 >>dataprep.log 2>&1
