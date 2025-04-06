@@ -138,8 +138,8 @@ def sample_video(
         target_samples_list = [[
             begin_frame + x * sample_span for x in target_samples
         ]
-                               for begin_frame, target_samples in zip(
-                                   begin_frames, target_samples_list)]
+            for begin_frame, target_samples in zip(
+            begin_frames, target_samples_list)]
 
         # Log and append results
         for target_samples in target_samples_list:

@@ -65,8 +65,7 @@ def main():
     try:
         start = time.time()
         parser = argparse.ArgumentParser(
-            description=
-            "Prepare datasets for Deep Neural Network (DNN) training using video data."
+            description="Prepare datasets for Deep Neural Network (DNN) training using video data."
         )
         parser.add_argument(
             "--dataset_path",
@@ -84,15 +83,13 @@ def main():
             "--number-of-samples",
             type=int,
             default=40000,
-            help=
-            "the number of samples max that will be gathered by the sampler, default=1000",
+            help="the number of samples max that will be gathered by the sampler, default=1000",
         )
         parser.add_argument(
             "--max-workers",
             type=int,
             default=15,
-            help=
-            "The number of workers to use for the multiprocessing, default=15",
+            help="The number of workers to use for the multiprocessing, default=15",
         )
         parser.add_argument(
             "--frames-per-sample",
@@ -137,22 +134,19 @@ def main():
             "--out-width",
             type=int,
             default=None,
-            help=
-            "The width of the output image, default=None NOTE: if you set crop to true you cannot set these to none",
+            help="The width of the output image, default=None NOTE: if you set crop to true you cannot set these to none",
         )
         parser.add_argument(
             "--out-height",
             type=int,
             default=None,
-            help=
-            "The height of the output image, default=None NOTE: if you set crop to true you cannot set these to none",
+            help="The height of the output image, default=None NOTE: if you set crop to true you cannot set these to none",
         )
         parser.add_argument(
             "--equalize-samples",
             action="store_true",
             default=False,
-            help=
-            "Equalize the samples so that each class has the same number of samples, default=False",
+            help="Equalize the samples so that each class has the same number of samples, default=False",
         )
         parser.add_argument(
             "--dataset-writing-batch-size",
@@ -164,15 +158,13 @@ def main():
             "--max-threads-pic-saving",
             type=int,
             default=20,
-            help=
-            "The maximum number of threads to use for saving the pictures, default=20",
+            help="The maximum number of threads to use for saving the pictures, default=20",
         )
         parser.add_argument(
             "--max-workers-tar-writing",
             type=int,
             default=4,
-            help=
-            "The maximum number of workers to use for writing to the tar file, default=4",
+            help="The maximum number of workers to use for writing to the tar file, default=4",
         )
         parser.add_argument(
             "--max-batch-size-sampling",
