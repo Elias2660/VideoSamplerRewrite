@@ -35,6 +35,7 @@ Raises:
 License:
     This project is licensed under the MIT License - see the LICENSE file for details.
 """
+
 import argparse
 import concurrent.futures
 import datetime
@@ -109,9 +110,9 @@ def main():
             default=1,
             help="The number of output channels, default=1",
         )
-        parser.add_argument("--debug",
-                            action="store_true",
-                            help="Debug mode, default false")
+        parser.add_argument(
+            "--debug", action="store_true", help="Debug mode, default false"
+        )
         parser.add_argument(
             "--crop",
             action="store_true",
@@ -195,28 +196,20 @@ def main():
         logging.info(f"Output width: {args.out_width}")
         logging.info(f"Output height: {args.out_height}")
         logging.info(f"Equalize samples: {args.equalize_samples}")
-        logging.info(
-            f"Dataset writing batch size: {args.dataset_writing_batch_size}")
-        logging.info(
-            f"Max threads for picture saving: {args.max_threads_pic_saving}")
-        logging.info(
-            f"Max workers for tar writing: {args.max_workers_tar_writing}")
-        logging.info(
-            f"Max batch size for sampling: {args.max_batch_size_sampling}")
+        logging.info(f"Dataset writing batch size: {args.dataset_writing_batch_size}")
+        logging.info(f"Max threads for picture saving: {args.max_threads_pic_saving}")
+        logging.info(f"Max workers for tar writing: {args.max_workers_tar_writing}")
+        logging.info(f"Max batch size for sampling: {args.max_batch_size_sampling}")
         logging.info(f"Crop has been set as {args.crop}")
 
         # find all dataset_*.csv files
         number_of_samples = args.number_of_samples
         command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
-        result = subprocess.run(command,
-                                shell=True,
-                                capture_output=True,
-                                text=True)
-        file_list = sorted([
-            ansi_escape.sub("", line).strip()
-            for line in result.stdout.splitlines()
-        ])
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        file_list = sorted(
+            [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
+        )
 
         logging.info(f"File List: {file_list}")
 
@@ -233,9 +226,7 @@ def main():
             os.makedirs(f"{base_name}_samplestemporary", exist_ok=True)
             os.makedirs(f"{base_name}_samplestemporarytxt", exist_ok=True)
 
-        data_frame_list = [
-            group for _, group in total_dataframe.groupby("file")
-        ]
+        data_frame_list = [group for _, group in total_dataframe.groupby("file")]
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
 
@@ -245,8 +236,9 @@ def main():
 
         try:
             # for each dataset which has the samples to gather from the video, sample the video
-            with concurrent.futures.ProcessPoolExecutor(max_workers=min(
-                    args.max_workers, os.cpu_count())) as executor:
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=min(args.max_workers, os.cpu_count())
+            ) as executor:
                 futures = [
                     executor.submit(
                         sample_video,
@@ -264,7 +256,8 @@ def main():
                         args.crop,
                         args.max_batch_size_sampling,
                         args.max_threads_pic_saving,
-                    ) for dataset in data_frame_list
+                    )
+                    for dataset in data_frame_list
                 ]
                 concurrent.futures.wait(futures)
                 logging.info(f"Submitted {len(futures)} tasks to the executor")
@@ -277,10 +270,9 @@ def main():
             raise e
 
         try:
-            result = subprocess.run("ls *temporary",
-                                    shell=True,
-                                    capture_output=True,
-                                    text=True)
+            result = subprocess.run(
+                "ls *temporary", shell=True, capture_output=True, text=True
+            )
             text = ansi_escape.sub("", result.stdout).split()
             logging.debug(f"Samples sampled: {text}")
         except Exception as e:
@@ -288,13 +280,13 @@ def main():
             raise e
 
         # log header which will be filled out by the write_to_dataset functions
-        with open(os.path.join(args.dataset_path, "RUN_DESCRIPTION.log"),
-                  "a+") as rd:
+        with open(os.path.join(args.dataset_path, "RUN_DESCRIPTION.log"), "a+") as rd:
             rd.write("\n-- Sample Collection Results --\n")
 
         try:
-            with concurrent.futures.ProcessPoolExecutor(max_workers=min(
-                    args.max_workers, os.cpu_count())) as executor:
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=min(args.max_workers, os.cpu_count())
+            ) as executor:
                 futures = [
                     executor.submit(
                         write_to_dataset,
@@ -306,7 +298,8 @@ def main():
                         args.dataset_writing_batch_size,
                         args.equalize_samples,
                         args.max_workers_tar_writing,
-                    ) for file in file_list
+                    )
+                    for file in file_list
                 ]
                 concurrent.futures.wait(futures)
 
