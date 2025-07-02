@@ -257,61 +257,44 @@ def sample_video(
     return
 
 
-# row, partial_frames, video, frames_per_sample, count, spc
 def save_sample(batch):
-    """Save a sample of frames to disk.
+    # batch is a table with: row, partial_frames, video, frames_per_sample, count, spc
+    """Save a sample of frames to disk (per‐sample subdirectories inside your two temp dirs)."""
 
-    :param row: pandas
-    :param partial_frames: list
-    :param video: str
-    :param frames_per_sample: int
-    :param count: int
-    :param spc: int
-    :param Raises: param batch:
-    :param batch: returns: None
-    :returns: None
+    for row, partial_frames, video, fps, count, spc in batch:
+        base = row.loc["data_file"].replace(".csv", "")
+        png_root = f"{base}_samplestemporary"
+        txt_root = f"{base}_samplestemporarytxt"
+        os.makedirs(png_root, exist_ok=True)
+        os.makedirs(txt_root, exist_ok=True)
 
-    """
-    for sample in batch:
-        row, partial_frames, video, frames_per_sample, count, spc = sample
-        try:
-            directory_name = (row.loc["data_file"].replace(".csv", "") +
-                              "_samplestemporary")
-            s_c = "-".join([str(x) for x in row["counts"]])
-            d_name = row.iloc[1]
-            video_name = video.replace(" ", "SPACE")
-            base_name = f"{directory_name}/{video_name}_{d_name}_{count}_{spc}".replace(
-                "\x00", "")
-            npz_name = f"{base_name}.npz"
-            txt_name = f"{directory_name}txt/{video_name}_{d_name}_{count}_{spc}.txt".replace(  # Save the sample counts to a text file; structure consistent across code (as in finding samples)
-                "\x00", "")
+        vid = video.replace(" ", "SPACE")
+        cls = row.iloc[1]
+        key = f"{vid}_{cls}_{count}_{spc}"
 
-            # Save the sample counts to a text file
-            # saving the counts to a text file instead of the s_c file because we don't want overly long file names
-            with open(txt_name, "w+") as s_c_file:
-                s_c_file.write(s_c)
+        # write counts
+        txt_path = os.path.join(txt_root, f"{key}.txt")
+        with open(txt_path, "w") as f:
+            f.write("-".join(str(x) for x in row["counts"]))
 
-            # Check for overwriting
-            if npz_name in os.listdir(directory_name):
-                logging.error(f"Overwriting {npz_name}")
+        # write frames under their own subfolder
+        sample_dir = os.path.join(png_root, key)
+        os.makedirs(sample_dir, exist_ok=True)
+        
+        for i, frame_tensor in enumerate(partial_frames):
+            # Handle grayscale correctly - extract the single channel data
+            # The tensor shape should be [1, 1, height, width]
+            arr = frame_tensor.squeeze(0).squeeze(0).cpu().numpy().clip(0, 255).astype(np.uint8)
+            
+            # Keep the original filename format
+            frame_path = os.path.join(sample_dir, f"frame_{i:03d}.png")
+            
+            # Save directly as grayscale
+            cv2.imwrite(frame_path, arr)
 
-            # Save the tensor
-            if frames_per_sample == 1:
-                t = partial_frames[0]
-            else:
-                t = torch.cat(partial_frames)
+        logging.debug(f"Saved sample {key}: frames→{sample_dir}, txt→{txt_path}")
 
-            # saving space
-            t = t.to(torch.float16).clone().contiguous()
-            np_t = t.cpu().numpy().astype(np.float16)
-            np.savez_compressed(file=npz_name, tensor=np_t)
 
-            logging.debug(
-                f"Saved sample {s_c} for {video}, with name {npz_name}")
-
-        except Exception as e:
-            logging.error(f"Error saving sample: {e}")
-            raise e
 
 
 def apply_video_transformations(
@@ -340,11 +323,6 @@ def apply_video_transformations(
     :type height: int
     :param width: The desired width of the frame.
     :type width: int
-    :param count: int:
-    :param normalize: bool:
-    :param out_channels: int:
-    :param height: int:
-    :param width: int:
     :param crop: bool:  (Default value = False)
     :param x_offset: int:  (Default value = 0)
     :param y_offset: int:  (Default value = 0)
@@ -360,31 +338,37 @@ def apply_video_transformations(
                               beta=255,
                               norm_type=cv2.NORM_MINMAX)
 
-    if out_channels == 1:
-        logging.debug(
-            f"Converting frame {count} to grayscale since out_channels is 1")
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-
-    logging.debug(
-        f"Frame shape: {frame.shape}, adding contrast to partial sample")
+    # Apply contrast and brightness adjustments
     contrast = 1.9  # Simple contrast control [1.0-3.0]
     brightness = 10  # Simple brightness control [0-100]
     frame = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness)
 
-    logging.debug(f"Frame shape: {frame.shape}, converting to a tensor")
-    np_frame = np.array(frame)
-
-    in_frame = (torch.tensor(
-        data=np_frame,
-        dtype=torch.float16,
-    ).permute(2, 0, 1).unsqueeze(0))  # Shape: [1, C, H, W]
+    if out_channels == 1:
+        # Convert to grayscale BUT DON'T CONVERT BACK TO BGR
+        logging.debug(
+            f"Converting frame {count} to true grayscale (1-channel)")
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        # Create tensor differently for grayscale - don't permute dimensions
+        np_frame = np.array(frame)
+        in_frame = torch.tensor(
+            data=np_frame,
+            dtype=torch.float16
+        ).unsqueeze(0).unsqueeze(0)  # Shape: [1, 1, H, W]
+    else:
+        # Standard RGB processing
+        logging.debug(f"Keeping frame {count} as RGB (3-channel)")
+        np_frame = np.array(frame)
+        in_frame = torch.tensor(
+            data=np_frame,
+            dtype=torch.float16
+        ).permute(2, 0, 1).unsqueeze(0)  # Shape: [1, 3, H, W]
 
     if crop:
         out_width, out_height, crop_x, crop_y = vidSamplingCommonCrop(
             height, width, out_height, out_width, 1, x_offset, y_offset)
         in_frame = in_frame[:, :, crop_y:crop_y + out_height,
-                            crop_x:crop_x + out_width]
+                          crop_x:crop_x + out_width]
 
     return in_frame
 
