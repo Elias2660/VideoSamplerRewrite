@@ -262,7 +262,8 @@ def save_sample(batch):
             # write counts
             txt_path = os.path.join(txt_root, f"{key}.txt")
             with open(txt_path, "w") as f:
-                f.write("-".join(str(start_frame + x) for x in range(frames_per_sample)))
+                f.write("-".join(str(start_frame + x)
+                        for x in range(frames_per_sample)))
 
             # write frames under their own subfolder
             sample_dir = os.path.join(png_root, key)
@@ -325,7 +326,8 @@ def apply_video_transformations(
     """
     # history: pulled, with minimal edits, from the code from bee_analysis
     if normalize:
-        frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+        frame = cv2.normalize(frame, None, alpha=0,
+                              beta=255, norm_type=cv2.NORM_MINMAX)
 
     # Apply contrast and brightness adjustments
     contrast = 1.9  # Simple contrast control [1.0-3.0]
@@ -334,13 +336,15 @@ def apply_video_transformations(
 
     if out_channels == 1:
         # Convert to grayscale BUT DON'T CONVERT BACK TO BGR
-        logging.debug(f"Converting frame {count} to true grayscale (1-channel)")
+        logging.debug(
+            f"Converting frame {count} to true grayscale (1-channel)")
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Create tensor differently for grayscale - don't permute dimensions
         np_frame = np.array(frame)
         in_frame = (
-            torch.tensor(data=np_frame, dtype=torch.float16).unsqueeze(0).unsqueeze(0)
+            torch.tensor(data=np_frame, dtype=torch.float16).unsqueeze(
+                0).unsqueeze(0)
         )  # Shape: [1, 1, H, W]
     else:
         # Standard RGB processing
@@ -357,7 +361,7 @@ def apply_video_transformations(
             height, width, out_height, out_width, 1, x_offset, y_offset
         )
         in_frame = in_frame[
-            :, :, crop_y : crop_y + out_height, crop_x : crop_x + out_width
+            :, :, crop_y: crop_y + out_height, crop_x: crop_x + out_width
         ]
 
     return in_frame
