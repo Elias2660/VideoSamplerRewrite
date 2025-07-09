@@ -161,58 +161,57 @@ def sample_video(
 
         # generate batches
         samples_in_current_batch = 0
-        batches = []
         current_batch = []
-        for start_frame in target_sample_list:
-            # append the frames of the video into a list
-            sample_frames = [
-                apply_video_transformations(
-                    video_frame_array[start_frame + frame_offset],
-                    start_frame + frame_offset,
-                    normalize,
-                    out_channels,
-                    height,
-                    width,
-                    crop,
-                    x_offset,
-                    y_offset,
-                    out_width,
-                    out_height,
-                ) for frame_offset in range(frames_per_sample)
-            ]
-            # the row is the fist one that contains the range of frame counts
-            relevant_dataframe_row = dataframe[
-                (dataframe[" begin frame"] <= np.min(start_frame))
-                & (dataframe[" end frame"] >= np.max(
-                    start_frame + frames_per_sample))].iloc[0]
-
-            current_batch.append([
-                relevant_dataframe_row,
-                sample_frames,
-                video,
-                frames_per_sample,
-                start_frame,
-                count,
-                sample_count,  # to ensure uniqueness among the samples
-            ])
-            samples_in_current_batch += 1
-            sample_count += 1
-
-            if samples_in_current_batch % max_batch_size == 0:
-                batches.append(current_batch)
-                current_batch = []
-
-        if len(current_batch) != 0:
-            batches.append(current_batch)
-
         with ThreadPoolExecutor(
                 max_workers=max_threads_pic_saving) as executor:
-            # process the batches and write the samples
-            for batch in batches:
+            for start_frame in target_sample_list:
+                # append the frames of the video into a list
+                sample_frames = [
+                    apply_video_transformations(
+                        video_frame_array[start_frame + frame_offset],
+                        start_frame + frame_offset,
+                        normalize,
+                        out_channels,
+                        height,
+                        width,
+                        crop,
+                        x_offset,
+                        y_offset,
+                        out_width,
+                        out_height,
+                    ) for frame_offset in range(frames_per_sample)
+                ]
+                # the row is the fist one that contains the range of frame counts
+                relevant_dataframe_row = dataframe[
+                    (dataframe[" begin frame"] <= np.min(start_frame))
+                    & (dataframe[" end frame"] >= np.max(
+                        start_frame + frames_per_sample))].iloc[0]
+
+                current_batch.append([
+                    relevant_dataframe_row,
+                    sample_frames,
+                    video,
+                    frames_per_sample,
+                    start_frame,
+                    count,
+                    sample_count,  # to ensure uniqueness among the samples
+                ])
+                samples_in_current_batch += 1
+                sample_count += 1
+
+                if samples_in_current_batch % max_batch_size == 0:
+                    executor.submit(
+                        save_sample,
+                        current_batch,
+                    )
+                    current_batch = []
+
+            if len(current_batch) != 0:
                 executor.submit(
-                    save_sample,
-                    batch,
+                        save_sample,
+                        current_batch,
                 )
+
 
             executor.shutdown(wait=True)
 
