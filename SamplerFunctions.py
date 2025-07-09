@@ -103,7 +103,6 @@ def sample_video(
         target_sample_list = (
             []
         )  # list of lists, these don't work well the the dataframe
-        partial_frame_list = []
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
         width, height = getVideoInfo(video)
@@ -144,7 +143,8 @@ def sample_video(
                 )
                 logging.debug(f"Target samples for {video}: {target_samples}")
             target_sample_list.append(target_samples)
-            partial_frame_list.append([])
+
+        target_sample_list = target_sample_list[0]
 
         logging.debug(
             f"Size of target sample list for {video}: {len(target_sample_list)}"
@@ -165,7 +165,6 @@ def sample_video(
             ret, frame = cap.read()
             if not ret:
                 break
-
             video_frame_array.append(frame)
 
         cap.release()
@@ -175,12 +174,12 @@ def sample_video(
         samples_in_current_batch = 0
         batches = []
         current_batch = []
-        for frame_list, dataframe_row in zip(target_sample_list, dataframe):
+        for start_frame in target_sample_list:
             # append the frames of the video into a list
             sample_frames = [
                 apply_video_transformations(
-                    video_frame_array[frame_idx],
-                    frame_idx,
+                    video_frame_array[start_frame + frame_offset],
+                    start_frame + frame_offset,
                     normalize,
                     out_channels,
                     height,
@@ -191,14 +190,21 @@ def sample_video(
                     out_width,
                     out_height,
                 )
-                for frame_idx in frame_list
+                for frame_offset in range(frames_per_sample)
             ]
+            # the row is the fist one that contains the range of frame counts
+            relevant_dataframe_row = dataframe[
+                (dataframe[" begin frame"] <= np.min(start_frame))
+                & (dataframe[" end frame"] >= np.max(start_frame + frames_per_sample))
+            ].iloc[0]
+
             current_batch.append(
                 [
-                    dataframe_row,
+                    relevant_dataframe_row,
                     sample_frames,
                     video,
                     frames_per_sample,
+                    start_frame,
                     count,
                     sample_count,  # to ensure uniqueness among the samples
                 ]
@@ -206,7 +212,7 @@ def sample_video(
             samples_in_current_batch += 1
             sample_count += 1
 
-            if samples_in_current_batch % max_batch_size:
+            if samples_in_current_batch % max_batch_size == 0:
                 batches.append(current_batch)
                 current_batch = []
 
@@ -234,7 +240,6 @@ def sample_video(
         raise e
 
     finally:
-
         gc.collect()
     return
 
@@ -242,46 +247,47 @@ def sample_video(
 def save_sample(batch):
     # batch is a table with: row, partial_frames, video, frames_per_sample, count, sample_count
     """Save a sample of frames to disk (per‐sample subdirectories inside your two temp dirs)."""
+    try:
+        for row, partial_frames, video, frames_per_sample, start_frame, count, sample_count in batch:
+            base = row.loc["data_file"].replace(".csv", "")
+            png_root = f"{base}_samplestemporary"
+            txt_root = f"{base}_samplestemporarytxt"
+            os.makedirs(png_root, exist_ok=True)
+            os.makedirs(txt_root, exist_ok=True)
 
-    for row, partial_frames, video, fps, count, sample_count in batch:
-        base = row.loc["data_file"].replace(".csv", "")
-        png_root = f"{base}_samplestemporary"
-        txt_root = f"{base}_samplestemporarytxt"
-        os.makedirs(png_root, exist_ok=True)
-        os.makedirs(txt_root, exist_ok=True)
+            vid = video.replace(" ", "SPACE")
+            cls = row.iloc[1]
+            key = f"{vid}_{cls}_{count}_{sample_count}"
 
-        vid = video.replace(" ", "SPACE")
-        cls = row.iloc[1]
-        key = f"{vid}_{cls}_{count}_{sample_count}"
+            # write counts
+            txt_path = os.path.join(txt_root, f"{key}.txt")
+            with open(txt_path, "w") as f:
+                f.write("-".join(str(start_frame + x) for x in range(frames_per_sample)))
 
-        # write counts
-        txt_path = os.path.join(txt_root, f"{key}.txt")
-        with open(txt_path, "w") as f:
-            f.write("-".join(str(x) for x in row["counts"]))
+            # write frames under their own subfolder
+            sample_dir = os.path.join(png_root, key)
+            os.makedirs(sample_dir, exist_ok=True)
 
-        # write frames under their own subfolder
-        sample_dir = os.path.join(png_root, key)
-        os.makedirs(sample_dir, exist_ok=True)
+            for i, frame_tensor in enumerate(partial_frames):
+                # Handle grayscale correctly - extract the single channel data
+                # The tensor shape should be [1, 1, height, width]
+                arr = (
+                    frame_tensor.squeeze(0)
+                    .squeeze(0)
+                    .cpu()
+                    .numpy()
+                    .clip(0, 255)
+                    .astype(np.uint8)
+                )
 
-        for i, frame_tensor in enumerate(partial_frames):
-            # Handle grayscale correctly - extract the single channel data
-            # The tensor shape should be [1, 1, height, width]
-            arr = (
-                frame_tensor.squeeze(0)
-                .squeeze(0)
-                .cpu()
-                .numpy()
-                .clip(0, 255)
-                .astype(np.uint8)
-            )
+                # Keep the original filename format
+                frame_path = os.path.join(sample_dir, f"frame_{i:03d}.png")
 
-            # Keep the original filename format
-            frame_path = os.path.join(sample_dir, f"frame_{i:03d}.png")
-
-            # Save directly as grayscale
-            cv2.imwrite(frame_path, arr)
-
-        logging.debug(f"Saved sample {key}: frames→{sample_dir}, txt→{txt_path}")
+                # Save directly as grayscale
+                cv2.imwrite(frame_path, arr)
+    except Exception as e:
+        logging.error(f"Error sampling video {video}: {e}")
+        raise e
 
 
 def apply_video_transformations(
