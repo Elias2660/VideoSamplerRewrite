@@ -75,10 +75,22 @@ def main():
             description="Prepare datasets for Deep Neural Network (DNN) training using video data."
         )
         parser.add_argument(
-            "--dataset_path",
+            "--video-input-path",
             type=str,
             default=".",
-            help="Path to the dataset, defaults to .",
+            help="Path for the input video files (the .mp4 files), defaults to .",
+        )
+        parser.add_argument(
+            "--dataset-input-path",
+            type=str,
+            default=".",
+            help="path for the input dataset files (dataset_*.csv)"
+        )
+        parser.add_argument(
+            "--out-path",
+            type=str,
+            default=".",
+            help="path for the output files"
         )
         parser.add_argument(
             "--dataset-search-string",
@@ -190,6 +202,9 @@ def main():
         logging.info(
             f"Starting the data preparation process, with frames per sample: {args.frames_per_sample}, number of samples: {args.number_of_samples}, and max workers: {args.max_workers}, equalize samples: {args.equalize_samples}"
         )
+        logging.info(f"Video input path: {args.video_input_path}")
+        logging.info(f"Dataset input path {args.dataset_input_path}")
+        logging.info(f"Output path: {args.out_path}")
         logging.info(f"Normalize: {args.normalize}")
         logging.info(f"Output channels: {args.out_channels}")
         logging.info(f"Debug mode: {args.debug}")
@@ -206,7 +221,7 @@ def main():
 
         # find all dataset_*.csv files
         number_of_samples = args.number_of_samples
-        command = f"ls {os.path.join(args.dataset_path, args.dataset_search_string)}"
+        command = f"ls {os.path.join(args.dataset_input_path, args.dataset_search_string)}"
         ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         file_list = sorted(
@@ -225,16 +240,16 @@ def main():
         # Batch directory operations
         for file in file_list:
             base_name = file.replace(".csv", "")
-            os.makedirs(f"{base_name}_samplestemporary", exist_ok=True)
-            os.makedirs(f"{base_name}_samplestemporarytxt", exist_ok=True)
+            os.makedirs(os.path.join(args.out_path, f"{base_name}_samplestemporary"), exist_ok=True)
+            os.makedirs(os.path.join(args.out_path, f"{base_name}_samplestemporarytxt"), exist_ok=True)
 
         data_frame_list = [group for _, group in total_dataframe.groupby("file")]
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
 
         # change the permissions for the directories so that everybody can determine progress for the files
-        subprocess.run("chmod 777 *temporary*", shell=True)
-        subprocess.run("chmod 777 dataprep.log", shell=True)
+        subprocess.run(f"chmod 777 {os.path.join(args.out_path, '*temporary*')}", shell=True)
+        subprocess.run(f"chmod 777 {os.path.join(args.out_path, 'dataprep.log')}", shell=True)
 
         try:
             # for each dataset which has the samples to gather from the video, sample the video
@@ -244,6 +259,9 @@ def main():
                 futures = [
                     executor.submit(
                         sample_video,
+                        args.video_input_path,
+                        args.dataset_input_path,
+                        args.out_path,
                         dataset.loc[0, "file"],
                         dataset,
                         number_of_samples,
@@ -295,6 +313,7 @@ def main():
                         file.replace(".csv", "") + "_samplestemporary",
                         file.replace(".csv", ".tar"),
                         args.dataset_path,
+                        args.out_path,
                         args.frames_per_sample,
                         args.out_channels,
                         args.dataset_writing_batch_size,

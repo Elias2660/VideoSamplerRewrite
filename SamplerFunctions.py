@@ -51,6 +51,9 @@ import torch
 
 
 def sample_video(
+    video_input_path:str,
+    dataset_input_path:str,
+    out_path:str,
     video: str,
     old_df: pd.DataFrame,
     number_of_samples_max: int,
@@ -143,7 +146,7 @@ def sample_video(
 
         # then turn the video into an indexable list
 
-        cap = cv2.VideoCapture(video)
+        cap = cv2.VideoCapture(os.path.join(video_input_path,video))
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
@@ -202,6 +205,7 @@ def sample_video(
                 if samples_in_current_batch % max_batch_size == 0:
                     executor.submit(
                         save_sample,
+                        out_path,
                         current_batch,
                     )
                     current_batch = []
@@ -230,7 +234,7 @@ def sample_video(
     return
 
 
-def save_sample(batch):
+def save_sample(out_path:str,batch):
     # batch is a table with: row, partial_frames, video, frames_per_sample, count, sample_count
     """Save a sample of frames to disk (per‐sample subdirectories inside your two temp dirs)."""
     try:
@@ -244,8 +248,8 @@ def save_sample(batch):
                 sample_count,
         ) in batch:
             base = row.loc["data_file"].replace(".csv", "")
-            png_root = f"{base}_samplestemporary"
-            txt_root = f"{base}_samplestemporarytxt"
+            png_root = os.path.join(out_path, f"{base}_samplestemporary")
+            txt_root = os.path.join(out_path, f"{base}_samplestemporarytxt")
             os.makedirs(png_root, exist_ok=True)
             os.makedirs(txt_root, exist_ok=True)
 

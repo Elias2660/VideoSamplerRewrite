@@ -86,6 +86,7 @@ def write_to_dataset(
     png_root: str,
     tar_file: str,
     dataset_path: str,
+    out_path: str,
     frames_per_sample: int = 1,
     out_channels: int = 3,
     batch_size: int = 60,
@@ -100,8 +101,8 @@ def write_to_dataset(
     logging.info(f"Writing {tar_file} from samples in {png_root}")
     tar = wds.TarWriter(tar_file, encoder=False)
     txt_root = png_root.rstrip(os.sep) + "txt"
-    keys = [d for d in os.listdir(png_root)
-            if os.path.isdir(os.path.join(png_root, d))]
+    keys = [d for d in os.listdir(os.path.join(out_path, png_root))
+            if os.path.isdir(os.path.join(out_path, png_root, d))]
     logging.info(f"Found {len(keys)} sample folders")
 
     # optional equalization
@@ -118,8 +119,8 @@ def write_to_dataset(
             drop.extend(v[minc:])
         for d in drop:
             try:
-                shutil.rmtree(os.path.join(png_root, d))
-                os.remove(os.path.join(txt_root, f"{d}.txt"))
+                shutil.rmtree(os.path.join(out_path, png_root, d))
+                os.remove(os.path.join(out_path, txt_root, f"{d}.txt"))
             except:
                 pass
         keys = [k for k in keys if k not in drop]
@@ -134,8 +135,8 @@ def write_to_dataset(
                 ex.map(
                     process_sample,
                     batch,
-                    [png_root] * len(batch),
-                    [txt_root] * len(batch),
+                    [os.path.join(out_path, png_root)] * len(batch),
+                    [os.path.join(out_path, txt_root)] * len(batch),
                     [frames_per_sample] * len(batch),
                     [out_channels] * len(batch),
                 ),
