@@ -217,7 +217,7 @@ def main():
         # combines the dataframes
         total_dataframe = pd.DataFrame()
         for file in file_list:
-            df = pd.read_csv(file)
+            df = pd.read_csv(os.path.join(args.dataset_input_path, file))
             df["data_file"] = file
             total_dataframe = pd.concat([total_dataframe, df])
 
@@ -274,7 +274,9 @@ def main():
             raise e
 
         # log header which will be filled out by the write_to_dataset functions
-        with open(os.path.join(args.dataset_path, "RUN_DESCRIPTION.log"), "a+") as rd:
+        with open(os.path.join(args.# The code seems to be defining a variable `dataset_input_path` in
+        # Python, but it is not assigned any value.
+        dataset_input_path, "RUN_DESCRIPTION.log"), "a+") as rd:
             rd.write("\n-- Sample Collection Results --\n")
 
         try:
@@ -286,7 +288,7 @@ def main():
                         write_to_dataset,
                         file.replace(".csv", "") + "_samplestemporary",
                         file.replace(".csv", ".tar"),
-                        args.dataset_path,
+                        args.dataset_input_path,
                         args.out_path,
                         args.frames_per_sample,
                         args.out_channels,
