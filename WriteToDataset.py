@@ -1,10 +1,66 @@
-#! /usr/bin/python3
 """
-WriteToDataset.py
+Module Name: WriteToDataset.py
 
-Writes valid samples into a WebDataset .tar, but preserves any truncated
-or corrupted samples on disk for later debugging.
+Description:
+    Validates and packages sampled frame directories into a WebDataset TAR archive.
+    - Walks through subfolders under `png_root`, each named by a sample key.
+    - Checks that each folder contains exactly `frames_per_sample` PNGs and that each image is non‑corrupt.
+    - Reads corresponding metadata from `txt_root`.
+    - Optionally equalizes class counts by dropping excess samples.
+    - Writes only fully valid samples into `tar_file`.
+    - Leaves truncated or corrupted samples on disk for later debugging.
+
+Usage:
+    # As a function:
+    write_to_dataset(
+        png_root: str,
+        tar_file: str,
+        dataset_path: str,
+        frames_per_sample: int = 1,
+        out_channels: int = 3,
+        batch_size: int = 60,
+        equalize_samples: bool = False,
+        max_workers: int = 4,
+    )
+
+    # From command line:
+    python WriteToDataset.py \
+        <png_root> \
+        <tar_file> \
+        <dataset_path> \
+        [--frames_per_sample N] \
+        [--out_channels C] \
+        [--batch_size B] \
+        [--equalize] \
+        [--max_workers W]
+
+Arguments:
+    png_root           Directory containing per-sample subfolders of PNG frames.
+    tar_file           Output TAR filename for the WebDataset archive.
+    dataset_path       Directory where RUN_DESCRIPTION.log will be written.
+    frames_per_sample  Expected number of PNG frames per sample (default: 1).
+    out_channels       Number of image channels (default: 3).
+    batch_size         Number of samples to process per batch (default: 60).
+    equalize_samples   If True, drop extra samples to equalize class sizes (default: False).
+    max_workers        Threads for parallel sample validation (default: 4).
+
+Dependencies:
+    - webdataset (wds.TarWriter)
+    - Pillow (PIL) for image verification
+    - standard library: os, io, time, logging, shutil, concurrent.futures
+
+Behavior:
+    1. Enumerate all sample keys (subdirectories) under `png_root`.
+    2. If `equalize_samples`, trim classes to the smallest class size.
+    3. In batches of size `batch_size`, validate each sample via `process_sample`:
+         • Ensure correct frame count and image integrity.
+         • Load metadata and frame bytes into a sample dict.
+    4. Write each valid sample to the TAR and delete its source files.
+    5. Log progress every 1000 samples.
+    6. After completion, record “<count> samples → <tar_file>” in `RUN_DESCRIPTION.log`.
 """
+
+
 
 import os
 import io

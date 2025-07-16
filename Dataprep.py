@@ -1,40 +1,75 @@
 """
-Dataprep.py
+Module Name: Dataprep.py
 
-This script prepares datasets for Deep Neural Network (DNN) training using video data. It performs the following tasks:
-1. Clears the existing log file or creates a new one if it doesn't exist.
-2. Parses command-line arguments to configure the data preparation process.
-3. Uses a thread pool to concurrently process video files and write the processed data to a dataset.
-4. Logs the progress and execution time of the data preparation process.
-5. Cleans up temporary files created during the process.
-
-Functions:
-- main(): The main function that orchestrates the data preparation process.
+Description:
+    Samples frames from video-derived dataset CSVs for DNN training. 
+    - Searches for dataset files matching a glob pattern.
+    - Aggregates all matched CSVs into a single DataFrame grouped by video file.
+    - Creates temporary directories for each dataset.
+    - Uses parallel sampling (SamplerFunctions.sample_video) to extract frames.
+    - Packages sampled images into tar archives (WriteToDataset.write_to_dataset).
+    - Logs progress, execution time, and manages file permissions.
+    - Cleans up all temporary folders on completion or error.
 
 Usage:
-    python Dataprep.py --dataset_path <path-to-dataset> --dataset_name <dataset-name> --number_of_samples_max <max-samples> --max_workers <number-of-workers> --frames_per_sample <frames-per-sample>
+    python Dataprep.py \
+      --video-input-path <video_dir> \
+      --dataset-input-path <csv_dir> \
+      --out-path <output_dir> \
+      --dataset-search-string "<pattern>" \
+      --number-of-samples <max_samples> \
+      --frames-per-sample <frames_per_sample> \
+      [--max-workers <workers>] \
+      [--normalize <True|False>] \
+      [--out-channels <channels>] \
+      [--crop] \
+      [--x-offset <px>] \
+      [--y-offset <px>] \
+      [--out-width <px>] \
+      [--out-height <px>] \
+      [--equalize-samples] \
+      [--dataset-writing-batch-size <size>] \
+      [--max-threads-pic-saving <threads>] \
+      [--max-workers-tar-writing <workers>] \
+      [--max-batch-size-sampling <size>] \
+      [--debug]
+
+Arguments:
+    --video-input-path           Path to source `.mp4` videos (default: `.`).
+    --dataset-input-path         Path to directory of dataset CSVs (default: `.`).
+    --out-path                   Destination for tar files and logs (default: `.`).
+    --dataset-search-string      Glob for dataset CSV filenames (default: `dataset_*.csv`).
+    --number-of-samples          Max samples per dataset (default: 40000).
+    --frames-per-sample          Frames per sample (default: 1).
+    --max-workers                Parallel sampling processes (default: 15).
+    --normalize                  Normalize images (default: True).
+    --out-channels               Output image channels (default: 1).
+    --crop                       Enable cropping (default: False).
+    --x-offset, --y-offset       Crop offsets in pixels (default: 0).
+    --out-width, --out-height    Crop dimensions (required if `--crop`).
+    --equalize-samples           Balance class sample counts (default: False).
+    --dataset-writing-batch-size Write batch size for archives (default: 20).
+    --max-threads-pic-saving     Threads for saving images (default: 20).
+    --max-workers-tar-writing    Parallel tar-writing processes (default: 4).
+    --max-batch-size-sampling    Sampling batch size per task (default: 20).
+    --debug                      Enable debug-level logging (default: False).
 
 Dependencies:
-- pandas
-- argparse
-- subprocess
-- multiprocessing
-- concurrent.futures
-- re
-- os
-- logging
-- SamplerFunctions.sample_video
-- WriteToDataset.write_to_dataset
+    - SamplerFunctions.sample_video
+    - WriteToDataset.write_to_dataset
+    - pandas, argparse, concurrent.futures, multiprocessing, logging, subprocess, os, re, time, datetime
 
-Example:
-    python Dataprep.py --dataset_path ./data --dataset_name my_dataset --number_of_samples_max 1000 --max_workers 4 --frames_per_sample 10
-
-Raises:
-    Exception: If there is an error in the data preparation process.
-
-License:
-    This project is licensed under the MIT License - see the LICENSE file for details.
+Behavior:
+    1. Locate and read all CSVs matching `--dataset-search-string`.
+    2. Combine into one DataFrame, grouped by video file.
+    3. Create per-dataset temporary directories.
+    4. Sample frames in parallel and write to temp folders.
+    5. Record sampling results in RUN_DESCRIPTION.log.
+    6. Package each temp folder into a `.tar` archive in `--out-path`.
+    7. Set file permissions on archives.
+    8. Remove temporary directories before exiting.
 """
+
 
 import argparse
 import concurrent.futures
