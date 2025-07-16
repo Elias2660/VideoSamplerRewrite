@@ -273,16 +273,6 @@ def main():
             executor.shutdown(wait=False)
             raise e
 
-        try:
-            result = subprocess.run(
-                "ls *temporary", shell=True, capture_output=True, text=True
-            )
-            text = ansi_escape.sub("", result.stdout).split()
-            logging.debug(f"Samples sampled: {text}")
-        except Exception as e:
-            logging.error(f"An error occurred in subprocess: {e}")
-            raise e
-
         # log header which will be filled out by the write_to_dataset functions
         with open(os.path.join(args.dataset_path, "RUN_DESCRIPTION.log"), "a+") as rd:
             rd.write("\n-- Sample Collection Results --\n")
