@@ -59,16 +59,6 @@ from WriteToDataset import write_to_dataset
 
 
 def main():
-    """ """
-    file_list = []
-    files = os.listdir()
-
-    # old artifact of the time when this was run by itself
-    # never intended to be used with Unified-bee-Runner
-    if "dataprep.log" not in files:
-        with open("dataprep.log", "w") as f:
-            f.write("---- Data Preparation Log ----\n")
-
     try:
         start = time.time()
         parser = argparse.ArgumentParser(
@@ -219,15 +209,9 @@ def main():
         logging.info(f"Max batch size for sampling: {args.max_batch_size_sampling}")
         logging.info(f"Crop has been set as {args.crop}")
 
-        # find all dataset_*.csv files
         number_of_samples = args.number_of_samples
-        command = f"ls {os.path.join(args.dataset_input_path, args.dataset_search_string)}"
-        ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        file_list = sorted(
-            [ansi_escape.sub("", line).strip() for line in result.stdout.splitlines()]
-        )
-
+        # find all dataset_*.csv files
+        file_list = [file for file in os.listdir(args.dataset_input_path) if bool(re.search(r'\d', file)) and file.startswith("dataset_") and file.endswith(".csv")]
         logging.info(f"File List: {file_list}")
 
         # combines the dataframes
