@@ -99,7 +99,7 @@ def write_to_dataset(
     """
     start = time.time()
     logging.info(f"Writing {tar_file} from samples in {png_root}")
-    tar = wds.TarWriter(tar_file, encoder=False)
+    tar = wds.TarWriter(os.path.join(out_path, tar_file), encoder=False)
     txt_root = png_root.rstrip(os.sep) + "txt"
     keys = [d for d in os.listdir(os.path.join(out_path, png_root))
             if os.path.isdir(os.path.join(out_path, png_root, d))]
