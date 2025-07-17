@@ -341,7 +341,7 @@ def main():
             )
             # make sure all of the writing is done
             executor.shutdown(wait=True)
-            subprocess.run("chmod -R 777 *.tar", shell=True)
+            subprocess.run(f"chmod -R 777 {os.path.join(args.out_path, '*.tar')}", shell=True)
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
@@ -351,8 +351,8 @@ def main():
         # deconstruct all resources and declutter data
         for file in file_list:
             base_name = file.replace(".csv", "")
-            os.rmdir(f"{base_name}_samplestemporary")
-            os.rmdir(f"{base_name}_samplestemporarytxt")
+            os.rmdir(os.path.join(args.out_path, f'{base_name}_samplestemporary'))
+            os.rmdir(os.path.join(args.out_path, f"{base_name}_samplestemporarytxt"))
 
 
 if __name__ == "__main__":
