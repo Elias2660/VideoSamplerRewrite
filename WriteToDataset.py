@@ -206,8 +206,8 @@ def write_to_dataset(
 
                 # delete only successful samples
                 try:
-                    shutil.rmtree(os.path.join(png_root, key))
-                    os.remove(os.path.join(txt_root, f"{key}.txt"))
+                    shutil.rmtree(os.path.join(out_path, png_root, key))
+                    os.remove(os.path.join(out_path, txt_root, f"{key}.txt"))
                 except Exception as e:
                     logging.warning(f"Cleanup failed for {key}: {e}")
 
