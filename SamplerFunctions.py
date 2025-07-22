@@ -49,6 +49,9 @@ import numpy as np
 import pandas as pd
 import torch
 
+from patch_common import imagePreprocessFromCoords
+from patch_common import getCropCoords
+
 
 def sample_video(
     video_input_path:str,
@@ -63,9 +66,10 @@ def sample_video(
     sample_span: int,
     out_height: int = None,
     out_width: int = None,
-    x_offset: int = 0,
-    y_offset: int = 0,
+    crop_x_offset: int = 0,
+    crop_y_offset: int = 0,
     crop: bool = False,
+    scale: float = 1.0,
     max_batch_size: int = 50,
     max_threads_pic_saving: int = 10,
 ):
@@ -178,10 +182,11 @@ def sample_video(
                         height,
                         width,
                         crop,
-                        x_offset,
-                        y_offset,
+                        crop_x_offset,
+                        crop_y_offset,
                         out_width,
                         out_height,
+                        scale,
                     ) for frame_offset in range(frames_per_sample)
                 ]
                 # the row is the fist one that contains the range of frame counts
@@ -291,10 +296,11 @@ def apply_video_transformations(
     height: int,
     width: int,
     crop: bool = False,
-    x_offset: int = 0,
-    y_offset: int = 0,
-    out_width: int = 400,
-    out_height: int = 400,
+    crop_x_offset: int = 0,
+    crop_y_offset: int = 0,
+    out_width: int = None,
+    out_height: int = None,
+    scale: float = 1.0,
 ):
     """Apply transformations to a video frame.
 
@@ -310,8 +316,8 @@ def apply_video_transformations(
     :param width: The desired width of the frame.
     :type width: int
     :param crop: bool:  (Default value = False)
-    :param x_offset: int:  (Default value = 0)
-    :param y_offset: int:  (Default value = 0)
+    :param crop_x_offset: int:  (Default value = 0)
+    :param crop_y_offset: int:  (Default value = 0)
     :param out_width: int:  (Default value = 400)
     :param out_height: int:  (Default value = 400)
 
@@ -331,9 +337,21 @@ def apply_video_transformations(
 
     if out_channels == 1:
         # Convert to grayscale BUT DON'T CONVERT BACK TO BGR
-        logging.debug(
-            f"Converting frame {count} to true grayscale (1-channel)")
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Check if frame is already grayscale
+        if len(frame.shape) == 2:
+            # Already grayscale
+            logging.debug(f"Frame {count} already grayscale")
+        elif len(frame.shape) == 3 and frame.shape[2] == 3:
+            # Convert BGR to grayscale
+            logging.debug(f"Converting frame {count} to true grayscale")
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        elif len(frame.shape) == 3 and frame.shape[2] == 1:
+            # Single channel but with 3D shape, squeeze it
+            logging.debug(f"Squeezing frame {count} from 3D to 2D grayscale")
+            frame = frame.squeeze(axis=2)
+        else:
+            logging.warning(f"Frame {count} has unexpected shape: {frame.shape}")
 
         # Create tensor differently for grayscale - don't permute dimensions
         np_frame = np.array(frame)
@@ -349,11 +367,22 @@ def apply_video_transformations(
                                                               1).unsqueeze(0)
                     )  # Shape: [1, 3, H, W]
 
-    if crop:
-        out_width, out_height, crop_x, crop_y = vidSamplingCommonCrop(
-            height, width, out_height, out_width, 1, x_offset, y_offset)
-        in_frame = in_frame[:, :, crop_y:crop_y + out_height,
-                            crop_x:crop_x + out_width]
+    if crop and out_width is not None and out_height is not None:
+        # calculate crop coordinates
+        scale_w, scale_h, crop_coords = getCropCoords(width, height, scale, out_width, out_height, crop_x_offset, crop_y_offset)
+        
+        # apply preprocessing using imagePreprocessFromCoords
+        processed_frame = imagePreprocessFromCoords(
+            frame, scale_w, scale_h, crop_coords,
+            out_width, out_height, 
+            planes=out_channels, src='BGR'
+        )
+        
+        # convert processed frame to tensor
+        logging.debug(f"Converting cropped frame {count} to grayscale tensor")
+        np_frame = np.array(processed_frame)
+        in_frame = torch.tensor(data=np_frame, dtype=torch.float16).unsqueeze(0).unsqueeze(0)
+        return in_frame
 
     return in_frame
 
@@ -381,7 +410,7 @@ def getVideoInfo(video: str):
 
 
 def vidSamplingCommonCrop(height, width, out_height, out_width, scale,
-                          x_offset, y_offset):
+                          crop_x_offset, crop_y_offset):
     """Return the common cropping parameters used in dataprep and annotations.
 
     :param height: int
@@ -389,8 +418,8 @@ def vidSamplingCommonCrop(height, width, out_height, out_width, scale,
     :param out_height: int
     :param out_width: int
     :param scale: float
-    :param x_offset: int
-    :param y_offset: int
+    :param crop_x_offset: int
+    :param crop_y_offset: int
     :returns: out_width, out_height, crop_x, crop_y
 
     """
@@ -400,7 +429,7 @@ def vidSamplingCommonCrop(height, width, out_height, out_width, scale,
     if out_height is None:
         out_height = math.floor(height * scale)
 
-    crop_x = math.floor((width * scale - out_width) / 2 + x_offset)
-    crop_y = math.floor((height * scale - out_height) / 2 + y_offset)
+    crop_x = math.floor((width * scale - out_width) / 2 + crop_x_offset)
+    crop_y = math.floor((height * scale - out_height) / 2 + crop_y_offset)
 
     return out_width, out_height, crop_x, crop_y
