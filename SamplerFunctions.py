@@ -43,7 +43,7 @@ import os
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor
-
+import traceback
 import cv2
 import numpy as np
 import pandas as pd
@@ -103,15 +103,15 @@ def sample_video(
 
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
-        target_sample_list = (
+        list_of_target_samples = (
             [])  # list of lists, these don't work well the the dataframe
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
         width, height = getVideoInfo(video)
 
         # Extract necessary columns
-        begin_frames = np.min(dataframe.iloc[:, 2].values)
-        end_frames = np.max(dataframe.iloc[:, 3].values)
+        begin_frames = dataframe.iloc[:, 2].values
+        end_frames = dataframe.iloc[:, 3].values
 
         # Calculate available samples for each row in the dataframe
         available_samples = (end_frames - (sample_span - frames_per_sample) -
@@ -134,12 +134,11 @@ def sample_video(
                     f"Target samples for {video}: {target_samples[0]} begin, {target_samples[-1]} end, number of samples {len(target_samples)}, frames per sample: {frames_per_sample}"
                 )
                 logging.debug(f"Target samples for {video}: {target_samples}")
-            target_sample_list.append(target_samples)
+            list_of_target_samples.append(target_samples)
 
-        target_sample_list = target_sample_list[0]
 
         logging.debug(
-            f"Size of target sample list for {video}: {len(target_sample_list)}"
+            f"Size of target sample list for {video}: {len(list_of_target_samples)}"
         )
         logging.debug(f"Dataframe for {video} about to be prepared(1)")
         logging.debug(dataframe.head())
@@ -167,54 +166,60 @@ def sample_video(
         current_batch = []
         with ThreadPoolExecutor(
                 max_workers=max_threads_pic_saving) as executor:
-            for start_frame in target_sample_list:
-                # append the frames of the video into a list
-                sample_frames = [
-                    apply_video_transformations(
-                        video_frame_array[start_frame + frame_offset],
-                        start_frame + frame_offset,
-                        normalize,
-                        out_channels,
-                        height,
-                        width,
-                        crop,
-                        x_offset,
-                        y_offset,
-                        out_width,
-                        out_height,
-                    ) for frame_offset in range(frames_per_sample)
-                ]
-                # the row is the fist one that contains the range of frame counts
-                relevant_dataframe_row = dataframe[
-                    (dataframe[" begin frame"] <= np.min(start_frame))
-                    & (dataframe[" end frame"] >= np.max(
-                        start_frame + frames_per_sample))].iloc[0]
+            for target_sample_list in list_of_target_samples:
+                for start_frame in target_sample_list:
+                    # append the frames of the video into a list
+                    sample_frames = [
+                        apply_video_transformations(
+                            video_frame_array[start_frame + frame_offset],
+                            start_frame + frame_offset,
+                            normalize,
+                            out_channels,
+                            height,
+                            width,
+                            crop,
+                            x_offset,
+                            y_offset,
+                            out_width,
+                            out_height,
+                        ) for frame_offset in range(frames_per_sample)
+                    ]
+                    # the row is the fist one that contains the range of frame counts
+                    relevant_dataframe_row_df = dataframe[
+                        (dataframe[" begin frame"] <= np.min(start_frame))
+                        & (dataframe[" end frame"] >= np.max(
+                            start_frame + frames_per_sample))]
+                    
+                    if relevant_dataframe_row_df.shape[0] == 0:
+                        continue
+                    
+                    relevant_dataframe_row = relevant_dataframe_row_df.iloc[0]
+                    current_batch.append([
+                        relevant_dataframe_row,
+                        sample_frames,
+                        video,
+                        frames_per_sample,
+                        start_frame,
+                        count,
+                        sample_count,  # to ensure uniqueness among the samples
+                    ])
+                    samples_in_current_batch += 1
+                    sample_count += 1
 
-                current_batch.append([
-                    relevant_dataframe_row,
-                    sample_frames,
-                    video,
-                    frames_per_sample,
-                    start_frame,
-                    count,
-                    sample_count,  # to ensure uniqueness among the samples
-                ])
-                samples_in_current_batch += 1
-                sample_count += 1
+                    if samples_in_current_batch % max_batch_size == 0:
+                        executor.submit(
+                            save_sample,
+                            out_path,
+                            current_batch,
+                        )
+                        current_batch = []
 
-                if samples_in_current_batch % max_batch_size == 0:
+
+                if len(current_batch) != 0:
                     executor.submit(
-                        save_sample,
-                        out_path,
-                        current_batch,
+                            save_sample,
+                            current_batch,
                     )
-                    current_batch = []
-
-            if len(current_batch) != 0:
-                executor.submit(
-                        save_sample,
-                        current_batch,
-                )
 
 
             executor.shutdown(wait=True)
@@ -225,7 +230,9 @@ def sample_video(
             f" wrote {sample_count} samples, {str(datetime.timedelta(seconds=((end_time - start_time)/sample_count)))} per sample"
         )
     except Exception as e:
-        logging.error(f"Error sampling video {video}: {e}")
+        stack_trace_string = traceback.format_exc()
+        logging.error(f"Error sampling video {video}: {e}\n{stack_trace_string}")
+
         executor.shutdown(wait=False)  # the threads are shut down if error
         raise e
 
