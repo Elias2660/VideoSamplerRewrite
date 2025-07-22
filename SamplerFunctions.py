@@ -110,8 +110,8 @@ def sample_video(
         width, height = getVideoInfo(video)
 
         # Extract necessary columns
-        begin_frames = dataframe.iloc[:, 2].values
-        end_frames = dataframe.iloc[:, 3].values
+        begin_frames = np.min(dataframe.iloc[:, 2].values)
+        end_frames = np.max(dataframe.iloc[:, 3].values)
 
         # Calculate available samples for each row in the dataframe
         available_samples = (end_frames - (sample_span - frames_per_sample) -
