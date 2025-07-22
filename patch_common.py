@@ -129,4 +129,4 @@ def imagePreprocessFromCoords(image, scale_w, scale_h, crop_coords, out_width, o
 
 def imagePreprocess(image, scale, width, height, crop_x_offset, crop_y_offset, planes=1):
     scale_w, scale_h, crop_coords = getCropCoords(image.shape[1], image.shape[0], scale, width, height, crop_x_offset, crop_y_offset)
-    return imagePreprocessFromCoords(image, scale_w, scale_h, crop_coords, planes)
+    return imagePreprocessFromCoords(image, scale_w, scale_h, crop_coords, width, height, planes)
