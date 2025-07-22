@@ -248,7 +248,10 @@ def main():
         # find all dataset_*.csv files
         file_list = [file for file in os.listdir(args.dataset_input_path) if bool(re.search(r'\d', file)) and file.startswith("dataset_") and file.endswith(".csv")]
         logging.info(f"File List: {file_list}")
-
+        
+        if len(file_list) == 0:
+            raise Exception("There are no dataset_*.csv files found. Try to specify the right path or actually create the files.`")
+        
         # combines the dataframes
         total_dataframe = pd.DataFrame()
         for file in file_list:

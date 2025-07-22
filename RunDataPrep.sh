@@ -2,6 +2,8 @@
 export OMP_NUM_THREADS=1
 
 <<comment
+!! THIS CODE IS NOT UPDATED ANYMORE! USE AT YOUR OWN RISK
+
 (not usually used / updated, preferred for one to use the Unified-bee-Runner to run this)
 
 RunDataPrep.sh
