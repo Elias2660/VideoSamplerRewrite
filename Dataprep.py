@@ -190,7 +190,7 @@ def main():
             "--scale-factor",
             type=float,
             default=1.0,
-            help="The scaling factor to reduce sampling by"
+            help="The scaling factor to scale resultant sample images"
         )
         parser.add_argument(
             "--equalize-samples",
