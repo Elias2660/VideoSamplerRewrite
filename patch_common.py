@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import cv2
-
+import numpy as np
 
 
 """
@@ -49,9 +49,9 @@ def getLabelBbox(bbox, improc, label_tx):
     Return:
         visible, bbox: A bool indicating visibility and a numpy.float32 tensor of bounding box locations
     """
-    image_size = numpy.float32(improc['size'])
+    image_size = np.float32(improc['size'])
     # See if this frame has data
-    pixel_bbox = numpy.float32([bbox[:2], bbox[2:]])
+    pixel_bbox = np.float32([bbox[:2], bbox[2:]])
     # Take into account any image space transformations that were done during augmentation
     for coord_idx in range(pixel_bbox.shape[0]):
         pixel_bbox[coord_idx] = label_tx.pixelTransform(*(pixel_bbox[coord_idx]/image_size))*image_size
