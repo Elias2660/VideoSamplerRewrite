@@ -187,6 +187,12 @@ def main():
             help="The height of the output image, default=None NOTE: if you set crop to true you cannot set these to none",
         )
         parser.add_argument(
+            "--scale-factor",
+            type=float,
+            default=1.0,
+            help="The scaling factor to reduce sampling by"
+        )
+        parser.add_argument(
             "--equalize-samples",
             action="store_true",
             default=False,
@@ -296,7 +302,7 @@ def main():
                         args.x_offset,
                         args.y_offset,
                         args.crop,
-                        1, 
+                        args.scale_factor,
                         args.max_batch_size_sampling,
                         args.max_threads_pic_saving,
                     )
