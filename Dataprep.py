@@ -70,7 +70,6 @@ Behavior:
     8. Remove temporary directories before exiting.
 """
 
-
 import argparse
 import concurrent.futures
 import datetime
@@ -109,13 +108,10 @@ def main():
             "--dataset-input-path",
             type=str,
             default=".",
-            help="path for the input dataset files (dataset_*.csv)"
+            help="path for the input dataset files (dataset_*.csv)",
         )
         parser.add_argument(
-            "--out-path",
-            type=str,
-            default=".",
-            help="path for the output files"
+            "--out-path", type=str, default=".", help="path for the output files"
         )
         parser.add_argument(
             "--dataset-search-string",
@@ -190,7 +186,7 @@ def main():
             "--scale-factor",
             type=float,
             default=1.0,
-            help="The scaling factor to scale resultant sample images"
+            help="The scaling factor to scale resultant sample images",
         )
         parser.add_argument(
             "--equalize-samples",
@@ -252,12 +248,20 @@ def main():
 
         number_of_samples = args.number_of_samples
         # find all dataset_*.csv files
-        file_list = [file for file in os.listdir(args.dataset_input_path) if bool(re.search(r'\d', file)) and file.startswith("dataset_") and file.endswith(".csv")]
+        file_list = [
+            file
+            for file in os.listdir(args.dataset_input_path)
+            if bool(re.search(r"\d", file))
+            and file.startswith("dataset_")
+            and file.endswith(".csv")
+        ]
         logging.info(f"File List: {file_list}")
-        
+
         if len(file_list) == 0:
-            raise Exception("There are no dataset_*.csv files found. Try to specify the right path or actually create the files.`")
-        
+            raise Exception(
+                "There are no dataset_*.csv files found. Try to specify the right path or actually create the files.`"
+            )
+
         # combines the dataframes
         total_dataframe = pd.DataFrame()
         for file in file_list:
@@ -268,16 +272,26 @@ def main():
         # Batch directory operations
         for file in file_list:
             base_name = file.replace(".csv", "")
-            os.makedirs(os.path.join(args.out_path, f"{base_name}_samplestemporary"), exist_ok=True)
-            os.makedirs(os.path.join(args.out_path, f"{base_name}_samplestemporarytxt"), exist_ok=True)
+            os.makedirs(
+                os.path.join(args.out_path, f"{base_name}_samplestemporary"),
+                exist_ok=True,
+            )
+            os.makedirs(
+                os.path.join(args.out_path, f"{base_name}_samplestemporarytxt"),
+                exist_ok=True,
+            )
 
         data_frame_list = [group for _, group in total_dataframe.groupby("file")]
         for dataset in data_frame_list:
             dataset.reset_index(drop=True, inplace=True)
 
         # change the permissions for the directories so that everybody can determine progress for the files
-        subprocess.run(f"chmod 777 {os.path.join(args.out_path, '*temporary*')}", shell=True)
-        subprocess.run(f"chmod 777 {os.path.join(args.out_path, 'dataprep.log')}", shell=True)
+        subprocess.run(
+            f"chmod 777 {os.path.join(args.out_path, '*temporary*')}", shell=True
+        )
+        subprocess.run(
+            f"chmod 777 {os.path.join(args.out_path, 'dataprep.log')}", shell=True
+        )
 
         try:
             # for each dataset which has the samples to gather from the video, sample the video
@@ -319,9 +333,15 @@ def main():
             raise e
 
         # log header which will be filled out by the write_to_dataset functions
-        with open(os.path.join(args.# The code seems to be defining a variable `dataset_input_path` in
-        # Python, but it is not assigned any value.
-        dataset_input_path, "RUN_DESCRIPTION.log"), "a+") as rd:
+        with open(
+            os.path.join(
+                args.  # The code seems to be defining a variable `dataset_input_path` in
+                # Python, but it is not assigned any value.
+                dataset_input_path,
+                "RUN_DESCRIPTION.log",
+            ),
+            "a+",
+        ) as rd:
             rd.write("\n-- Sample Collection Results --\n")
 
         try:
@@ -345,13 +365,12 @@ def main():
                 ]
                 concurrent.futures.wait(futures)
 
-            end = time.time()
-            logging.info(
-                f"Time taken to run the script: {datetime.timedelta(seconds=int(end - start))} seconds"
-            )
             # make sure all of the writing is done
             executor.shutdown(wait=True)
-            subprocess.run(f"chmod -R 777 {os.path.join(args.out_path, '*.tar')}", shell=True)
+            subprocess.run(
+                f"chmod -R 777 {os.path.join(args.out_path, '*.tar')}", shell=True
+            )
+
         except Exception as e:
             logging.error(f"An error occurred in the executor: {e}")
             executor.shutdown(wait=False)
@@ -361,8 +380,12 @@ def main():
         # deconstruct all resources and declutter data
         for file in file_list:
             base_name = file.replace(".csv", "")
-            os.rmdir(os.path.join(args.out_path, f'{base_name}_samplestemporary'))
+            os.rmdir(os.path.join(args.out_path, f"{base_name}_samplestemporary"))
             os.rmdir(os.path.join(args.out_path, f"{base_name}_samplestemporarytxt"))
+        end = time.time()
+        logging.info(
+            f"Time taken to run the the sampler: {datetime.timedelta(seconds=int(end - start))} seconds"
+        )
 
 
 if __name__ == "__main__":
