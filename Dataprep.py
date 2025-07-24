@@ -296,6 +296,7 @@ def main():
                         args.x_offset,
                         args.y_offset,
                         args.crop,
+                        1, 
                         args.max_batch_size_sampling,
                         args.max_threads_pic_saving,
                     )

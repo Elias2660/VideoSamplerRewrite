@@ -111,7 +111,7 @@ def sample_video(
             [])  # list of lists, these don't work well the the dataframe
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
-        width, height = getVideoInfo(video)
+        width, height = getVideoInfo(os.path.join(video_input_path, video))
 
         # Extract necessary columns
         begin_frames = dataframe.iloc[:, 2].values

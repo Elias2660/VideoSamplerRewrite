@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+The above functions provide utilities for image preprocessing including resizing, cropping, and
+color conversion.
+:return: The `imagePreprocess` function returns the preprocessed image after running it through the
+`imagePreprocessFromCoords` function, which includes resizing, cropping, and converting the image
+based on the provided parameters such as scale, width, height, crop offsets, number of planes, and
+color space.
+"""
 import cv2
 import numpy as np
 
@@ -12,121 +20,117 @@ See https://github.com/bfirner/bee_analysis/blob/main/LICENSE for more details.
 This file contains configuration utilities and definitions for patch processing.
 """
 
+
 def expectedImageProcKeys():
-    return ['scale', 'width', 'height', 'crop_x_offset', 'crop_y_offset', 'frames_per_sample', 'format']
-
-def getCropCoords(improc_or_width, src_height=None, scale=None, width=None, height=None, crop_x_offset=None, crop_y_offset=None):
-    """Convert the image processing parameters into the image scale and crop coordinates
-    Changed to accept dictionary params"""
-
-    if src_height is None:
-        # dictionary ver
-        improc = improc_or_width
-        src_width = improc['size'][0]
-        src_height = improc['size'][1]
-        scale = improc['scale']
-        width = improc['width']
-        height = improc['height']
-        crop_x_offset = improc['crop_x_offset']
-        crop_y_offset = improc['crop_y_offset']
-    else:
-        # individual params
-        src_width = improc_or_width
-
-    scale_w = round(scale * src_width)
-    scale_h = round(scale * src_height)
-    crop_left = round(scale_w/2 - width/2 + crop_x_offset)
-    crop_top = round(scale_h/2 - height/2 + crop_y_offset)
-    return scale_w, scale_h, (crop_left, crop_top, crop_left + width, crop_top + height)
+    return [
+        "scale",
+        "width",
+        "height",
+        "crop_x_offset",
+        "crop_y_offset",
+        "frames_per_sample",
+        "format",
+    ]
 
 
-def getLabelBbox(bbox, improc, label_tx):
+def getCropCoords(
+    src_width, src_height, scale, width, height, crop_x_offset, crop_y_offset
+):
     """
-    Arguments:
-        bbox          (list[int]): Bounding box with upper left and lower right pixel locations
-        improc             (dict): Patch processing and original image information
-        label_tx (LabelTransform): Modification to the world and pixel coordinates from current augmentations.
-    Return:
-        visible, bbox: A bool indicating visibility and a numpy.float32 tensor of bounding box locations
+    Compute the scaled dimensions and crop rectangle (left, top, right, bottom)
+    entirely in the scaled-image space.
     """
-    image_size = np.float32(improc['size'])
-    # See if this frame has data
-    pixel_bbox = np.float32([bbox[:2], bbox[2:]])
-    # Take into account any image space transformations that were done during augmentation
-    for coord_idx in range(pixel_bbox.shape[0]):
-        pixel_bbox[coord_idx] = label_tx.pixelTransform(*(pixel_bbox[coord_idx]/image_size))*image_size
-    # The order of the pixels may have changed
-    if pixel_bbox[0][0] > pixel_bbox[1][0]:
-        pixel_bbox[0][0], pixel_bbox[1][0] = pixel_bbox[1][0], pixel_bbox[0][0]
-    if pixel_bbox[0][1] > pixel_bbox[1][1]:
-        pixel_bbox[0][1], pixel_bbox[1][1] = pixel_bbox[1][1], pixel_bbox[0][1]
-    # The pixel-based bounding boxes must be visible
-    return True, pixel_bbox
+    # 1) scaled full-image size
+    scaled_w = int(round(src_width * scale))
+    scaled_h = int(round(src_height * scale))
+
+    # 2) center + offsets
+    cx = scaled_w // 2 + crop_x_offset
+    cy = scaled_h // 2 + crop_y_offset
+
+    # 3) crop rectangle
+    left = max(cx - width // 2, 0)
+    top = max(cy - height // 2, 0)
+    right = min(left + width, scaled_w)
+    bottom = min(top + height, scaled_h)
+
+    return scaled_w, scaled_h, (left, top, right, bottom)
 
 
-def convertImageBboxToPatch(improc, bbox):
+def imagePreprocessFromCoords(
+    image,
+    scale_w,
+    scale_h,
+    crop_coords,
+    out_width,
+    out_height,
+    planes=1,
+    src="BGR",
+    interp=cv2.INTER_CUBIC,
+):
     """
-    Arguments:
-        improc       (dict): Patch processing and original image information
-        bbox (list[number]): (x,y) pixel coordinates of the upper left and lower right corners of the bounding box
-    Returns:
-        target_in_patch, left_x, right_x, top_y, bottom_y: visibility and integer pixel locations of the bounding box in the patch, possibly clipped at the edges.
+    1) Resize the entire image to (scale_w, scale_h)
+    2) Crop with integer coords in that space
+    3) Resize the crop to (out_width, out_height)
+    4) Convert to gray or RGB as requested
     """
-    # Image processing
-    scale_w, scale_h, crop_coords = getCropCoords(improc)
-    # Image is scaled and then cropped
-    left_x = bbox[0][0]*improc['scale']
-    right_x = bbox[1][0]*improc['scale']
-    top_y = bbox[0][1]*improc['scale']
-    bottom_y = bbox[1][1]*improc['scale']
+    # 1) resize full image
+    scaled = cv2.resize(image, (scale_w, scale_h), interpolation=interp)
 
-    target_in_patch = not (right_x < crop_coords[0] or left_x > crop_coords[2] or bottom_y < crop_coords[1] or top_y > crop_coords[3])
-    if not target_in_patch:
-        return False, None, None, None, None
-    visible_left = int(max(left_x, crop_coords[0]))
-    visible_right = int(min(right_x, crop_coords[2]))
-    visible_top = int(max(top_y, crop_coords[1]))
-    visible_bottom = int(min(bottom_y, crop_coords[3]))
+    # 2) crop
+    left, top, right, bottom = crop_coords
+    cropped = scaled[top:bottom, left:right]
 
-    return True, visible_left, visible_right, visible_top, visible_bottom
-
-
-def imagePreprocessFromCoords(image, scale_w, scale_h, crop_coords, out_width, out_height, planes=1, src='BGR'):
-    # Crop and then resize for efficiency
-    left = round((image.shape[1] / scale_w) * crop_coords[0])
-    top = round((image.shape[0] / scale_h) * crop_coords[1])
-    right = round((image.shape[1] / scale_w) * crop_coords[2])
-    bottom = round((image.shape[0] / scale_h) * crop_coords[3])
-
-    # NOTE: We cannot trivially crop first if the source is YUV420 or some other format with unequal channel sizes.
-    cropped = image[top:bottom,left:right]
-    scaled = cv2.resize(cropped, (out_width, out_height), interpolation=cv2.INTER_CUBIC)
+    # 3) final resize (in case we clipped at edges)
+    patch = cv2.resize(cropped, (out_width, out_height), interpolation=interp)
 
     if planes == 1:
-        if len(scaled.shape) == 3:
-            if src == 'BGR':
-                patch = cv2.cvtColor(scaled, cv2.COLOR_BGR2GRAY)
-            elif src == 'RGB':
-                patch = cv2.cvtColor(scaled, cv2.COLOR_RGB2GRAY)
-            else:
-                raise RuntimeError("Unhandled image type: {}".format(src))
-        elif len(scaled.shape) == 2:
-            patch = scaled  # Already grayscale
-        else:
-            raise RuntimeError(f"Unexpected number of channels in image with shape {scaled.shape}")
+        # if it’s already single-channel, just return it:
+        if patch.ndim == 2:
+            return patch
+        # if it has a singleton channel-dimension, squeeze:
+        if patch.ndim == 3 and patch.shape[2] == 1:
+            return patch[:, :, 0]
+        # otherwise assume 3-channel BGR/RGB
+        if src == "BGR" and patch.shape[2] == 3:
+            return cv2.cvtColor(patch, cv2.COLOR_BGR2GRAY)
+        if src == "RGB" and patch.shape[2] == 3:
+            return cv2.cvtColor(patch, cv2.COLOR_RGB2GRAY)
+        # fallback
+        return patch.mean(axis=2).astype(patch.dtype)
 
     elif planes == 3:
-        if src == 'BGR':
-            patch = cv2.cvtColor(scaled, cv2.COLOR_BGR2RGB)
-        elif src == 'RGB':
-            patch = scaled
+        # color
+        if src == "BGR":
+            return cv2.cvtColor(patch, cv2.COLOR_BGR2RGB)
         else:
-            raise RuntimeError("Unhandled image type: {}".format(src))
+            # assume patch is already RGB
+            return patch
+
     else:
-        raise RuntimeError("Unhandled number of planes: {}".format(planes))
-    return patch
+        raise RuntimeError(f"Unhandled number of planes: {planes}")
 
 
-def imagePreprocess(image, scale, width, height, crop_x_offset, crop_y_offset, planes=1):
-    scale_w, scale_h, crop_coords = getCropCoords(image.shape[1], image.shape[0], scale, width, height, crop_x_offset, crop_y_offset)
-    return imagePreprocessFromCoords(image, scale_w, scale_h, crop_coords, width, height, planes)
+def imagePreprocess(
+    image, scale, width, height, crop_x_offset, crop_y_offset, planes=1, src="BGR"
+):
+    """
+    Full pipeline:
+      • compute scaled dims + crop box
+      • run through imagePreprocessFromCoords
+    """
+    h, w = image.shape[:2]
+    scale_w, scale_h, crop_coords = getCropCoords(
+        w, h, scale, width, height, crop_x_offset, crop_y_offset
+    )
+    return imagePreprocessFromCoords(
+        image,
+        scale_w,
+        scale_h,
+        crop_coords,
+        width,
+        height,
+        planes,
+        src,
+        interp=cv2.INTER_AREA if scale < 1.0 else cv2.INTER_CUBIC,
+    )
