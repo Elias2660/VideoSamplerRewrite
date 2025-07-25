@@ -54,9 +54,9 @@ from patch_common import getCropCoords
 
 
 def sample_video(
-    video_input_path:str,
-    dataset_input_path:str,
-    out_path:str,
+    video_input_path: str,
+    dataset_input_path: str,
+    out_path: str,
     video: str,
     old_df: pd.DataFrame,
     number_of_samples_max: int,
@@ -108,7 +108,8 @@ def sample_video(
         dataframe = old_df.copy(deep=True)
         dataframe.reset_index(drop=True, inplace=True)
         list_of_target_samples = (
-            [])  # list of lists, these don't work well the the dataframe
+            []
+        )  # list of lists, these don't work well the the dataframe
 
         logging.debug(f"Dataframe for {video} about to be prepared (0)")
         width, height = getVideoInfo(os.path.join(video_input_path, video))
@@ -118,18 +119,28 @@ def sample_video(
         end_frames = dataframe.iloc[:, 3].values
 
         # Calculate available samples for each row in the dataframe
-        available_samples = (end_frames - (sample_span - frames_per_sample) -
-                             begin_frames) // sample_span
+        available_samples = (
+            end_frames - (sample_span - frames_per_sample) - begin_frames
+        ) // sample_span
 
         # Generate target samples in one comprehension
-        target_samples_list = [([] if avail <= 0 else [
-            begin_frame + s * sample_span for s in sorted(
-                np.random.choice(
-                    range(avail),
-                    size=min(avail, number_of_samples_max),
-                    replace=False,
-                ))
-        ]) for begin_frame, avail in zip(begin_frames, available_samples)]
+        target_samples_list = [
+            (
+                []
+                if avail <= 0
+                else [
+                    begin_frame + s * sample_span
+                    for s in sorted(
+                        np.random.choice(
+                            range(avail),
+                            size=min(avail, number_of_samples_max),
+                            replace=False,
+                        )
+                    )
+                ]
+            )
+            for begin_frame, avail in zip(begin_frames, available_samples)
+        ]
 
         # Log and append results
         for target_samples in target_samples_list:
@@ -140,7 +151,6 @@ def sample_video(
                 logging.debug(f"Target samples for {video}: {target_samples}")
             list_of_target_samples.append(target_samples)
 
-
         logging.debug(
             f"Size of target sample list for {video}: {len(list_of_target_samples)}"
         )
@@ -149,27 +159,28 @@ def sample_video(
 
         # then turn the video into an indexable list
 
-        cap = cv2.VideoCapture(os.path.join(video_input_path,video))
+        cap = cv2.VideoCapture(os.path.join(video_input_path, video))
         if not cap.isOpened():
             logging.error(f"Failed to open video {video}")
             return
 
         # create video frame array
-        video_frame_array = []
+        frames = []
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            video_frame_array.append(frame)
+            frames.append(frame)
 
         cap.release()
         cv2.destroyAllWindows()
+        video_frame_array = np.stack(frames, axis=0)
+        del frames
 
         # generate batches
         samples_in_current_batch = 0
         current_batch = []
-        with ThreadPoolExecutor(
-                max_workers=max_threads_pic_saving) as executor:
+        with ThreadPoolExecutor(max_workers=max_threads_pic_saving) as executor:
             for target_sample_list in list_of_target_samples:
                 for start_frame in target_sample_list:
                     # append the frames of the video into a list
@@ -187,27 +198,33 @@ def sample_video(
                             out_width,
                             out_height,
                             scale,
-                        ) for frame_offset in range(frames_per_sample)
+                        )
+                        for frame_offset in range(frames_per_sample)
                     ]
                     # the row is the fist one that contains the range of frame counts
                     relevant_dataframe_row_df = dataframe[
                         (dataframe[" begin frame"] <= np.min(start_frame))
-                        & (dataframe[" end frame"] >= np.max(
-                            start_frame + frames_per_sample))]
-                    
+                        & (
+                            dataframe[" end frame"]
+                            >= np.max(start_frame + frames_per_sample)
+                        )
+                    ]
+
                     if relevant_dataframe_row_df.shape[0] == 0:
                         continue
-                    
+
                     relevant_dataframe_row = relevant_dataframe_row_df.iloc[0]
-                    current_batch.append([
-                        relevant_dataframe_row,
-                        sample_frames,
-                        video,
-                        frames_per_sample,
-                        start_frame,
-                        count,
-                        sample_count,  # to ensure uniqueness among the samples
-                    ])
+                    current_batch.append(
+                        [
+                            relevant_dataframe_row,
+                            sample_frames,
+                            video,
+                            frames_per_sample,
+                            start_frame,
+                            count,
+                            sample_count,  # to ensure uniqueness among the samples
+                        ]
+                    )
                     samples_in_current_batch += 1
                     sample_count += 1
 
@@ -219,13 +236,11 @@ def sample_video(
                         )
                         current_batch = []
 
-
                 if len(current_batch) != 0:
                     executor.submit(
-                            save_sample,
-                            current_batch,
+                        save_sample,
+                        current_batch,
                     )
-
 
             executor.shutdown(wait=True)
 
@@ -246,24 +261,28 @@ def sample_video(
     return
 
 
-def save_sample(out_path:str,batch):
+def save_sample(out_path: str, batch):
     # batch is a table with: row, partial_frames, video, frames_per_sample, count, sample_count
     """Save a sample of frames to disk (per‐sample subdirectories inside your two temp dirs)."""
     try:
         for (
-                row,
-                partial_frames,
-                video,
-                frames_per_sample,
-                start_frame,
-                count,
-                sample_count,
+            row,
+            partial_frames,
+            video,
+            frames_per_sample,
+            start_frame,
+            count,
+            sample_count,
         ) in batch:
             base = row.loc["data_file"].replace(".csv", "")
             png_root = os.path.join(out_path, f"{base}_samplestemporary")
             txt_root = os.path.join(out_path, f"{base}_samplestemporarytxt")
-            os.makedirs(png_root, exist_ok=True)
-            os.makedirs(txt_root, exist_ok=True)
+            base_dir = os.listdir(out_path)
+
+            if f"{base}_samplestemporary" not in base_dir:
+                os.makedirs(png_root, exist_ok=True)
+            if f"{base}_samplestemporarytxt" not in base_dir:
+                os.makedirs(txt_root, exist_ok=True)
 
             vid = video.replace(" ", "SPACE")
             cls = row.iloc[1]
@@ -272,8 +291,9 @@ def save_sample(out_path:str,batch):
             # write counts
             txt_path = os.path.join(txt_root, f"{key}.txt")
             with open(txt_path, "w") as f:
-                f.write("-".join(
-                    str(start_frame + x) for x in range(frames_per_sample)))
+                f.write(
+                    "-".join(str(start_frame + x) for x in range(frames_per_sample))
+                )
 
             # write frames under their own subfolder
             sample_dir = os.path.join(png_root, key)
@@ -282,8 +302,14 @@ def save_sample(out_path:str,batch):
             for i, frame_tensor in enumerate(partial_frames):
                 # Handle grayscale correctly - extract the single channel data
                 # The tensor shape should be [1, 1, height, width]
-                arr = (frame_tensor.squeeze(0).squeeze(0).cpu().numpy().clip(
-                    0, 255).astype(np.uint8))
+                arr = (
+                    frame_tensor.squeeze(0)
+                    .squeeze(0)
+                    .cpu()
+                    .numpy()
+                    .clip(0, 255)
+                    .astype(np.uint8)
+                )
 
                 # Keep the original filename format
                 frame_path = os.path.join(sample_dir, f"frame_{i:03d}.png")
@@ -331,11 +357,7 @@ def apply_video_transformations(
     """
     # history: pulled, with minimal edits, from the code from bee_analysis
     if normalize:
-        frame = cv2.normalize(frame,
-                              None,
-                              alpha=0,
-                              beta=255,
-                              norm_type=cv2.NORM_MINMAX)
+        frame = cv2.normalize(frame, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
     # Apply contrast and brightness adjustments
     contrast = 1.9  # Simple contrast control [1.0-3.0]
@@ -362,33 +384,43 @@ def apply_video_transformations(
 
         # Create tensor differently for grayscale - don't permute dimensions
         np_frame = np.array(frame)
-        in_frame = (torch.tensor(data=np_frame,
-                                 dtype=torch.float16).unsqueeze(0).unsqueeze(0)
-                    )  # Shape: [1, 1, H, W]
+        in_frame = (
+            torch.tensor(data=np_frame, dtype=torch.float16).unsqueeze(0).unsqueeze(0)
+        )  # Shape: [1, 1, H, W]
     else:
         # Standard RGB processing
         logging.debug(f"Keeping frame {count} as RGB (3-channel)")
         np_frame = np.array(frame)
-        in_frame = (torch.tensor(data=np_frame,
-                                 dtype=torch.float16).permute(2, 0,
-                                                              1).unsqueeze(0)
-                    )  # Shape: [1, 3, H, W]
+        in_frame = (
+            torch.tensor(data=np_frame, dtype=torch.float16)
+            .permute(2, 0, 1)
+            .unsqueeze(0)
+        )  # Shape: [1, 3, H, W]
 
     if crop and out_width is not None and out_height is not None:
         # calculate crop coordinates
-        scale_w, scale_h, crop_coords = getCropCoords(width, height, scale, out_width, out_height, crop_x_offset, crop_y_offset)
-        
+        scale_w, scale_h, crop_coords = getCropCoords(
+            width, height, scale, out_width, out_height, crop_x_offset, crop_y_offset
+        )
+
         # apply preprocessing using imagePreprocessFromCoords
         processed_frame = imagePreprocessFromCoords(
-            frame, scale_w, scale_h, crop_coords,
-            out_width, out_height, 
-            planes=out_channels, src='BGR'
+            frame,
+            scale_w,
+            scale_h,
+            crop_coords,
+            out_width,
+            out_height,
+            planes=out_channels,
+            src="BGR",
         )
-        
+
         # convert processed frame to tensor
         logging.debug(f"Converting cropped frame {count} to grayscale tensor")
         np_frame = np.array(processed_frame)
-        in_frame = torch.tensor(data=np_frame, dtype=torch.float16).unsqueeze(0).unsqueeze(0)
+        in_frame = (
+            torch.tensor(data=np_frame, dtype=torch.float16).unsqueeze(0).unsqueeze(0)
+        )
         return in_frame
 
     return in_frame
@@ -416,8 +448,9 @@ def getVideoInfo(video: str):
     return width, height
 
 
-def vidSamplingCommonCrop(height, width, out_height, out_width, scale,
-                          crop_x_offset, crop_y_offset):
+def vidSamplingCommonCrop(
+    height, width, out_height, out_width, scale, crop_x_offset, crop_y_offset
+):
     """Return the common cropping parameters used in dataprep and annotations.
 
     :param height: int
