@@ -72,10 +72,6 @@ from concurrent.futures import ThreadPoolExecutor
 import webdataset as wds
 from PIL import Image
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO
-)
-
 def process_sample(key, png_root, txt_root, frames_per_sample, out_channels):
     """
     Reads one sample "<key>/" + "<key>.txt" and returns a WebDataset sample dict,
@@ -159,7 +155,7 @@ def write_to_dataset(
     txt_root = png_root.rstrip(os.sep) + "txt"
     keys = [d for d in os.listdir(os.path.join(out_path, png_root))
             if os.path.isdir(os.path.join(out_path, png_root, d))]
-    logging.info(f"Found {len(keys)} sample folders")
+    logging.info(f"Found {len(keys)} sample folders for {tar_file}")
 
     # optional equalization
     if equalize_samples:
@@ -168,7 +164,7 @@ def write_to_dataset(
             cls = k.split("_")[1]
             bycls.setdefault(cls, []).append(k)
         minc = min(len(v) for v in bycls.values())
-        logging.info(f"Equalizing to {minc} samples per class")
+        logging.info(f"Equalizing to {minc} samples per class for {tar_file}")
         drop = []
         for v in bycls.values():
             v.sort()
@@ -180,7 +176,7 @@ def write_to_dataset(
             except:
                 pass
         keys = [k for k in keys if k not in drop]
-        logging.info(f"Dropped {len(drop)} (equalize), {len(keys)} remain")
+        logging.info(f"Dropped {len(drop)} (equalize), {len(keys)} remain for {tar_file}")
 
     count = 0
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
@@ -212,10 +208,10 @@ def write_to_dataset(
                     logging.warning(f"Cleanup failed for {key}: {e}")
 
                 if count % 1000 == 0:
-                    logging.info(f"  wrote {count} samples…")
+                    logging.info(f"  wrote {count} samples to {tar_file}…")
 
     tar.close()
-    logging.info(f"Finished writing {count}/{len(keys)} samples in {time.time()-start:.1f}s")
+    logging.info(f"Finished writing {count}/{len(keys)} samples in {time.time()-start:.1f}s to {tar_file}")
 
     with open(os.path.join(dataset_path, "RUN_DESCRIPTION.log"), "a+") as rd:
         rd.write(f"{count} samples → {tar_file}\n")

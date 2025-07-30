@@ -74,12 +74,12 @@ import argparse
 import concurrent.futures
 import datetime
 import logging
-
 logging.basicConfig(
-    format="%(asctime)s: %(message)s",
+    format="%(asctime)s: (Sampling) %(message)s",
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+
 import os
 import re
 import subprocess
