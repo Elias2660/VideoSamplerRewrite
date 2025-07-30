@@ -259,7 +259,7 @@ def main():
 
         if len(file_list) == 0:
             raise Exception(
-                "There are no dataset_*.csv files found. Try to specify the right path or actually create the files.`"
+                "There are no dataset_*.csv files found. Try to specify the right path or actually create the files."
             )
 
         # combines the dataframes

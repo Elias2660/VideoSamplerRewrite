@@ -96,7 +96,7 @@ def sample_video(
     start_time = (
         time.time()
     )  # start the timer to determine how long it takes to sample the video
-    logging.info(f"Capture to {video} about to be established")
+    logging.debug(f"Capture to {video} about to be established")
 
     cap = None
     count = 0
