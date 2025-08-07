@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# ! IMPORTANT TODO: SYNC THIS FILE WITH THE FILE WITH SAME NAME IN BEE_ANALYSIS
+
 """
 The above functions provide utilities for image preprocessing including resizing, cropping, and
 color conversion.
